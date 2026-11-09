@@ -1,0 +1,229 @@
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { ArrowRight, Check, Expand, Instagram } from 'lucide-react';
+import { getCategory } from '@cn/shared';
+import { Seo } from '@/components/seo/Seo';
+import { breadcrumbJsonLd, productJsonLd } from '@/components/seo/jsonld';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { SmartImage } from '@/components/ui/SmartImage';
+import { Lightbox } from '@/components/ui/Lightbox';
+import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
+import { DemoBadge, ProductCard } from '@/components/product/ProductCard';
+import { IllustrativeNote } from '@/components/layout/PageHeader';
+import { PageFallback } from '@/components/layout/Layout';
+import { useProduct, useRelated } from '@/hooks/useProducts';
+import { productWhatsAppMessage } from '@/lib/whatsapp';
+import { track } from '@/lib/analytics';
+import { site } from '@/config/site';
+import NotFound from './NotFound';
+
+export default function ProductDetail() {
+  const { slug } = useParams();
+  const { data: product, loading } = useProduct(slug);
+  const related = useRelated(product);
+  const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActive(0);
+    if (product) {
+      track('view_item', {
+        item_id: product.slug,
+        item_name: product.name,
+        item_category: product.category,
+      });
+    }
+  }, [product]);
+
+  if (loading) return <PageFallback />;
+  if (!product) return <NotFound />;
+
+  const category = getCategory(product.category);
+  const images = product.images.length ? product.images : [{ src: '', alt: product.name }];
+  const current = images[Math.min(active, images.length - 1)]!;
+  const crumbs = [
+    { name: 'Início', path: '/' },
+    { name: 'Embarcações', path: '/produtos' },
+    ...(category ? [{ name: category.name, path: `/produtos?categoria=${category.slug}` }] : []),
+    { name: product.name, path: `/produtos/${product.slug}` },
+  ];
+  const quoteHref = `/orcamento?produto=${encodeURIComponent(product.slug)}`;
+
+  return (
+    <>
+      <Seo
+        title={`${product.name} — ${category?.name ?? 'Embarcações'} em Manaus`}
+        description={`${product.shortDescription} Ceará Náutica, Manaus – AM. Solicite um orçamento.`}
+        path={`/produtos/${product.slug}`}
+        image={product.images[0]?.src}
+        type="product"
+        jsonLd={[productJsonLd(product), breadcrumbJsonLd(crumbs)]}
+      />
+
+      <div className="border-b border-steel-light bg-white">
+        <div className="container-x py-4">
+          <Breadcrumb items={crumbs} />
+        </div>
+      </div>
+
+      <section className="bg-white pt-8 pb-16 lg:pt-12 lg:pb-24">
+        <div className="container-x grid gap-10 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
+          {/* Galeria */}
+          <div>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-steel-light">
+              <button
+                type="button"
+                onClick={() => setLightbox(Math.min(active, images.length - 1))}
+                className="group block h-full w-full"
+              >
+                <SmartImage
+                  key={current.src}
+                  src={current.src}
+                  alt={current.alt}
+                  priority
+                  sizes="(min-width: 1024px) 55vw, 100vw"
+                  className="h-full w-full object-cover"
+                  width={1280}
+                  height={960}
+                />
+                <span className="absolute right-3 bottom-3 inline-flex min-h-10 items-center gap-2 rounded-sm bg-graphite-deep/80 px-3 text-sm font-medium text-white">
+                  <Expand aria-hidden="true" className="size-4" /> Ampliar
+                </span>
+              </button>
+              {product.isDemo && <DemoBadge className="absolute top-3 left-3" />}
+            </div>
+            {images.length > 1 && (
+              <ul className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-5" aria-label="Miniaturas">
+                {images.map((img, i) => (
+                  <li key={img.src || i}>
+                    <button
+                      type="button"
+                      onClick={() => setActive(i)}
+                      aria-current={i === active ? 'true' : undefined}
+                      className={`block aspect-[4/3] w-full overflow-hidden rounded-sm border-2 bg-steel-light ${
+                        i === active ? 'border-orange' : 'border-transparent opacity-75 hover:opacity-100'
+                      }`}
+                    >
+                      <SmartImage src={img.src} alt="" sizes="120px" className="h-full w-full object-cover" />
+                      <span className="sr-only">Ver imagem {i + 1}: {img.alt}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <IllustrativeNote className="mt-4" />
+          </div>
+
+          {/* Informações */}
+          <div>
+            <p className="eyebrow text-orange-ink">{category?.name}</p>
+            <h1 className="mt-2 text-[2.5rem] leading-[0.98] font-bold uppercase sm:text-5xl lg:text-[3.5rem]">
+              {product.name}
+            </h1>
+            <p className="mt-4 text-lg leading-relaxed text-graphite">{product.shortDescription}</p>
+
+            {product.availability && (
+              <p className="mt-5 inline-flex items-center gap-2 rounded-sm bg-offwhite px-3 py-2 text-sm font-medium text-graphite-deep">
+                <span aria-hidden="true" className="size-2 rounded-full bg-orange" />
+                Disponibilidade: {product.availability}
+              </p>
+            )}
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+              <Link to={quoteHref} className="btn-primary flex-1 px-6">
+                Solicitar orçamento <ArrowRight aria-hidden="true" className="size-5" />
+              </Link>
+              <WhatsAppCta
+                message={productWhatsAppMessage(product.name)}
+                location="produto"
+                productSlug={product.slug}
+                className="btn-outline flex-1 px-6"
+                fallbackTo={quoteHref}
+                fallbackLabel="Falar com um vendedor"
+              />
+            </div>
+
+            <h2 className="mt-10 eyebrow text-graphite-deep">Especificações</h2>
+            <dl className="mt-3 divide-y divide-steel-light border-y border-steel-light">
+              {product.specs.map((s) => (
+                <div key={s.label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-3 text-[0.9375rem]">
+                  <dt className="text-steel">{s.label}</dt>
+                  <dd className={`font-medium ${/sob consulta/i.test(s.value) ? 'text-steel italic' : 'text-graphite-deep'}`}>{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {product.features.length > 0 && (
+              <>
+                <h2 className="mt-8 eyebrow text-graphite-deep">Características</h2>
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {product.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] text-graphite">
+                      <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-orange-ink" strokeWidth={2.5} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {product.features.some((f) => f.endsWith('*')) && (
+                  <p className="mt-2 text-xs text-steel">* Condição do projeto publicado; confirme com a equipe.</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="descricao-title" className="border-t border-steel-light py-16 lg:py-20">
+        <div className="container-x grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+          <h2 id="descricao-title" className="text-4xl font-bold uppercase">
+            Sobre este projeto
+          </h2>
+          <div>
+            <p className="text-lg leading-relaxed text-graphite">{product.description}</p>
+            <p className="mt-4 leading-relaxed text-steel">
+              Medidas, layout, motorização, cor e acabamento podem ser ajustados ao seu uso. Fale com
+              a equipe para montar o seu projeto.
+            </p>
+            {product.source && (
+              <p className="mt-6 flex items-center gap-2 text-sm text-steel">
+                <Instagram aria-hidden="true" className="size-4 shrink-0" />
+                <span>
+                  Fonte:{' '}
+                  <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="link-underline">
+                    {product.source}
+                    <span className="sr-only"> (abre em nova aba)</span>
+                  </a>
+                </span>
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {related.length > 0 && (
+        <section aria-labelledby="relacionados-title" className="border-t border-steel-light bg-white py-16 lg:py-20">
+          <div className="container-x">
+            <h2 id="relacionados-title" className="text-4xl font-bold uppercase">
+              Veja também
+            </h2>
+            <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {related.map((p) => (
+                <li key={p.slug}>
+                  <ProductCard product={p} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <Lightbox
+        images={images.filter((i) => i.src)}
+        index={lightbox}
+        onClose={() => setLightbox(null)}
+        onIndexChange={setLightbox}
+        label={`Fotos — ${product.name}`}
+      />
+    </>
+  );
+}

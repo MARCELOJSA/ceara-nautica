@@ -1,0 +1,130 @@
+// Prisma schema — API da Ceará Náutica
+// Banco: PostgreSQL 16 (Docker, porta host 5433). Ver apps/api/.env.example.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique @db.VarChar(80)
+  name        String    @db.VarChar(120)
+  description String    @db.VarChar(500)
+  /// Ordem de exibição (mesma ordem de CATEGORIES em @cn/shared)
+  sortOrder   Int       @default(0) @map("sort_order")
+  products    Product[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model Product {
+  id               String         @id @default(cuid())
+  slug             String         @unique @db.VarChar(160)
+  name             String         @db.VarChar(200)
+  categoryId       String         @map("category_id")
+  category         Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  shortDescription String         @map("short_description") @db.VarChar(500)
+  description      String
+  features         String[]
+  /// null = não informado pela empresa
+  availability     String?        @db.VarChar(120)
+  featured         Boolean        @default(false)
+  /// true = dado demonstrativo, deve ser substituído pelo catálogo oficial
+  isDemo           Boolean        @default(true) @map("is_demo")
+  /// Origem da informação (ex.: publicação no Instagram oficial e data)
+  source           String?        @db.VarChar(300)
+  sortOrder        Int            @default(0) @map("sort_order")
+  images           ProductImage[]
+  specs            ProductSpec[]
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  @@index([categoryId])
+  @@index([featured])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  src       String  @db.VarChar(500)
+  alt       String  @db.VarChar(300)
+  order     Int     @default(0)
+
+  @@unique([productId, order])
+  @@map("product_images")
+}
+
+model ProductSpec {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label     String  @db.VarChar(120)
+  value     String  @db.VarChar(300)
+  order     Int     @default(0)
+
+  @@unique([productId, order])
+  @@map("product_specs")
+}
+
+model ContactMessage {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(120)
+  phone        String   @db.VarChar(40)
+  email        String?  @db.VarChar(160)
+  subject      String   @db.VarChar(120)
+  message      String   @db.VarChar(2000)
+  consent      Boolean
+  utmSource    String?  @map("utm_source") @db.VarChar(200)
+  utmMedium    String?  @map("utm_medium") @db.VarChar(200)
+  utmCampaign  String?  @map("utm_campaign") @db.VarChar(200)
+  utmTerm      String?  @map("utm_term") @db.VarChar(200)
+  utmContent   String?  @map("utm_content") @db.VarChar(200)
+  gclid        String?  @db.VarChar(500)
+  fbclid       String?  @db.VarChar(500)
+  landingPage  String?  @map("landing_page") @db.VarChar(500)
+  referrer     String?  @db.VarChar(500)
+  /// SHA-256(IP_HASH_SALT + ip) — nunca o IP cru
+  ipHash       String?  @map("ip_hash") @db.Char(64)
+  userAgent    String?  @map("user_agent") @db.VarChar(300)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+model QuoteRequest {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(120)
+  phone        String   @db.VarChar(40)
+  email        String?  @db.VarChar(160)
+  category     String?  @db.VarChar(80)
+  productSlug  String?  @map("product_slug") @db.VarChar(160)
+  city         String?  @db.VarChar(120)
+  message      String   @db.VarChar(2000)
+  consent      Boolean
+  utmSource    String?  @map("utm_source") @db.VarChar(200)
+  utmMedium    String?  @map("utm_medium") @db.VarChar(200)
+  utmCampaign  String?  @map("utm_campaign") @db.VarChar(200)
+  utmTerm      String?  @map("utm_term") @db.VarChar(200)
+  utmContent   String?  @map("utm_content") @db.VarChar(200)
+  gclid        String?  @db.VarChar(500)
+  fbclid       String?  @db.VarChar(500)
+  landingPage  String?  @map("landing_page") @db.VarChar(500)
+  referrer     String?  @db.VarChar(500)
+  /// SHA-256(IP_HASH_SALT + ip) — nunca o IP cru
+  ipHash       String?  @map("ip_hash") @db.Char(64)
+  userAgent    String?  @map("user_agent") @db.VarChar(300)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("quote_requests")
+}

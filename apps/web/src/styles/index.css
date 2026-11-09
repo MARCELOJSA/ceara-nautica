@@ -1,0 +1,127 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-orange: #e8731a;
+  --color-orange-hover: #c85f10;
+  /* laranja escurecido para texto pequeno sobre fundo claro (contraste AA) */
+  --color-orange-ink: #b3540c;
+  --color-graphite: #2b2e33;
+  --color-graphite-deep: #17191c;
+  --color-steel: #6b7078;
+  --color-steel-light: #e6e7e9;
+  --color-offwhite: #f6f5f2;
+  --color-white: #ffffff;
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  body {
+    @apply bg-offwhite text-graphite font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-graphite-deep;
+    letter-spacing: 0.005em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--color-orange);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  [id] {
+    scroll-margin-top: 96px;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-10;
+  }
+  .eyebrow {
+    @apply font-display text-[0.8125rem] font-semibold tracking-[0.18em] uppercase;
+  }
+  .rule {
+    @apply h-px w-full bg-steel-light;
+  }
+  .link-underline {
+    @apply underline decoration-orange decoration-2 underline-offset-4 hover:decoration-graphite-deep;
+  }
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-graphite-deep;
+  }
+  .field-input {
+    @apply block min-h-12 w-full rounded-sm border border-steel/40 bg-white px-3.5 py-2.5 text-base text-graphite-deep placeholder:text-steel/80 transition-colors focus:border-graphite-deep focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-orange aria-[invalid=true]:border-red-700;
+  }
+  .field-error {
+    @apply mt-1.5 text-sm font-medium text-red-700;
+  }
+}
+
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  &:focus,
+  &:focus-visible {
+    position: fixed;
+    width: auto;
+    height: auto;
+    clip: auto;
+    overflow: visible;
+  }
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 font-display text-[1.0625rem] font-semibold tracking-[0.06em] uppercase transition-colors duration-200 select-none;
+}
+@utility btn-primary {
+  @apply btn bg-orange text-graphite-deep hover:bg-orange-hover;
+}
+@utility btn-dark {
+  @apply btn bg-graphite-deep text-white hover:bg-graphite;
+}
+@utility btn-outline {
+  @apply btn border border-graphite/25 text-graphite-deep hover:border-graphite-deep hover:bg-graphite-deep hover:text-white;
+}
+@utility btn-outline-light {
+  @apply btn border border-white/40 text-white hover:border-white hover:bg-white hover:text-graphite-deep;
+}

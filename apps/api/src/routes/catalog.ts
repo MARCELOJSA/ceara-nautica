@@ -1,0 +1,123 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import type { Prisma, PrismaClient } from '@prisma/client';
+import { CATEGORIES, CATEGORY_SLUGS, type Product } from '@cn/shared';
+import { notFound } from '../lib/http-error.js';
+import { parseOr400 } from '../lib/validate.js';
+import { productInclude, productOrderBy, toProduct } from '../lib/products.js';
+
+const RELATED_LIMIT = 4;
+
+/** Escapa os curingas do LIKE/ILIKE (o Prisma não escapa `%`, `_` e `\` em `contains`). */
+const escapeLike = (term: string) => term.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+const emptyToUndefined = (v: unknown) =>
+  typeof v === 'string' && v.trim() === '' ? undefined : v;
+
+const productsQuerySchema = z.object({
+  category: z.preprocess(
+    emptyToUndefined,
+    z
+      .enum(CATEGORY_SLUGS, {
+        errorMap: () => ({ message: `Categoria inválida. Use: ${CATEGORY_SLUGS.join(', ')}.` }),
+      })
+      .optional(),
+  ),
+  q: z.preprocess(
+    emptyToUndefined,
+    z.string({ invalid_type_error: 'Busca inválida.' }).trim().max(100, 'Busca muito longa.').optional(),
+  ),
+  featured: z.preprocess(
+    emptyToUndefined,
+    z
+      .enum(['true', 'false', '1', '0'], {
+        errorMap: () => ({ message: 'Use featured=true ou featured=false.' }),
+      })
+      .transform((v) => v === 'true' || v === '1')
+      .optional(),
+  ),
+});
+
+const slugSchema = z
+  .string()
+  .max(160)
+  .regex(/^[a-z0-9-]+$/);
+
+export type CategoryWithCount = {
+  slug: string;
+  name: string;
+  description: string;
+  productCount: number;
+};
+
+export function catalogRouter(prisma: PrismaClient): Router {
+  const router = Router();
+
+  router.get('/categories', async (_req, res) => {
+    const rows = await prisma.category.findMany({
+      orderBy: { sortOrder: 'asc' },
+      select: { slug: true, name: true, description: true, _count: { select: { products: true } } },
+    });
+    const bySlug = new Map(rows.map((r) => [r.slug, r]));
+    // A ordem e o conjunto oficiais vêm de @cn/shared; contagem vem do banco.
+    const body: CategoryWithCount[] = CATEGORIES.map((c) => ({
+      slug: c.slug,
+      name: bySlug.get(c.slug)?.name ?? c.name,
+      description: bySlug.get(c.slug)?.description ?? c.description,
+      productCount: bySlug.get(c.slug)?._count.products ?? 0,
+    }));
+    res.json(body);
+  });
+
+  router.get('/products', async (req, res) => {
+    const query = parseOr400(productsQuerySchema, req.query, 'Parâmetros de busca inválidos.');
+    const where: Prisma.ProductWhereInput = {};
+    if (query.category) where.category = { slug: query.category };
+    if (query.featured !== undefined) where.featured = query.featured;
+    if (query.q) {
+      const term = escapeLike(query.q);
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { shortDescription: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+    const rows = await prisma.product.findMany({
+      where,
+      include: productInclude,
+      orderBy: productOrderBy,
+    });
+    const body: Product[] = rows.map(toProduct);
+    res.json(body);
+  });
+
+  router.get('/products/:slug', async (req, res) => {
+    const slug = slugSchema.safeParse(req.params.slug);
+    if (!slug.success) throw notFound('Produto não encontrado.');
+    const row = await prisma.product.findUnique({
+      where: { slug: slug.data },
+      include: productInclude,
+    });
+    if (!row) throw notFound('Produto não encontrado.');
+    res.json(toProduct(row));
+  });
+
+  router.get('/products/:slug/related', async (req, res) => {
+    const slug = slugSchema.safeParse(req.params.slug);
+    if (!slug.success) throw notFound('Produto não encontrado.');
+    const base = await prisma.product.findUnique({
+      where: { slug: slug.data },
+      select: { id: true, categoryId: true },
+    });
+    if (!base) throw notFound('Produto não encontrado.');
+    const rows = await prisma.product.findMany({
+      where: { categoryId: base.categoryId, id: { not: base.id } },
+      include: productInclude,
+      orderBy: [{ featured: 'desc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+      take: RELATED_LIMIT,
+    });
+    const body: Product[] = rows.map(toProduct);
+    res.json(body);
+  });
+
+  return router;
+}
