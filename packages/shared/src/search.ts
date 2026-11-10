@@ -1,3 +1,4 @@
+import { DEMO_PRODUCTS } from './catalog';
 import { getCategory } from './categories';
 import type { Product } from './types';
 
@@ -15,7 +16,10 @@ import type { Product } from './types';
  * - Plural/singular por radical simples ("motores" = "motor", "lanchas" = "lancha")
  *   e alguns sinônimos reais do domínio (estofado → estofamento).
  * - Tolerância a 1 erro de digitação por palavra com 4 letras ou mais
- *   ("motr" → motor, "lacnha" → lancha).
+ *   ("motr" → motor, "lacnha" → lancha), só quando a palavra digitada NÃO
+ *   existe no catálogo: "chata" é uma palavra real (semi-chata) e não vira
+ *   "chapa" (QA-10). O vocabulário é o do catálogo compartilhado, igual para
+ *   a API e o site.
  * - Busca sem sentido (ex.: "xyzw", "%") não retorna nada.
  *
  * O catálogo é pequeno (dezenas de itens), então a busca é feita em memória.
@@ -170,7 +174,7 @@ function indexOf(p: Product): SearchIndex {
 }
 
 /** Uma palavra buscada (`q`) corresponde a uma palavra do produto (`w`)? */
-function termMatches(q: string, w: string, strong: boolean): boolean {
+function termMatches(q: string, w: string, strong: boolean, fuzzy = true): boolean {
   if (q === w) return true;
   if (isNumberToken(q) || isNumberToken(w)) return false; // números: só exato
   if (stem(q) === stem(w)) return true;
@@ -180,19 +184,38 @@ function termMatches(q: string, w: string, strong: boolean): boolean {
     // "motor" não casar com "motorização" em toda descrição.
     if (strong ? q.length >= 2 : q.length >= 3 && w.length - q.length <= 4) return true;
   }
-  if (q.length >= 4 && w.length >= 4) {
+  if (fuzzy && q.length >= 4 && w.length >= 4) {
     if (withinOneEdit(q, w) || withinOneEdit(stem(q), stem(w))) return true;
   }
   return false;
 }
 
+let catalogIndexes: SearchIndex[] | undefined;
+const knownCache = new Map<string, boolean>();
+
+/** A palavra existe no catálogo sem precisar de tolerância a erro? */
+function isKnownWord(q: string): boolean {
+  const cached = knownCache.get(q);
+  if (cached !== undefined) return cached;
+  catalogIndexes ??= DEMO_PRODUCTS.map(indexOf);
+  const known = catalogIndexes.some(
+    (index) =>
+      index.strong.some((w) => termMatches(q, w, true, false)) ||
+      index.all.some((w) => termMatches(q, w, false, false)),
+  );
+  knownCache.set(q, known);
+  return known;
+}
+
 function wordMatches(index: SearchIndex, q: string): boolean {
   const alternatives = [q, ...(SYNONYMS[stem(q)] ?? [])];
-  return alternatives.some(
-    (alt) =>
-      index.strong.some((w) => termMatches(alt, w, true)) ||
-      index.all.some((w) => termMatches(alt, w, false)),
-  );
+  return alternatives.some((alt) => {
+    const fuzzy = !isKnownWord(alt);
+    return (
+      index.strong.some((w) => termMatches(alt, w, true, fuzzy)) ||
+      index.all.some((w) => termMatches(alt, w, false, fuzzy))
+    );
+  });
 }
 
 /** Palavras significativas da busca (sem repetição e sem palavras vazias). */

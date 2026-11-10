@@ -50,6 +50,21 @@ describe('filterProducts (busca do catálogo, mesma regra da API)', () => {
   });
 });
 
+describe('tolerância a erro só para palavras fora do catálogo (QA-10)', () => {
+  const slugs = (q: string) => filterProducts(DEMO_PRODUCTS, { q }).map((p) => p.slug);
+  it.each(['chata', 'semichata', 'semi-chata'])('"%s" traz só a semi-chata', (q) => {
+    expect(slugs(q)).toEqual(['semi-chata-aluminio-sob-medida']);
+  });
+  it('"chapa" não traz a semi-chata', () => {
+    expect(slugs('chapa')).not.toContain('semi-chata-aluminio-sob-medida');
+    expect(slugs('chapa').length).toBeGreaterThan(0);
+  });
+  it('erro de digitação em palavra inexistente continua tolerado', () => {
+    expect(slugs('lacnha').length).toBeGreaterThan(0);
+    expect(slugs('motr')).toEqual(['motores-de-popa']);
+  });
+});
+
 describe('looksLikeService', () => {
   it.each([
     'reparo',
