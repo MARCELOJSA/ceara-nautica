@@ -19,7 +19,7 @@ Fluxo: desenvolvimento → QA técnico → usuário final → correções → no
 - Último commit antes do ciclo: `2dcd197`. Typecheck e lint limpos; API 168/168, testes do site 30/30, Playwright 50/50.
 - Segurança: veredito APROVADO ([docs/SECURITY-REPORT.md](docs/SECURITY-REPORT.md)). SEC-04 depende da hospedagem.
 - UX rodada anterior: nota 7,0 ([docs/UX-REPORT.md](docs/UX-REPORT.md)); correções aplicadas, falta revalidar.
-- Sem repositório remoto: os commits ficam locais até o dono do projeto informar a URL do GitHub.
+- Repositório remoto: https://github.com/MARCELOJSA/ceara-nautica (configurado em 2026-11-10).
 
 ## Rodadas
 
@@ -61,14 +61,27 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 - **Usuário final, rodada 3** (`c0632cf`): nota **8,6** (antes 7,8). Dos UX-01 a UX-19: 14 resolvidos, 4 parciais (UX-04, UX-10, UX-17, UX-18) e 1 persistente de baixa prioridade (UX-12). Novos: UX-20 a UX-26, com só o UX-22 de prioridade média (quem tem motor com defeito não acha o caminho certo).
 - **QA técnico:** interrompido pelo limite de uso da conta (reinicia às 4h50 de Manaus) e retomado depois. As alterações de teste em `apps/web/e2e/qa/` ainda não foram commitadas.
 
-### Rodada 2 — correções (em andamento)
+### Rodada 2 — correções (concluída)
 
 **Orquestrador**
-- `df1c451`: UX-12 (as duas canoas com as mesmas linhas na ficha; banco re-semeado) e UX-25 ("Use apenas números" para telefone com letras). A outra metade do UX-25, número sem DDD aceito sem aviso, **não se confirmou**: no build, o formulário mostra "Inclua o DDD".
+- `df1c451`: UX-12 (fichas das canoas iguais) e UX-25 ("Use apenas números"). O caso "sem DDD aceito" não se confirmou: o formulário recusa com "Inclua o DDD".
+- `f5d9000`: QA-10 (a tolerância a erro de digitação só vale para palavras que não existem no catálogo; "chata" não traz mais produtos com "chapa").
 
-**Desenvolvedor 1:** UX-22 (botão "Problema no motor?" em Serviços e suporte a `/orcamento?servico=motor-revisao`), UX-21 (texto da tela de sucesso), UX-24 (sem Categoria e Modelo em pedidos de serviço), UX-18 (fotos repetidas na Home).
+**Desenvolvedor 1**
+- `7ef9285`: UX-22 (botão "Problema no motor?" em Serviços; `/orcamento?servico=motor-revisao`), UX-24 (sem Categoria e Modelo em pedidos de serviço), UX-21 (tela de sucesso).
+- `6e97ebe`: UX-18 (Home sem foto repetida; a Lancha 7 m saiu dos destaques da Home, decisão a confirmar com o cliente).
 
-**Desenvolvedor 2:** UX-22 (link e pergunta frequente na página do produto Motores de popa), UX-20 (texto cortado no catálogo), UX-23 ("Indicado para" padronizado), UX-26 ("Destaques do perfil" em /sobre).
+**Desenvolvedor 2**
+- `c6245dd`: UX-22 (link e pergunta frequente na página Motores de popa), UX-23 ("Indicado para" em todos os cards, termo único "Lazer").
+- `d2d68e8`: UX-20 (introdução curta no catálogo do celular). `c0efccd`: UX-26 (/sobre).
+
+**QA técnico, rodada 2** (`1b244c3`): QA-01 a QA-08 **corrigidos**, com testes de regressão. QA-10 encontrado e corrigido em seguida.
+
+**Verificação:** API 203/203, site 92/92, Playwright 59/59 (duas rodadas), regressão de QA 34/34. Tudo enviado ao GitHub (`origin/main`).
+
+### Rodada final — revalidação e revisão geral (em andamento)
+
+Build de `f5d9000` em `http://localhost:4190`. O QA técnico faz a regressão e a revisão geral com veredito técnico; o usuário final revalida UX-04, 10, 12, 17, 18 e 20–26, refaz as oito situações reais e dá um veredito de experiência.
 
 ## Fila de tarefas (ordem obrigatória)
 
@@ -86,10 +99,10 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 - [x] Rodada 1 de testes
 - [x] Rodada 1 de correções (desenvolvedores 1 e 2)
 - [x] Rodada 2: revalidação do usuário final (8,6)
-- [ ] Rodada 2: revalidação do QA técnico (retomada)
-- [ ] Rodada 2 de correções (UX-18, UX-20 a UX-24, UX-26)
+- [x] Rodada 2: revalidação do QA técnico (QA-01 a QA-08 corrigidos)
+- [x] Rodada 2 de correções (UX-12, UX-18, UX-20 a UX-26, QA-10)
 - [ ] Rodada 3: revalidação final (QA + usuário final) e revisão geral do site
 - [ ] SEC-04: headers de segurança na hospedagem (depende da escolha da hospedagem)
 - [ ] B7: manchete da página inicial (decisão do cliente)
 - [ ] Migração para Prisma 7 (SEC-13). Bloqueada enquanto a API em execução trava a DLL do Prisma
-- [ ] Enviar os commits ao GitHub (falta a URL do repositório)
+- [x] Repositório no GitHub configurado: https://github.com/MARCELOJSA/ceara-nautica (privado)
