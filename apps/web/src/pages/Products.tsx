@@ -8,11 +8,11 @@ import { IllustrativeNote, PageHeader } from '@/components/layout/PageHeader';
 import { ProductCard } from '@/components/product/ProductCard';
 import { CtaBand, type CtaContext } from '@/components/layout/CtaBand';
 import { useProducts } from '@/hooks/useProducts';
-import { filterProducts, normalize } from '@/lib/api';
+import { filterProducts } from '@/lib/api';
+import { looksLikeService as isServiceQuery } from '@/lib/search';
 import { track } from '@/lib/analytics';
 
 /** Termos que indicam serviço (não produto) — o estado vazio sugere a página Serviços. */
-const SERVICE_TERMS = /(repar|manuten|consert|solda|pintur|revis|reform|servi|instal)/;
 
 function ctaContext(category: string): CtaContext {
   if (category === 'motores-de-popa') return 'motores';
@@ -93,7 +93,7 @@ export default function Products() {
     { name: 'Embarcações', path: '/produtos' },
     ...(cat ? [{ name: cat.name, path: `/produtos?categoria=${cat.slug}` }] : []),
   ];
-  const looksLikeService = SERVICE_TERMS.test(normalize(q));
+  const looksLikeService = isServiceQuery(q);
 
   return (
     <>
