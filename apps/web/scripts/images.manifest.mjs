@@ -37,13 +37,19 @@ export const IMAGES = [
   { id: '1742648601638-c3062e720d29', out: 'images/galeria/passeio', author: 'Azzedine Rouichi', ...SECTION },
   { id: '1774453262743-451850856acf', out: 'images/galeria/barco-regional', author: 'Italo Guimas', ...SECTION },
   { id: '1691098343433-05584b38e1bc', out: 'images/galeria/igarape', author: 'Juan Orestes', ...SECTION },
+  // usada na página Sobre (não entra na galeria da Home: UX-18)
   { id: '1773967671015-0f78d6c092d5', out: 'images/galeria/aluminio-atracado', author: 'Jeff McLain', ...SECTION },
-  { id: '1564182998523-6923112e7d6b', out: 'images/galeria/oficina', author: 'Spencer Davis', ...SECTION },
   { id: '1788225247365-ffa243a47619', out: 'images/galeria/pesca', author: 'Anthony Bringas', ...SECTION },
+  // UX-07/UX-18: substituem "oficina" (faíscas) e "aluminio-atracado" na galeria "A vida no rio"
+  { id: '1685003361221-e4fc3ad79dd9', out: 'images/galeria/canoa-anoitecer', author: 'Amal Rajeev', ...SECTION, extract: { left: 0.1, top: 0.2, width: 0.6, height: 0.8 } },
+  // recorte só da vegetação e dos aguapés (sem as canoas do produto canoa-aluminio-7m-1)
+  { id: '1628517273913-8d3da3700c10', out: 'images/galeria/aguapes', author: 'Dawn McDonald', ...SECTION, extract: { left: 0, top: 0, width: 0.72, height: 0.52 } },
 
   // Produtos (caminhos batem com packages/shared/src/catalog.ts)
   { id: '1568691423018-1beac58cb48e', out: 'images/products/lancha-cargueira-iguaracu-9m-1', author: 'Makarios Tang', ...PRODUCT },
-  { id: '1788225413457-bb0006563280', out: 'images/products/lancha-aluminio-10m-1', author: 'Anthony Bringas', ...PRODUCT },
+  // UX-07: antes era a silhueta de uma canoa (quase igual ao hero). Recorte da lancha
+  // de alumínio, sem a vegetação de clima temperado e sem marca visível no motor.
+  { id: '1778775454256-ec1b63776bc4', out: 'images/products/lancha-aluminio-10m-1', author: 'Margo Evardson', ...PRODUCT, extract: { left: 0.52, top: 0.58, width: 0.34, height: 0.38 } },
   { id: '1771380451033-8b6772915d79', out: 'images/products/lancha-aluminio-7m-1', author: 'Akbar Rahmat Dhani', ...PRODUCT },
   { id: '1678687974700-bfa0518bbc87', out: 'images/products/bote-aluminio-7m-1', author: 'Evgeny Shevchenko', ...PRODUCT },
   // recorte que exclui os motores com marca atracados ao fundo
@@ -53,7 +59,8 @@ export const IMAGES = [
   { id: '1670771157839-2907e56b85c5', out: 'images/products/bote-aluminio-6m-90hp-1', author: 'Thomas Dewey', ...PRODUCT },
   { id: '1628517273913-8d3da3700c10', out: 'images/products/canoa-aluminio-7m-1', author: 'Dawn McDonald', ...PRODUCT },
   { id: '1685003361221-e4fc3ad79dd9', out: 'images/products/canoa-aluminio-7m-2', author: 'Amal Rajeev', ...PRODUCT },
-  { id: '1620050422138-e68fd2f6f781', out: 'images/products/canoa-aluminio-6m-1', author: 'R K', ...PRODUCT },
+  // UX-07: antes era um lago com floresta de outono. Recorte sem o motor (marca visível).
+  { id: '1766520791943-0c1f8ac1933b', out: 'images/products/canoa-aluminio-6m-1', author: 'Mohammad Bahadori', ...PRODUCT, extract: { left: 0, top: 0.15, width: 0.6, height: 0.8 } },
   { id: '1718487829635-de4ccb68474b', out: 'images/products/semi-chata-aluminio-sob-medida-1', author: 'Mark Kuiper', ...PRODUCT },
   { id: '1534624738876-c69e6e1ec023', out: 'images/products/motores-de-popa-1', author: 'Val Vesa', ...PRODUCT },
   { id: '1788981685199-e01d01f1ee38', out: 'images/products/estofamento-nautico-1', author: 'Ahmed Al-Ghabban', ...PRODUCT },

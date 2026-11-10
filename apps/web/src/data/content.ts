@@ -53,11 +53,11 @@ export const SERVICES: Service[] = [
     title: 'Manutenção náutica',
     kicker: 'Manutenção',
     summary:
-      'Manutenção náutica em Manaus para manter a sua embarcação pronta para navegar e prolongar a vida útil do casco, dos equipamentos e do acabamento.',
+      'Manutenção náutica em Manaus para manter a sua embarcação pronta para navegar e prolongar a vida útil do casco e do acabamento. Descreva o que precisa no pedido e a equipe confirma se atende o seu caso.',
     points: [
-      'Manutenção preventiva e corretiva',
+      'Manutenção de embarcações',
       'Cuidado com casco e acabamento',
-      'Atendimento local em Manaus',
+      'Motor de popa: descreva o problema e a equipe confirma se atende',
     ],
     image: '/images/servicos/manutencao.webp',
     imageAlt: 'Profissional fazendo manutenção na hélice de uma embarcação',
@@ -68,7 +68,7 @@ export const SERVICES: Service[] = [
     title: 'Revenda de motores de popa',
     kicker: 'Motores de popa',
     summary:
-      'Revenda de motores de popa em Manaus, com orientação para escolher a motorização certa para o seu tipo de embarcação e de uso.',
+      'Revendemos motores de popa em Manaus, com orientação para escolher a motorização certa para o seu tipo de embarcação e de uso. Para manutenção ou revisão do motor, descreva o problema no pedido de orçamento e a equipe confirma se atende.',
     points: [
       'Orientação na escolha da potência',
       'Motor e embarcação pensados em conjunto',
@@ -108,18 +108,14 @@ export const GALLERY: GalleryImage[] = [
     src: '/images/galeria/rio-floresta.webp',
     alt: 'Rio largo margeado por floresta amazônica sob céu carregado',
   },
-  {
-    src: '/images/galeria/aluminio-atracado.webp',
-    alt: 'Barcos de alumínio atracados lado a lado em um píer',
-  },
   { src: '/images/galeria/porto.webp', alt: 'Embarcação regional atracada em porto fluvial' },
   {
     src: '/images/galeria/pesca.webp',
     alt: 'Pequena embarcação com pescadores em rio de águas barrentas',
   },
   {
-    src: '/images/galeria/oficina.webp',
-    alt: 'Faíscas de esmerilhadeira em trabalho com metal na oficina',
+    src: '/images/galeria/canoa-anoitecer.webp',
+    alt: 'Canoa amarrada na margem ao anoitecer',
   },
   { src: '/images/galeria/passeio.webp', alt: 'Passeio de barco por rio cercado de vegetação' },
   {
@@ -127,16 +123,27 @@ export const GALLERY: GalleryImage[] = [
     alt: 'Barco de passageiros navegando em rio largo',
   },
   { src: '/images/galeria/igarape.webp', alt: 'Canoa navegando em igarapé cercado de árvores' },
+  {
+    src: '/images/galeria/aguapes.webp',
+    alt: 'Margem de rio coberta de aguapés, com palmeiras ao fundo',
+  },
 ];
 
-/** Imagem de capa por categoria (usa fotos do catálogo). */
+/**
+ * Imagem de capa por categoria (usa fotos do catálogo). Sempre que possível,
+ * fotos que NÃO são a capa dos produtos em destaque da Home (UX-18). Lanchas
+ * ainda repete: todas as fotos de lancha são de destaques.
+ */
 export const CATEGORY_COVERS: Record<CategorySlug, { src: string; alt: string }> = {
   lanchas: {
     src: '/images/products/lancha-aluminio-7m-1.webp',
     alt: 'Lancha de alumínio navegando',
   },
-  canoas: { src: '/images/products/canoa-aluminio-7m-1.webp', alt: 'Canoas na margem do rio' },
-  botes: { src: '/images/products/bote-aluminio-7m-1.webp', alt: 'Bote de alumínio na margem' },
+  canoas: { src: '/images/products/canoa-aluminio-6m-1.webp', alt: 'Canoa de alumínio no rio' },
+  botes: {
+    src: '/images/products/bote-aluminio-6m-90hp-1.webp',
+    alt: 'Bote de alumínio ancorado em águas calmas',
+  },
   'semi-chatas': {
     src: '/images/products/semi-chata-aluminio-sob-medida-1.webp',
     alt: 'Embarcação semi-chata com cobertura no rio',
@@ -220,6 +227,10 @@ export const FAQ = [
   {
     q: 'Vocês vendem motores de popa?',
     a: 'Sim, trabalhamos com revenda de motores de popa. Marcas, modelos e potências disponíveis são informados no orçamento.',
+  },
+  {
+    q: 'Vocês fazem manutenção ou conserto de motor de popa?',
+    a: 'Revendemos motores de popa. Para manutenção ou revisão do motor, descreva o problema no pedido de orçamento (modelo do motor e o que está acontecendo) e a equipe confirma se atende o seu caso.',
   },
   {
     q: 'Como recebo o retorno do meu pedido?',

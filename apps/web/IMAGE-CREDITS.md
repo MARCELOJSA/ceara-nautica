@@ -26,10 +26,11 @@ substituídas pelas fotos reais da empresa assim que disponíveis.
 | `public/images/galeria/barco-regional.webp` | Italo Guimas | [photo-1774453262743-451850856acf](https://images.unsplash.com/photo-1774453262743-451850856acf) | Unsplash License |
 | `public/images/galeria/igarape.webp` | Juan Orestes | [photo-1691098343433-05584b38e1bc](https://images.unsplash.com/photo-1691098343433-05584b38e1bc) | Unsplash License |
 | `public/images/galeria/aluminio-atracado.webp` | Jeff McLain | [photo-1773967671015-0f78d6c092d5](https://images.unsplash.com/photo-1773967671015-0f78d6c092d5) | Unsplash License |
-| `public/images/galeria/oficina.webp` | Spencer Davis | [photo-1564182998523-6923112e7d6b](https://images.unsplash.com/photo-1564182998523-6923112e7d6b) | Unsplash License |
 | `public/images/galeria/pesca.webp` | Anthony Bringas | [photo-1788225247365-ffa243a47619](https://images.unsplash.com/photo-1788225247365-ffa243a47619) | Unsplash License |
+| `public/images/galeria/canoa-anoitecer.webp` | Amal Rajeev | [photo-1685003361221-e4fc3ad79dd9](https://images.unsplash.com/photo-1685003361221-e4fc3ad79dd9) | Unsplash License |
+| `public/images/galeria/aguapes.webp` | Dawn McDonald | [photo-1628517273913-8d3da3700c10](https://images.unsplash.com/photo-1628517273913-8d3da3700c10) | Unsplash License |
 | `public/images/products/lancha-cargueira-iguaracu-9m-1.webp` | Makarios Tang | [photo-1568691423018-1beac58cb48e](https://images.unsplash.com/photo-1568691423018-1beac58cb48e) | Unsplash License |
-| `public/images/products/lancha-aluminio-10m-1.webp` | Anthony Bringas | [photo-1788225413457-bb0006563280](https://images.unsplash.com/photo-1788225413457-bb0006563280) | Unsplash License |
+| `public/images/products/lancha-aluminio-10m-1.webp` | Margo Evardson | [photo-1778775454256-ec1b63776bc4](https://images.unsplash.com/photo-1778775454256-ec1b63776bc4) | Unsplash License |
 | `public/images/products/lancha-aluminio-7m-1.webp` | Akbar Rahmat Dhani | [photo-1771380451033-8b6772915d79](https://images.unsplash.com/photo-1771380451033-8b6772915d79) | Unsplash License |
 | `public/images/products/bote-aluminio-7m-1.webp` | Evgeny Shevchenko | [photo-1678687974700-bfa0518bbc87](https://images.unsplash.com/photo-1678687974700-bfa0518bbc87) | Unsplash License |
 | `public/images/products/bote-aluminio-7m-2.webp` | Joseph Corl | [photo-1731161468331-a8a396f3f9e2](https://images.unsplash.com/photo-1731161468331-a8a396f3f9e2) | Unsplash License |
@@ -38,7 +39,7 @@ substituídas pelas fotos reais da empresa assim que disponíveis.
 | `public/images/products/bote-aluminio-6m-90hp-1.webp` | Thomas Dewey | [photo-1670771157839-2907e56b85c5](https://images.unsplash.com/photo-1670771157839-2907e56b85c5) | Unsplash License |
 | `public/images/products/canoa-aluminio-7m-1.webp` | Dawn McDonald | [photo-1628517273913-8d3da3700c10](https://images.unsplash.com/photo-1628517273913-8d3da3700c10) | Unsplash License |
 | `public/images/products/canoa-aluminio-7m-2.webp` | Amal Rajeev | [photo-1685003361221-e4fc3ad79dd9](https://images.unsplash.com/photo-1685003361221-e4fc3ad79dd9) | Unsplash License |
-| `public/images/products/canoa-aluminio-6m-1.webp` | R K | [photo-1620050422138-e68fd2f6f781](https://images.unsplash.com/photo-1620050422138-e68fd2f6f781) | Unsplash License |
+| `public/images/products/canoa-aluminio-6m-1.webp` | Mohammad Bahadori | [photo-1766520791943-0c1f8ac1933b](https://images.unsplash.com/photo-1766520791943-0c1f8ac1933b) | Unsplash License |
 | `public/images/products/semi-chata-aluminio-sob-medida-1.webp` | Mark Kuiper | [photo-1718487829635-de4ccb68474b](https://images.unsplash.com/photo-1718487829635-de4ccb68474b) | Unsplash License |
 | `public/images/products/motores-de-popa-1.webp` | Val Vesa | [photo-1534624738876-c69e6e1ec023](https://images.unsplash.com/photo-1534624738876-c69e6e1ec023) | Unsplash License |
 | `public/images/products/estofamento-nautico-1.webp` | Ahmed Al-Ghabban | [photo-1788981685199-e01d01f1ee38](https://images.unsplash.com/photo-1788981685199-e01d01f1ee38) | Unsplash License |
