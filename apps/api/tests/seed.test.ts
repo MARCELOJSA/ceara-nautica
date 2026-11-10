@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { DEMO_PRODUCTS } from '@cn/shared';
-import { seed } from '../prisma/seed.js';
+import { missingImages, seed } from '../prisma/seed.js';
 import { prisma } from './helpers.js';
 
 afterAll(async () => {
@@ -44,5 +44,28 @@ describe('seed do catálogo', () => {
     expect(result.removed).toBe(1);
     expect(await prisma.product.findUnique({ where: { slug: 'produto-obsoleto-teste' } })).toBeNull();
     expect(await prisma.product.count()).toBe(DEMO_PRODUCTS.length);
+  });
+
+  it('substitui as imagens antigas: o banco tem exatamente as fotos do catálogo (QA-08)', async () => {
+    const target = DEMO_PRODUCTS[0]!;
+    const product = await prisma.product.findUniqueOrThrow({ where: { slug: target.slug } });
+    await prisma.productImage.create({
+      data: { productId: product.id, src: '/images/products/foto-antiga-inexistente.webp', alt: 'x', order: 99 },
+    });
+    await seed(prisma);
+    const rows = await prisma.productImage.findMany({ select: { src: true } });
+    const expected = DEMO_PRODUCTS.flatMap((p) => p.images.map((i) => i.src));
+    expect(rows.map((r) => r.src).sort()).toEqual([...expected].sort());
+  });
+
+  it('toda imagem do catálogo existe em apps/web/public (QA-08)', () => {
+    expect(missingImages()).toEqual([]);
+  });
+
+  it('missingImages detecta caminho inexistente', () => {
+    const fake = { ...DEMO_PRODUCTS[0]!, images: [{ src: '/images/products/nao-existe.webp', alt: 'x' }] };
+    expect(missingImages([fake])).toEqual([
+      { slug: fake.slug, src: '/images/products/nao-existe.webp' },
+    ]);
   });
 });

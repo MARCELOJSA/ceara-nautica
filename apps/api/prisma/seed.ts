@@ -7,8 +7,26 @@
  * (guardam apenas o slug como texto).
  */
 import 'dotenv/config';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 import { CATEGORIES, DEMO_PRODUCTS, type Product } from '@cn/shared';
+
+/** Pasta pública do site, onde ficam as imagens declaradas no catálogo. */
+export const WEB_PUBLIC_DIR = fileURLToPath(new URL('../../web/public', import.meta.url));
+
+/**
+ * Imagens do catálogo que não existem em apps/web/public (QA-08). O seed só
+ * avisa: a API não serve as imagens, mas links quebrados devem ser corrigidos
+ * no catálogo de @cn/shared.
+ */
+export function missingImages(products: Product[] = DEMO_PRODUCTS, publicDir = WEB_PUBLIC_DIR) {
+  return products.flatMap((p) =>
+    p.images
+      .filter((img) => !existsSync(`${publicDir}${img.src}`))
+      .map((img) => ({ slug: p.slug, src: img.src })),
+  );
+}
 
 export async function seed(prisma: PrismaClient, products: Product[] = DEMO_PRODUCTS) {
   const categoryIds = new Map<string, string>();
@@ -66,6 +84,9 @@ const isDirectRun = process.argv[1] && /seed\.(ts|js|mjs)$/.test(process.argv[1]
 
 if (isDirectRun) {
   const prisma = new PrismaClient();
+  for (const m of missingImages()) {
+    console.warn(`Aviso: imagem inexistente em apps/web/public: ${m.src} (produto ${m.slug})`);
+  }
   seed(prisma)
     .then((r) => {
       console.log(
