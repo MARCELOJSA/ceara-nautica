@@ -36,7 +36,6 @@ export const DEMO_PRODUCTS: Product[] = [
       'Lancha cargueira tipo Iguaraçu fabricada pela Ceará Náutica, feita para trabalho e transporte. Uma embarcação funcional, segura e preparada para diferentes operações nos rios da Amazônia. O projeto pode ser adaptado à necessidade de cada cliente.',
     images: [
       img('lancha-cargueira-iguaracu-9m', 1, 'Lancha cargueira de alumínio tipo Iguaraçu no rio'),
-      img('lancha-cargueira-iguaracu-9m', 2, 'Interior de lancha cargueira de alumínio com poltronas'),
     ],
     specs: [
       { label: 'Dimensões', value: '9 m x 2,20 m x 0,70 m' },
@@ -66,17 +65,18 @@ export const DEMO_PRODUCTS: Product[] = [
       'Lancha de 10 metros fabricada com foco em resistência, segurança e desempenho.',
     description:
       'Lancha de alumínio de 10 metros construída no estaleiro da Ceará Náutica com foco em resistência, segurança e desempenho. Um dos projetos publicados foi entregue de Manaus para o Suriname — a empresa realiza entregas para diferentes regiões.',
-    images: [
-      img('lancha-aluminio-10m', 1, 'Lancha de alumínio de 10 metros'),
-      img('lancha-aluminio-10m', 2, 'Lancha de alumínio pronta para entrega'),
-    ],
+    images: [img('lancha-aluminio-10m', 1, 'Lancha de alumínio de 10 metros')],
     specs: [
       { label: 'Dimensões', value: '10 m x 1,45 m x 0,50 m' },
       { label: 'Material do casco', value: 'Alumínio' },
       { label: 'Motorização', value: SOB_CONSULTA },
       { label: 'Capacidade', value: SOB_CONSULTA },
     ],
-    features: ['Projeto sob medida', 'Entrega para outras regiões', 'Foco em resistência e desempenho'],
+    features: [
+      'Projeto sob medida',
+      'Entrega para outras regiões',
+      'Foco em resistência e desempenho',
+    ],
     availability: null,
     featured: true,
     isDemo: false,
@@ -89,10 +89,7 @@ export const DEMO_PRODUCTS: Product[] = [
     shortDescription: 'Lancha de alumínio completa, com capacidade total para 11 passageiros.',
     description:
       'Lancha de alumínio de 7 metros, completa, ideal para passeio, pesca ou trabalho. Aceita motorização de 115 hp a 300 hp, conforme o projeto publicado. Acabamento e configuração definidos com a equipe.',
-    images: [
-      img('lancha-aluminio-7m', 1, 'Lancha de alumínio de 7 metros navegando'),
-      img('lancha-aluminio-7m', 2, 'Detalhe do acabamento de lancha de alumínio'),
-    ],
+    images: [img('lancha-aluminio-7m', 1, 'Lancha de alumínio de 7 metros navegando')],
     specs: [
       { label: 'Dimensões', value: '7 m x 1,90 m x 0,65 m' },
       { label: 'Capacidade', value: '11 passageiros' },
@@ -110,7 +107,8 @@ export const DEMO_PRODUCTS: Product[] = [
     slug: 'bote-aluminio-7m',
     name: 'Bote de Alumínio 7 m',
     category: 'botes',
-    shortDescription: 'Bote de 7 metros com pintura personalizada — no projeto publicado, acabamento camuflado.',
+    shortDescription:
+      'Bote de 7 metros com pintura personalizada — no projeto publicado, acabamento camuflado.',
     description:
       'Bote de alumínio de 7 metros fabricado pela Ceará Náutica. A pintura é personalizada: o cliente escolhe a cor e o acabamento (no projeto publicado, acabamento camuflado). Robusto para pesca esportiva e uso no dia a dia.',
     images: [
@@ -134,7 +132,8 @@ export const DEMO_PRODUCTS: Product[] = [
     slug: 'bote-aluminio-6m',
     name: 'Bote de Alumínio 6 m',
     category: 'botes',
-    shortDescription: 'Bote de 6 m com 4 bancos atravessados, pintura personalizada e documentação.',
+    shortDescription:
+      'Bote de 6 m com 4 bancos atravessados, pintura personalizada e documentação.',
     description:
       'Bote de alumínio de 6 metros com 4 bancos atravessados e pintura personalizada. No projeto publicado, embarque e documentação estavam inclusos.',
     images: [
@@ -225,9 +224,7 @@ export const DEMO_PRODUCTS: Product[] = [
     shortDescription: 'Semi-chata em alumínio fabricada sob medida para lazer, pesca ou trabalho.',
     description:
       'A Ceará Náutica fabrica semi-chatas em alumínio sob medida. Medidas, layout e motorização são definidos com a equipe conforme o uso da embarcação.',
-    images: [
-      img('semi-chata-aluminio-sob-medida', 1, 'Embarcação semi-chata de alumínio no rio'),
-    ],
+    images: [img('semi-chata-aluminio-sob-medida', 1, 'Embarcação semi-chata de alumínio no rio')],
     specs: [
       { label: 'Material do casco', value: 'Alumínio' },
       { label: 'Dimensões', value: SOB_CONSULTA },
@@ -246,10 +243,7 @@ export const DEMO_PRODUCTS: Product[] = [
     shortDescription: 'Revenda de motores de popa, com orientação para escolher a potência certa.',
     description:
       'A Ceará Náutica trabalha com revenda de motores de popa. Marcas, modelos e potências disponíveis devem ser consultados com a equipe, que ajuda a escolher o motor ideal para a sua embarcação.',
-    images: [
-      img('motores-de-popa', 1, 'Motor de popa instalado em embarcação de alumínio'),
-      img('motores-de-popa', 2, 'Detalhe de motor de popa'),
-    ],
+    images: [img('motores-de-popa', 1, 'Motor de popa instalado em embarcação de alumínio')],
     specs: [
       { label: 'Marcas', value: SOB_CONSULTA },
       { label: 'Potências', value: SOB_CONSULTA },
