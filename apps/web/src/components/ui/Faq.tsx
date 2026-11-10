@@ -7,16 +7,23 @@ export interface FaqItem {
 }
 
 /** Perguntas frequentes com <details> nativo (acessível e sem JS). */
-export function Faq({ items, id = 'perguntas-frequentes' }: { items: FaqItem[]; id?: string }) {
+export function Faq({
+  items,
+  id = 'perguntas-frequentes',
+  eyebrow = 'Dúvidas',
+  title = 'Perguntas frequentes',
+  intro = 'O que não está aqui é informado no orçamento — sem promessas que não podemos cumprir.',
+}: {
+  items: FaqItem[];
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  intro?: string;
+}) {
   return (
     <section aria-labelledby={id} className="border-t border-steel-light bg-white py-16 lg:py-24">
       <div className="container-x grid gap-10 lg:grid-cols-[0.8fr_1.4fr] lg:gap-16">
-        <SectionHeading
-          id={id}
-          eyebrow="Dúvidas"
-          title="Perguntas frequentes"
-          intro="O que não está aqui é informado no orçamento — sem promessas que não podemos cumprir."
-        />
+        <SectionHeading id={id} eyebrow={eyebrow} title={title} intro={intro} />
         <div className="divide-y divide-steel-light border-y border-steel-light">
           {items.map((it) => (
             <details key={it.q} className="group">

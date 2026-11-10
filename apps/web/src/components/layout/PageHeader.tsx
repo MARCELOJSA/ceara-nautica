@@ -9,10 +9,23 @@ interface Props {
   crumbs: Crumb[];
   image?: { src: string; alt: string };
   children?: ReactNode;
+  /**
+   * Versão baixa no celular (catálogo, UX-09): menos respiro, título menor e
+   * introdução em 2 linhas, para os filtros e resultados aparecerem na 1ª tela.
+   */
+  compact?: boolean;
 }
 
 /** Cabeçalho das páginas internas: faixa grafite, filete laranja e foto opcional. */
-export function PageHeader({ eyebrow, title, intro, crumbs, image, children }: Props) {
+export function PageHeader({
+  eyebrow,
+  title,
+  intro,
+  crumbs,
+  image,
+  children,
+  compact = false,
+}: Props) {
   return (
     <section className="relative isolate overflow-hidden bg-graphite-deep text-white">
       {image && (
@@ -28,18 +41,26 @@ export function PageHeader({ eyebrow, title, intro, crumbs, image, children }: P
           <div className="absolute inset-0 bg-[linear-gradient(90deg,#17191C_0%,rgba(23,25,28,0.88)_45%,rgba(23,25,28,0.55)_100%)]" />
         </div>
       )}
-      <div className="container-x pt-8 pb-14 sm:pt-10 lg:pb-20">
+      <div
+        className={`container-x ${compact ? 'pt-4 pb-6 sm:pt-10 sm:pb-14 lg:pb-20' : 'pt-8 pb-14 sm:pt-10 lg:pb-20'}`}
+      >
         <Breadcrumb items={crumbs} tone="dark" />
-        <div className="mt-10 max-w-3xl lg:mt-14">
-          <p className="eyebrow flex items-center gap-3 text-orange">
+        <div className={`max-w-3xl ${compact ? 'mt-4 sm:mt-10 lg:mt-14' : 'mt-10 lg:mt-14'}`}>
+          <p
+            className={`eyebrow flex items-center gap-3 text-orange ${compact ? 'max-sm:hidden' : ''}`}
+          >
             <span aria-hidden="true" className="h-px w-8 bg-current" />
             {eyebrow}
           </p>
-          <h1 className="mt-3 text-[2.75rem] leading-[0.98] font-bold text-white uppercase sm:text-6xl lg:text-7xl">
+          <h1
+            className={`leading-[0.98] font-bold text-white uppercase sm:mt-3 sm:text-6xl lg:text-7xl ${compact ? 'text-[2.125rem]' : 'mt-3 text-[2.75rem]'}`}
+          >
             {title}
           </h1>
           {intro && (
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
+            <p
+              className={`max-w-2xl leading-relaxed text-white/80 sm:mt-5 sm:text-lg ${compact ? 'mt-2 text-sm max-sm:line-clamp-2' : 'mt-5 text-base'}`}
+            >
               {intro}
             </p>
           )}

@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { getCategory, type Product } from '@cn/shared';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { productImages } from '@/lib/images';
+import { cardSummary, productKind } from '@/data/product-info';
 
 export function DemoBadge({ className = '' }: { className?: string }) {
   return (
@@ -15,12 +16,6 @@ export function DemoBadge({ className = '' }: { className?: string }) {
   );
 }
 
-/** Primeira especificação com valor real (não "Sob consulta"), para dar contexto no card. */
-function keySpec(p: Product): string | undefined {
-  const s = p.specs.find((x) => x.value && !/sob consulta/i.test(x.value));
-  return s ? s.value : undefined;
-}
-
 export function ProductCard({
   product,
   headingLevel = 3,
@@ -30,7 +25,9 @@ export function ProductCard({
 }) {
   const cover = productImages(product)[0];
   const category = getCategory(product.category);
-  const spec = keySpec(product);
+  // medida e capacidade publicadas + usos citados nos textos (UX-06); nada inventado
+  const { facts, uses } = cardSummary(product);
+  const isBoat = productKind(product) === 'embarcacao';
   const H = headingLevel === 2 ? 'h2' : 'h3';
 
   return (
@@ -58,11 +55,22 @@ export function ProductCard({
         <p className="mt-2 line-clamp-3 text-[0.9375rem] leading-relaxed text-steel">
           {product.shortDescription}
         </p>
+        {uses.length > 0 && (
+          <p className="mt-3 text-sm text-graphite" data-testid="card-uses">
+            <span className="text-steel">Indicado para: </span>
+            {uses.join(' · ')}
+          </p>
+        )}
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-          {spec ? (
-            <span className="truncate font-display text-sm font-semibold tracking-[0.06em] text-graphite uppercase">
-              {spec}
+          {facts.length > 0 ? (
+            <span
+              className="min-w-0 truncate font-display text-sm font-semibold tracking-[0.06em] text-graphite uppercase"
+              data-testid="card-facts"
+            >
+              {facts.join(' · ')}
             </span>
+          ) : isBoat ? (
+            <span className="text-sm text-steel italic">Medidas sob consulta</span>
           ) : (
             <span />
           )}

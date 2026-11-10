@@ -12,8 +12,6 @@ import { filterProducts } from '@/lib/api';
 import { looksLikeService as isServiceQuery } from '@/lib/search';
 import { track } from '@/lib/analytics';
 
-/** Termos que indicam serviço (não produto) — o estado vazio sugere a página Serviços. */
-
 function ctaContext(category: string): CtaContext {
   if (category === 'motores-de-popa') return 'motores';
   if (category === 'estofamentos') return 'estofamento';
@@ -90,7 +88,8 @@ export default function Products() {
 
   const crumbs = [
     { name: 'Início', path: '/' },
-    { name: 'Embarcações', path: '/produtos' },
+    // rótulo neutro: o catálogo também tem motores e estofamentos (UX-17)
+    { name: 'Catálogo', path: '/produtos' },
     ...(cat ? [{ name: cat.name, path: `/produtos?categoria=${cat.slug}` }] : []),
   ];
   const looksLikeService = isServiceQuery(q);
@@ -112,11 +111,12 @@ export default function Products() {
             : 'Projetos de lanchas, canoas, botes e semi-chatas em alumínio fabricados pela Ceará Náutica, além de motores de popa e estofamentos. Tudo sob medida.'
         }
         crumbs={crumbs}
+        compact
       />
 
-      <section className="py-10 lg:py-14" aria-label="Lista de produtos">
+      <section className="pt-4 pb-10 sm:pt-10 lg:py-14" aria-label="Lista de produtos">
         <div className="container-x">
-          <div className="flex flex-col gap-5 border-b border-steel-light pb-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-3 border-b border-steel-light pb-4 sm:gap-5 sm:pb-6 lg:flex-row lg:items-end lg:justify-between">
             <div
               ref={chipsRef}
               role="group"
@@ -166,21 +166,24 @@ export default function Products() {
             </form>
           </div>
 
-          <p className="mt-6 text-sm text-steel" aria-live="polite" aria-atomic="true">
+          <p className="mt-3 text-sm text-steel sm:mt-6" aria-live="polite" aria-atomic="true">
             {loading
               ? 'Carregando produtos…'
               : `${results.length} ${results.length === 1 ? 'resultado' : 'resultados'}${cat ? ` em ${cat.name}` : ''}${q ? ` para “${q}”` : ''}`}
           </p>
 
           {loading ? (
-            <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            <ul
+              className="mt-4 grid gap-6 sm:mt-6 sm:grid-cols-2 lg:grid-cols-3"
+              aria-hidden="true"
+            >
               {Array.from({ length: 6 }).map((_, i) => (
                 <li key={i} className="h-[26rem] animate-pulse rounded-md bg-steel-light/60" />
               ))}
             </ul>
           ) : results.length ? (
             <ul
-              className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              className="mt-4 grid gap-6 sm:mt-6 sm:grid-cols-2 lg:grid-cols-3"
               data-testid="product-grid"
             >
               {results.map((p) => (
@@ -191,10 +194,10 @@ export default function Products() {
             </ul>
           ) : (
             <div
-              className="mt-6 flex flex-col items-start gap-4 rounded-md border border-dashed border-steel/40 bg-white p-8 sm:p-12"
+              className="mt-4 flex flex-col items-start gap-4 rounded-md border border-dashed border-steel/40 bg-white p-5 sm:mt-6 sm:p-12"
               data-testid="empty-state"
             >
-              <h2 className="text-3xl font-bold uppercase">Nenhum produto encontrado</h2>
+              {/* UX-09: a dica de serviço vem primeiro, para aparecer sem rolar */}
               {looksLikeService && (
                 <p
                   className="max-w-xl rounded-sm bg-offwhite p-4 text-graphite"
@@ -207,6 +210,9 @@ export default function Products() {
                   .
                 </p>
               )}
+              <h2 className="text-2xl font-bold uppercase sm:text-3xl">
+                Nenhum produto encontrado
+              </h2>
               <p className="max-w-xl text-steel">
                 Não encontramos itens com esses filtros. Como cada embarcação é feita sob medida,
                 você também pode descrever o que precisa no pedido de orçamento.

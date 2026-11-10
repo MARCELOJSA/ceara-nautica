@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowRight, Check, Expand, Instagram } from 'lucide-react';
+import { ArrowRight, Check, Expand, Instagram, Tag } from 'lucide-react';
 import { getCategory } from '@cn/shared';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd, productJsonLd } from '@/components/seo/jsonld';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { Lightbox } from '@/components/ui/Lightbox';
+import { Faq } from '@/components/ui/Faq';
 import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
 import { DemoBadge, ProductCard } from '@/components/product/ProductCard';
 import { IllustrativeNote } from '@/components/layout/PageHeader';
@@ -16,6 +17,7 @@ import { productWhatsAppMessage } from '@/lib/whatsapp';
 import { productImages } from '@/lib/images';
 import { track } from '@/lib/analytics';
 import { site } from '@/config/site';
+import { glossaryFor, orderedSpecs, priceNote, productFaq } from '@/data/product-info';
 import NotFound from './NotFound';
 
 const BOAT_COPY = {
@@ -49,6 +51,8 @@ export default function ProductDetail() {
   const related = useRelated(product);
   const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  // estável: não reinicia o foco preso do lightbox a cada troca de foto (QA-01)
+  const closeLightbox = useCallback(() => setLightbox(null), []);
 
   useEffect(() => {
     setActive(0);
@@ -71,16 +75,20 @@ export default function ProductDetail() {
   const current = images[Math.min(active, images.length - 1)]!;
   const crumbs = [
     { name: 'Início', path: '/' },
-    { name: 'Embarcações', path: '/produtos' },
+    // rótulo neutro: o catálogo também tem motores e estofamentos (UX-17)
+    { name: 'Catálogo', path: '/produtos' },
     ...(category ? [{ name: category.name, path: `/produtos?categoria=${category.slug}` }] : []),
     { name: product.name, path: `/produtos/${product.slug}` },
   ];
   const quoteHref = `/orcamento?produto=${encodeURIComponent(product.slug)}`;
+  const specs = orderedSpecs(product.specs);
+  const glossary = glossaryFor(product);
+  const faq = productFaq(product);
 
   return (
     <>
       <Seo
-        title={`${product.name} — ${category?.name ?? 'Embarcações'} em Manaus`}
+        title={`${product.name} — ${category?.name ?? 'Catálogo'} em Manaus`}
         description={`${product.shortDescription} Ceará Náutica, Manaus – AM. Solicite um orçamento.`}
         path={`/produtos/${product.slug}`}
         image={available[0]?.src}
@@ -179,9 +187,21 @@ export default function ProductDetail() {
               />
             </div>
 
+            {/* UX-05: preço e prazo sem números — explicados no lugar da decisão */}
+            <div
+              className="mt-5 flex gap-3 rounded-sm border border-steel-light bg-offwhite p-4"
+              data-testid="price-note"
+            >
+              <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-graphite" />
+              <div>
+                <h2 className="eyebrow text-graphite-deep">Preço e prazo: sob consulta</h2>
+                <p className="mt-1 text-sm leading-relaxed text-graphite">{priceNote(product)}</p>
+              </div>
+            </div>
+
             <h2 className="mt-10 eyebrow text-graphite-deep">Especificações</h2>
             <dl className="mt-3 divide-y divide-steel-light border-y border-steel-light">
-              {product.specs.map((s) => (
+              {specs.map((s) => (
                 <div
                   key={s.label}
                   className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-3 text-[0.9375rem]"
@@ -195,6 +215,19 @@ export default function ProductDetail() {
                 </div>
               ))}
             </dl>
+            {glossary.length > 0 && (
+              <div className="mt-3 text-sm leading-relaxed text-steel" data-testid="spec-glossary">
+                <p className="font-medium text-graphite">Entenda a ficha</p>
+                <dl className="mt-1 space-y-0.5">
+                  {glossary.map((g) => (
+                    <div key={g.term}>
+                      <dt className="inline font-semibold text-graphite">{g.term}:</dt>{' '}
+                      <dd className="inline">{g.text}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
 
             {product.features.length > 0 && (
               <>
@@ -254,6 +287,14 @@ export default function ProductDetail() {
         </div>
       </section>
 
+      <Faq
+        id="duvidas-produto"
+        items={faq}
+        eyebrow="Antes de pedir"
+        title="Dúvidas comuns"
+        intro="Respostas curtas e honestas. O que depende do seu projeto é informado no orçamento."
+      />
+
       {related.length > 0 && (
         <section
           aria-labelledby="relacionados-title"
@@ -277,7 +318,7 @@ export default function ProductDetail() {
       <Lightbox
         images={images.filter((i) => i.src)}
         index={lightbox}
-        onClose={() => setLightbox(null)}
+        onClose={closeLightbox}
         onIndexChange={setLightbox}
         label={`Fotos — ${product.name}`}
       />
