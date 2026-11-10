@@ -37,10 +37,24 @@ async function processImage(img) {
   const widths = [...img.widths].sort((a, b) => a - b);
   const max = widths[widths.length - 1];
   await mkdir(path.dirname(path.join(pub, img.out)), { recursive: true });
+  let input = src;
+  if (img.extract) {
+    const meta = await sharp(src).metadata();
+    const W = meta.width ?? 0;
+    const H = meta.height ?? 0;
+    input = await sharp(src)
+      .extract({
+        left: Math.round(img.extract.left * W),
+        top: Math.round(img.extract.top * H),
+        width: Math.round(img.extract.width * W),
+        height: Math.round(img.extract.height * H),
+      })
+      .toBuffer();
+  }
   for (const w of widths) {
     const h = Math.round(w / img.ratio);
     const name = w === max ? `${img.out}.webp` : `${img.out}-${w}.webp`;
-    await sharp(src)
+    await sharp(input)
       .resize(w, h, { fit: 'cover', position: img.position ?? 'centre', withoutEnlargement: false })
       .webp({ quality: w >= 1280 ? 72 : 70, effort: 5 })
       .toFile(path.join(pub, name));
@@ -66,7 +80,21 @@ async function favicons() {
   console.log('ok favicons/og');
 }
 
+/** Lista das fotos de produto existentes — o front exibe só o que existe (src/data/product-images.json). */
+async function writeProductImageList() {
+  const list = IMAGES.filter((i) => i.out.startsWith('images/products/'))
+    .map((i) => `/${i.out}.webp`)
+    .sort();
+  await writeFile(
+    path.join(root, 'src', 'data', 'product-images.json'),
+    `${JSON.stringify(list, null, 2)}
+`,
+    'utf8',
+  );
+}
+
 await mkdir(cache, { recursive: true });
+await writeProductImageList();
 const only = process.argv[2];
 if (only === '--icons') {
   await favicons();
