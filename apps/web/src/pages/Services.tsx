@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Wrench } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd, faqJsonLd } from '@/components/seo/jsonld';
 import { Faq } from '@/components/ui/Faq';
@@ -100,9 +100,22 @@ export default function Services() {
                       </li>
                     ))}
                   </ul>
-                  <Link to={s.cta.to} className="btn-primary mt-8">
-                    {s.cta.label} <ArrowRight aria-hidden="true" className="size-5" />
-                  </Link>
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <Link to={s.cta.to} className="btn-primary">
+                      {s.cta.label} <ArrowRight aria-hidden="true" className="size-5" />
+                    </Link>
+                    {/* UX-22: caminho próprio para quem tem o motor com problema */}
+                    {s.secondaryCta && (
+                      <Link
+                        to={s.secondaryCta.to}
+                        className="btn-outline"
+                        data-testid={`service-secondary-${s.slug}`}
+                      >
+                        <Wrench aria-hidden="true" className="size-5" />
+                        {s.secondaryCta.label}
+                      </Link>
+                    )}
+                  </div>
                 </Reveal>
               </div>
             </section>

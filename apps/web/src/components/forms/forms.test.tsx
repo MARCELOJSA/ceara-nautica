@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { DEMO_PRODUCTS } from '@cn/shared';
 import { ContactForm } from './ContactForm';
 import { QuoteForm } from './QuoteForm';
+import Quote from '@/pages/Quote';
 import { jsonResponse, renderAt } from '@/test/utils';
 
 async function fillContact(user: ReturnType<typeof userEvent.setup>) {
@@ -177,16 +178,16 @@ describe('Formulário de orçamento', () => {
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     const type = screen.getByLabelText(/tipo de solicitação/i);
-    await user.selectOptions(type, 'reparo');
+    await user.selectOptions(type, 'outro');
     await user.selectOptions(screen.getByLabelText(/^categoria/i), 'motores-de-popa');
-    expect(type).toHaveValue('reparo');
+    expect(type).toHaveValue('outro');
   });
 
   it('[QA-02] tipo vindo do serviço (?servico=) não é sobrescrito', async () => {
     const user = userEvent.setup();
-    renderAt(<QuoteForm products={DEMO_PRODUCTS} initialRequestType="manutencao" />);
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} initialRequestType="motor" />);
     await user.selectOptions(screen.getByLabelText(/^categoria/i), 'lanchas');
-    expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('manutencao');
+    expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('motor');
   });
 
   it('escolher um modelo preenche a categoria dele', async () => {
@@ -231,6 +232,127 @@ describe('Formulário de orçamento', () => {
     await waitFor(() => expect(phone).toHaveFocus());
     expect(phone).toHaveValue('92 9 8888 7777');
     expect(screen.getByLabelText(/^nome/i)).toHaveValue('Rita');
+  });
+  it('[UX-21] sucesso: "Número errado?" e o botão "Corrigir o telefone", sem frase partida', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q4' }, 201));
+    const user = userEvent.setup();
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
+    await user.type(screen.getByLabelText(/^nome/i), 'Rita');
+    await user.type(screen.getByLabelText(/telefone/i), '92988887777');
+    await user.type(screen.getByLabelText(/conte o que você precisa/i), 'Quero uma lancha.');
+    await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
+    await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
+    const fix = await screen.findByTestId('phone-fix');
+    expect(fix).toHaveTextContent(/^Número errado\?\s*Corrigir o telefone$/);
+    expect(screen.queryByText(/envie de novo/i)).toBeNull();
+  });
+
+  it('[UX-24] tipo de serviço esconde Categoria e Modelo; compra mostra', async () => {
+    const user = userEvent.setup();
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
+    const type = screen.getByLabelText(/tipo de solicitação/i);
+    const fields = screen.getByTestId('product-fields');
+    expect(fields).toBeVisible();
+    for (const t of ['reparo', 'manutencao', 'motor-revisao', 'estofamento']) {
+      await user.selectOptions(type, t);
+      expect(fields).not.toBeVisible();
+      expect(screen.queryByRole('combobox', { name: /^categoria/i })).toBeNull();
+      expect(screen.queryByRole('combobox', { name: /modelo de referência/i })).toBeNull();
+    }
+    for (const t of ['nova-embarcacao', 'motor', 'outro', '']) {
+      await user.selectOptions(type, t);
+      expect(fields).toBeVisible();
+    }
+  });
+
+  it('[UX-24] categoria que sugere "Estofamento" não some com o próprio campo', async () => {
+    const user = userEvent.setup();
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
+    await user.selectOptions(screen.getByLabelText(/^categoria/i), 'estofamentos');
+    expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('estofamento');
+    expect(screen.getByRole('combobox', { name: /^categoria/i })).toBeVisible();
+  });
+
+  it('[UX-24] pedido de serviço envia dados válidos sem o modelo oculto', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ ok: true, id: 'q5' }, 201));
+    const user = userEvent.setup();
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
+    // escolheu um modelo e depois mudou para conserto
+    await user.selectOptions(screen.getByLabelText(/modelo de referência/i), 'lancha-aluminio-7m');
+    await user.selectOptions(screen.getByLabelText(/tipo de solicitação/i), 'reparo');
+    await user.type(screen.getByLabelText(/^nome/i), 'Caio');
+    await user.type(screen.getByLabelText(/telefone/i), '92988887777');
+    await user.type(screen.getByLabelText(/conte o que você precisa/i), 'Casco amassado na proa.');
+    await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
+    await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+    const body = JSON.parse(String(fetchSpy.mock.calls[0]![1]?.body));
+    expect(body).toMatchObject({ requestType: 'reparo', category: 'lanchas' });
+    expect(body).not.toHaveProperty('productSlug');
+  });
+
+  it('[UX-24] grade de contato sem buraco: Nome, Telefone, E-mail e Cidade juntos', () => {
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
+    const grid = screen.getByLabelText(/^cidade/i).closest('.grid')!;
+    expect(grid.querySelectorAll('input, select, textarea')).toHaveLength(4);
+    expect(grid).not.toContainElement(screen.getByLabelText(/tipo de solicitação/i));
+  });
+});
+
+describe('Página /orcamento?servico=motor-revisao (UX-22)', () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+  });
+
+  it('abre com "Problema ou revisão no motor", roteiro na mensagem e sem Categoria/Modelo', async () => {
+    renderAt(<Quote />, { route: '/orcamento?servico=motor-revisao' });
+    const type = await screen.findByLabelText<HTMLSelectElement>(/tipo de solicitação/i);
+    expect(type).toHaveValue('motor-revisao');
+    expect(type.selectedOptions[0]!.textContent).toBe('Problema ou revisão no motor');
+    expect(screen.getByLabelText(/conte o que você precisa/i)).toHaveValue(
+      'Modelo/potência do motor e o que está acontecendo: ',
+    );
+    expect(screen.getByTestId('product-fields')).not.toBeVisible();
+    expect(screen.getByText(/marca, modelo e potência do motor/i)).toBeInTheDocument();
+  });
+
+  it('envia requestType motor-revisao e a categoria de motores', async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      if (String(input).includes('/api/quotes')) return jsonResponse({ ok: true, id: 'q6' }, 201);
+      throw new TypeError('Failed to fetch');
+    });
+    const user = userEvent.setup();
+    renderAt(<Quote />, { route: '/orcamento?servico=motor-revisao' });
+    const msg = await screen.findByLabelText(/conte o que você precisa/i);
+    await user.type(msg, 'Yamaha 40 hp, falha ao acelerar.');
+    await user.type(screen.getByLabelText(/^nome/i), 'Carlos');
+    await user.type(screen.getByLabelText(/telefone/i), '92988887777');
+    await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
+    await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
+    await screen.findByRole('heading', { name: /pedido de orçamento enviado/i });
+    const call = vi.mocked(fetch).mock.calls.find((c) => String(c[0]).includes('/api/quotes'))!;
+    const body = JSON.parse(String(call[1]?.body));
+    expect(body).toMatchObject({
+      requestType: 'motor-revisao',
+      category: 'motores-de-popa',
+      message:
+        'Modelo/potência do motor e o que está acontecendo: Yamaha 40 hp, falha ao acelerar.',
+    });
+    expect(body).not.toHaveProperty('productSlug');
+  });
+
+  it('?servico= desconhecido ou herdado ("constructor") não pré-preenche nada', async () => {
+    renderAt(<Quote />, { route: '/orcamento?servico=constructor' });
+    expect(await screen.findByLabelText(/tipo de solicitação/i)).toHaveValue('');
+    expect(screen.getByLabelText(/conte o que você precisa/i)).toHaveValue('');
+  });
+
+  it('?servico=motores continua sendo compra de motor', async () => {
+    renderAt(<Quote />, { route: '/orcamento?servico=motores&categoria=motores-de-popa' });
+    expect(await screen.findByLabelText(/tipo de solicitação/i)).toHaveValue('motor');
+    expect(screen.getByTestId('product-fields')).toBeVisible();
   });
 });
 

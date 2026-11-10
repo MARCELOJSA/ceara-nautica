@@ -16,17 +16,17 @@ export function PhoneConfirmation({ phone, onEdit }: { phone: string; onEdit: ()
         <strong className="whitespace-nowrap text-graphite-deep">{formatPhone(phone)}</strong>, por
         ligação ou WhatsApp.
       </p>
-      <p>
-        Número errado?{' '}
+      {/* UX-21: pergunta + botão em linha própria (sem frase partida em dois tempos verbais) */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="phone-fix">
+        <span>Número errado?</span>
         <button
           type="button"
           onClick={onEdit}
           className="inline-flex min-h-11 items-center font-semibold text-graphite-deep underline decoration-orange underline-offset-4"
         >
           Corrigir o telefone
-        </button>{' '}
-        e envie de novo.
-      </p>
+        </button>
+      </div>
     </>
   );
 }

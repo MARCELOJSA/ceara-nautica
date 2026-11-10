@@ -15,7 +15,13 @@ export interface Service {
   image: string;
   imageAlt: string;
   cta: { label: string; to: string };
+  /** Caminho extra e explícito (ex.: motor com problema → tipo "motor-revisao"). UX-22 */
+  secondaryCta?: { label: string; to: string };
 }
+
+/** Link do orçamento já com o tipo "Problema ou revisão no motor" (UX-22). */
+export const MOTOR_ISSUE_HREF = '/orcamento?servico=motor-revisao';
+export const MOTOR_ISSUE_LABEL = 'Problema no motor? Descreva aqui';
 
 export const SERVICES: Service[] = [
   {
@@ -62,6 +68,7 @@ export const SERVICES: Service[] = [
     image: '/images/servicos/manutencao.webp',
     imageAlt: 'Profissional fazendo manutenção na hélice de uma embarcação',
     cta: { label: 'Solicitar manutenção', to: '/orcamento?servico=manutencao' },
+    secondaryCta: { label: MOTOR_ISSUE_LABEL, to: MOTOR_ISSUE_HREF },
   },
   {
     slug: 'motores',
@@ -77,6 +84,7 @@ export const SERVICES: Service[] = [
     image: '/images/servicos/motores.webp',
     imageAlt: 'Motor de popa instalado na popa de uma embarcação',
     cta: { label: 'Consultar motores', to: '/orcamento?servico=motores&categoria=motores-de-popa' },
+    secondaryCta: { label: MOTOR_ISSUE_LABEL, to: MOTOR_ISSUE_HREF },
   },
   {
     slug: 'estofamento',
@@ -130,9 +138,10 @@ export const GALLERY: GalleryImage[] = [
 ];
 
 /**
- * Imagem de capa por categoria (usa fotos do catálogo). Sempre que possível,
- * fotos que NÃO são a capa dos produtos em destaque da Home (UX-18). Lanchas
- * ainda repete: todas as fotos de lancha são de destaques.
+ * Imagem de capa por categoria na Home (UX-18). Nenhuma capa pode ser a foto
+ * principal de um card de "Projetos em destaque" na mesma página: a seção de
+ * destaques da Home pula produtos cuja foto principal já é capa (ver
+ * `homeFeatured` em lib/featured.ts). Só fotos já existentes em public/images.
  */
 export const CATEGORY_COVERS: Record<CategorySlug, { src: string; alt: string }> = {
   lanchas: {
@@ -145,15 +154,17 @@ export const CATEGORY_COVERS: Record<CategorySlug, { src: string; alt: string }>
     alt: 'Bote de alumínio ancorado em águas calmas',
   },
   'semi-chatas': {
-    src: '/images/products/semi-chata-aluminio-sob-medida-1.webp',
-    alt: 'Embarcação semi-chata com cobertura no rio',
+    // a única foto de semi-chata é a de um destaque; usa a foto ilustrativa de
+    // embarcação coberta no rio (mesmo estilo), distante na página da galeria
+    src: '/images/galeria/passeio.webp',
+    alt: 'Embarcação com cobertura navegando no rio',
   },
   'motores-de-popa': {
-    src: '/images/products/motores-de-popa-1.webp',
-    alt: 'Hélices de motores de popa',
+    src: '/images/servicos/motores.webp',
+    alt: 'Motor de popa instalado na popa de uma embarcação',
   },
   estofamentos: {
-    src: '/images/products/estofamento-nautico-1.webp',
+    src: '/images/products/estofamento-nautico-2.webp',
     alt: 'Assentos estofados de embarcação',
   },
 };
@@ -199,7 +210,63 @@ export const SERVICE_TO_REQUEST_TYPE: Record<string, RequestType> = {
   reparos: 'reparo',
   manutencao: 'manutencao',
   motores: 'motor',
+  'motor-revisao': 'motor-revisao',
   estofamento: 'estofamento',
+};
+
+/** Pré-preenchimento do orçamento por ?servico= (tipo, mensagem e categoria). */
+export interface QuotePreset {
+  requestType: RequestType;
+  message: string;
+  category?: CategorySlug;
+}
+
+export const QUOTE_PRESETS: Record<string, QuotePreset> = {
+  ...Object.fromEntries(
+    SERVICES.map((s) => [
+      s.slug,
+      {
+        requestType: SERVICE_TO_REQUEST_TYPE[s.slug]!,
+        message: `Tenho interesse no serviço: ${s.title}.\n\n`,
+      },
+    ]),
+  ),
+  // UX-22: motor falhando tem caminho próprio (não é "comprar motor")
+  'motor-revisao': {
+    requestType: 'motor-revisao',
+    message: 'Modelo/potência do motor e o que está acontecendo: ',
+    category: 'motores-de-popa',
+  },
+};
+
+/** Preset do ?servico= (ignora chaves herdadas como "constructor"). */
+export function quotePreset(servico: string | null | undefined): QuotePreset | undefined {
+  if (!servico || !Object.prototype.hasOwnProperty.call(QUOTE_PRESETS, servico)) return undefined;
+  return QUOTE_PRESETS[servico];
+}
+
+/**
+ * Tipos de serviço (conserto/cuidado de algo que a pessoa já tem): no
+ * orçamento, "Categoria" e "Modelo de referência" não fazem sentido (UX-24).
+ */
+export const SERVICE_REQUEST_TYPES: readonly RequestType[] = [
+  'reparo',
+  'manutencao',
+  'motor-revisao',
+  'estofamento',
+];
+
+/** Dica do campo de mensagem conforme o tipo de solicitação. */
+export const QUOTE_MESSAGE_HINTS: Partial<Record<RequestType, string>> & { default: string } = {
+  default: 'Ex.: tipo de uso (lazer, pesca, trabalho), tamanho desejado, motorização, cor, prazo.',
+  reparo:
+    'Ex.: tipo e tamanho da embarcação, o que aconteceu e onde ela está. A equipe confirma se atende o seu caso.',
+  manutencao:
+    'Ex.: tipo e tamanho da embarcação, o que precisa ser feito e onde ela está. A equipe confirma se atende o seu caso.',
+  'motor-revisao':
+    'Ex.: marca, modelo e potência do motor, o que está acontecendo e desde quando. A equipe confirma se atende o seu caso.',
+  estofamento: 'Ex.: quais assentos ou almofadas, quantidade, cor desejada e tipo de embarcação.',
+  motor: 'Ex.: tipo e tamanho da embarcação, uso e potência que você procura.',
 };
 
 /** Perguntas frequentes — respostas só com fatos confirmados; o resto, "no orçamento". */
@@ -230,7 +297,7 @@ export const FAQ = [
   },
   {
     q: 'Vocês fazem manutenção ou conserto de motor de popa?',
-    a: 'Revendemos motores de popa. Para manutenção ou revisão do motor, descreva o problema no pedido de orçamento (modelo do motor e o que está acontecendo) e a equipe confirma se atende o seu caso.',
+    a: 'Revendemos motores de popa. Se o seu motor está com problema ou precisa de revisão, peça um orçamento com o tipo "Problema ou revisão no motor" (em Serviços, botão "Problema no motor? Descreva aqui"), informando modelo, potência e o que está acontecendo. A equipe confirma se atende o seu caso.',
   },
   {
     q: 'Como recebo o retorno do meu pedido?',

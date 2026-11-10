@@ -7,7 +7,7 @@ import { PageFallback } from '@/components/layout/Layout';
 import { QuoteForm } from '@/components/forms/QuoteForm';
 import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
 import { useProducts } from '@/hooks/useProducts';
-import { SERVICE_TO_REQUEST_TYPE, SERVICES } from '@/data/content';
+import { quotePreset } from '@/data/content';
 import { site } from '@/config/site';
 import { whatsappUrl } from '@/lib/whatsapp';
 
@@ -30,10 +30,11 @@ export default function Quote() {
   const [params] = useSearchParams();
   const { data, loading } = useProducts();
   const produto = params.get('produto') ?? undefined;
-  const categoria = params.get('categoria') ?? undefined;
-  const servico = SERVICES.find((s) => s.slug === params.get('servico'));
-  const initialMessage = servico ? `Tenho interesse no serviço: ${servico.title}.\n\n` : '';
-  const initialRequestType = servico ? SERVICE_TO_REQUEST_TYPE[servico.slug] : undefined;
+  // ?servico= define tipo, mensagem inicial e (se a URL não trouxer) a categoria
+  const preset = quotePreset(params.get('servico'));
+  const categoria = params.get('categoria') ?? preset?.category;
+  const initialMessage = preset?.message ?? '';
+  const initialRequestType = preset?.requestType;
   const crumbs = [
     { name: 'Início', path: '/' },
     { name: 'Orçamento', path: '/orcamento' },

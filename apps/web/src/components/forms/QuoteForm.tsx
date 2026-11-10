@@ -16,6 +16,7 @@ import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { productImages } from '@/lib/images';
+import { QUOTE_MESSAGE_HINTS, SERVICE_REQUEST_TYPES } from '@/data/content';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
 import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
@@ -145,6 +146,7 @@ export function QuoteForm({
 
   const category = watch('category');
   const productSlug = watch('productSlug');
+  const requestType = watch('requestType');
   const selected = products.find((p) => p.slug === productSlug);
   const options = useMemo(
     () => (category ? products.filter((p) => p.category === category) : products),
@@ -160,6 +162,19 @@ export function QuoteForm({
   const compact = Boolean(initialProduct && selected && !productRemoved);
   const categoryName = selected ? getCategory(selected.category)?.name : undefined;
 
+  /**
+   * UX-24: para serviço (reparo, manutenção, motor com problema, estofamento)
+   * escolhido pela pessoa ou pelo link, Categoria e Modelo não fazem sentido e
+   * ficam ocultos. Se o tipo foi só sugerido pela categoria (ex.: escolheu
+   * "Estofamentos"), os campos continuam visíveis para não sumirem sob o dedo.
+   */
+  const serviceType =
+    !typeIsAuto.current && (SERVICE_REQUEST_TYPES as readonly string[]).includes(requestType);
+  const hideProductFields = compact || serviceType;
+  const messageHint =
+    QUOTE_MESSAGE_HINTS[requestType as keyof typeof QUOTE_MESSAGE_HINTS] ??
+    QUOTE_MESSAGE_HINTS.default;
+
   const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
   const [sentPhone, setSentPhone] = useState('');
   const [editPhone, setEditPhone] = useState(false);
@@ -173,7 +188,9 @@ export function QuoteForm({
   }, [editPhone, status.kind, setFocus]);
 
   const onSubmit = handleSubmit((values) => {
-    const data = values as unknown as QuoteData;
+    const data = { ...(values as unknown as QuoteData) };
+    // pedido de serviço sem produto do link: o "modelo de referência" (oculto) não vai junto
+    if (serviceType && !compact) delete data.productSlug;
     setSentPhone(values.phone);
     return run(
       () => sendQuote({ ...data, utm: getUtm() }),
@@ -297,24 +314,6 @@ export function QuoteForm({
           error={errors.phone?.message}
           {...register('phone')}
         />
-        <SelectField
-          label="Tipo de solicitação"
-          optional
-          error={errors.requestType?.message}
-          {...register('requestType', {
-            onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
-              // escolha manual: a categoria deixa de sugerir o tipo (vazio = volta a sugerir)
-              typeIsAuto.current = !e.target.value;
-            },
-          })}
-        >
-          <option value="">Selecione (opcional)</option>
-          {REQUEST_TYPES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </SelectField>
         <TextField
           label="E-mail"
           type="email"
@@ -332,10 +331,32 @@ export function QuoteForm({
           {...register('city')}
         />
       </div>
-      {/* Com produto vindo do link, Categoria e Modelo ficam ocultos (UX-10). */}
+      {/* Tipo em linha própria: a grade de contato fica sempre 2×2, sem buraco (UX-24). */}
+      <SelectField
+        label="Tipo de solicitação"
+        optional
+        error={errors.requestType?.message}
+        {...register('requestType', {
+          onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
+            // escolha manual: a categoria deixa de sugerir o tipo (vazio = volta a sugerir)
+            typeIsAuto.current = !e.target.value;
+          },
+        })}
+      >
+        <option value="">Selecione (opcional)</option>
+        {REQUEST_TYPES.map((r) => (
+          <option key={r.value} value={r.value}>
+            {r.label}
+          </option>
+        ))}
+      </SelectField>
+      {/*
+        Categoria e Modelo ocultos com produto vindo do link (UX-10) ou em pedido
+        de serviço (UX-24). Continuam no DOM: os valores válidos seguem no envio.
+      */}
       <div
-        className={compact ? 'hidden' : 'grid gap-5 sm:grid-cols-2'}
-        hidden={compact}
+        className={hideProductFields ? 'hidden' : 'grid gap-5 sm:grid-cols-2'}
+        hidden={hideProductFields}
         data-testid="product-fields"
       >
         <SelectField
@@ -382,7 +403,7 @@ export function QuoteForm({
       </div>
       <TextAreaField
         label="Conte o que você precisa"
-        hint="Ex.: tipo de uso (lazer, pesca, trabalho), tamanho desejado, motorização, cor, prazo."
+        hint={messageHint}
         error={errors.message?.message}
         {...register('message')}
       />
