@@ -6,6 +6,10 @@ export interface Crumb {
   path: string;
 }
 
+/**
+ * Trilha de navegação. Os links têm área de toque de 44px (QA-07) com margem
+ * vertical negativa, para a faixa continuar baixa visualmente.
+ */
 export function Breadcrumb({ items, tone = 'light' }: { items: Crumb[]; tone?: 'light' | 'dark' }) {
   const muted =
     tone === 'dark' ? 'text-white/70 hover:text-white' : 'text-steel hover:text-graphite-deep';
@@ -23,7 +27,7 @@ export function Breadcrumb({ items, tone = 'light' }: { items: Crumb[]; tone?: '
                 </span>
               ) : (
                 <>
-                  <Link to={it.path} className={`inline-flex min-h-8 items-center ${muted}`}>
+                  <Link to={it.path} className={`-my-3 inline-flex min-h-11 items-center ${muted}`}>
                     {it.name}
                   </Link>
                   <ChevronRight aria-hidden="true" className="size-3.5 opacity-60" />

@@ -16,7 +16,7 @@ export function Footer() {
         <div className="max-w-sm">
           <Link
             to="/"
-            className="inline-flex rounded-sm"
+            className="inline-flex min-h-11 items-center rounded-sm"
             aria-label="Ceará Náutica — página inicial"
           >
             <Logo tone="dark" />
@@ -40,12 +40,12 @@ export function Footer() {
 
         <nav aria-label="Rodapé — site">
           <h2 className="eyebrow text-white">Navegação</h2>
-          <ul className="mt-4 space-y-1">
+          <ul className="mt-3">
             {[...NAV_LINKS, { to: '/orcamento', label: 'Orçamento' }].map((l) => (
               <li key={l.to}>
                 <Link
                   to={l.to}
-                  className="inline-flex min-h-10 items-center text-sm hover:text-white"
+                  className="inline-flex min-h-11 items-center text-sm hover:text-white"
                 >
                   {l.label}
                 </Link>
@@ -54,14 +54,14 @@ export function Footer() {
           </ul>
         </nav>
 
-        <nav aria-label="Rodapé — embarcações">
-          <h2 className="eyebrow text-white">Embarcações</h2>
-          <ul className="mt-4 space-y-1">
+        <nav aria-label="Rodapé — catálogo">
+          <h2 className="eyebrow text-white">Catálogo</h2>
+          <ul className="mt-3">
             {CATEGORIES.map((c) => (
               <li key={c.slug}>
                 <Link
                   to={`/produtos?categoria=${c.slug}`}
-                  className="inline-flex min-h-10 items-center text-sm hover:text-white"
+                  className="inline-flex min-h-11 items-center text-sm hover:text-white"
                 >
                   {c.name}
                 </Link>
@@ -123,17 +123,17 @@ export function Footer() {
             © {year} {site.name} — {site.tagline}. {site.locationLabel}.
           </p>
           <p className="text-white/70">Fotos do site meramente ilustrativas (banco de imagens).</p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-5">
             <Link
               to="/politica-de-privacidade"
-              className="inline-flex min-h-10 items-center hover:text-white"
+              className="inline-flex min-h-11 items-center hover:text-white"
             >
               Política de Privacidade
             </Link>
             <button
               type="button"
               onClick={openCookiePreferences}
-              className="inline-flex min-h-10 items-center hover:text-white"
+              className="inline-flex min-h-11 items-center hover:text-white"
             >
               Preferências de cookies
             </button>

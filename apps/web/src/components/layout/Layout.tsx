@@ -13,10 +13,15 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * Placeholder enquanto o chunk da página carrega. Ocupa a altura da tela para o
+ * rodapé ficar fora da área visível: quando a página entra, nada visível é
+ * empurrado (QA-06 — CLS de 0,19–0,36 no desktop com `min-h-[60vh]`).
+ */
 export function PageFallback() {
   return (
     <div
-      className="container-x flex min-h-[60vh] items-center justify-center"
+      className="container-x flex min-h-screen items-center justify-center"
       role="status"
       aria-live="polite"
     >

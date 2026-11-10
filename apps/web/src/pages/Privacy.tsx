@@ -82,17 +82,14 @@ export default function Privacy() {
                 são carregados se você autorizar.
               </li>
             </ul>
-            <p>
-              Você pode mudar sua escolha a qualquer momento:{' '}
-              <button
-                type="button"
-                onClick={openCookiePreferences}
-                className="link-underline font-medium"
-              >
-                abrir preferências de cookies
-              </button>
-              .
-            </p>
+            <p className="mt-3">Você pode mudar sua escolha a qualquer momento.</p>
+            <button
+              type="button"
+              onClick={openCookiePreferences}
+              className="btn-outline mt-3 px-4 text-base"
+            >
+              Abrir preferências de cookies
+            </button>
           </section>
 
           <section>

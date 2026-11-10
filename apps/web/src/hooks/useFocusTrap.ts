@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -6,12 +6,21 @@ const FOCUSABLE =
 /**
  * Prende o foco dentro de um diálogo enquanto `active`, fecha com Esc,
  * trava o scroll do body e devolve o foco ao elemento que abriu.
+ *
+ * `onClose` fica guardado em ref: um callback recriado a cada render (ex.:
+ * `onClose={() => set(null)}`) NÃO reinicia o efeito — antes, trocar de foto no
+ * lightbox devolvia o foco ao gatilho e depois ao 1º botão ("Fechar") (QA-01).
  */
 export function useFocusTrap(
   ref: RefObject<HTMLElement>,
   active: boolean,
   onClose: () => void,
 ): void {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!active) return;
     const node = ref.current;
@@ -26,7 +35,7 @@ export function useFocusTrap(
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -48,5 +57,5 @@ export function useFocusTrap(
       document.body.style.overflow = prevOverflow;
       previous?.focus?.();
     };
-  }, [active, onClose, ref]);
+  }, [active, ref]);
 }
