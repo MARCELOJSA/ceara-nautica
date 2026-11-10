@@ -4,20 +4,35 @@ import { CATEGORY_SLUGS } from './categories';
 /** Telefone brasileiro: aceita (92) 99999-9999, 92999999999, +55 92 99999-9999 etc. */
 const phoneRegex = /^(\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}$/;
 
+/** Byte nulo (U+0000) é rejeitado: o PostgreSQL não aceita esse caractere em texto (SEC-01). */
+export const hasNullByte = (s: string) => s.includes('\u0000');
+const NULL_BYTE_MSG = 'Contém caractere inválido.';
+
+/** String sem byte nulo. */
+const text = (params?: Parameters<typeof z.string>[0]) =>
+  z.string(params).refine((s) => !hasNullByte(s), NULL_BYTE_MSG);
+
 const trimmed = (min: number, max: number, msg: string) =>
-  z.string({ required_error: msg }).trim().min(min, msg).max(max, `Máximo de ${max} caracteres.`);
+  z
+    .string({ required_error: msg })
+    .trim()
+    .min(min, msg)
+    .max(max, `Máximo de ${max} caracteres.`)
+    .refine((s) => !hasNullByte(s), NULL_BYTE_MSG);
+
+const utmField = (max: number) => text().pipe(z.string().max(max)).optional();
 
 export const utmSchema = z
   .object({
-    utm_source: z.string().max(200).optional(),
-    utm_medium: z.string().max(200).optional(),
-    utm_campaign: z.string().max(200).optional(),
-    utm_term: z.string().max(200).optional(),
-    utm_content: z.string().max(200).optional(),
-    gclid: z.string().max(500).optional(),
-    fbclid: z.string().max(500).optional(),
-    landing_page: z.string().max(500).optional(),
-    referrer: z.string().max(500).optional(),
+    utm_source: utmField(200),
+    utm_medium: utmField(200),
+    utm_campaign: utmField(200),
+    utm_term: utmField(200),
+    utm_content: utmField(200),
+    gclid: utmField(500),
+    fbclid: utmField(500),
+    landing_page: utmField(500),
+    referrer: utmField(500),
   })
   .partial()
   .optional();
@@ -76,7 +91,12 @@ export const quoteSchema = z.object({
     .max(160)
     .regex(/^[a-z0-9-]+$/, 'Produto inválido.')
     .optional(),
-  city: z.string().trim().max(120).optional(),
+  city: z
+    .string()
+    .trim()
+    .max(120)
+    .refine((s) => !hasNullByte(s), NULL_BYTE_MSG)
+    .optional(),
   message: trimmed(10, 2000, 'Descreva o que você precisa (mín. 10 caracteres).'),
 });
 
