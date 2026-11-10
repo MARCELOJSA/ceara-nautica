@@ -20,6 +20,7 @@ export function isValidPhone(value: string): boolean {
 }
 export function phoneError(value: string): string | undefined {
   if (isValidPhone(value)) return undefined;
+  if (!phoneChars.test(value)) return `Use apenas números. Ex.: ${PHONE_EXAMPLE}`;
   const d = phoneDigits(value);
   const hasDdd = /^\s*(\+?\s*55\s*)?\(\s*\d{2}\s*\)/.test(value);
   if (!hasDdd && (d.length === 8 || d.length === 9)) return `Inclua o DDD. Ex.: ${PHONE_EXAMPLE}`;

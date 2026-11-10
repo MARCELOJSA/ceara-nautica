@@ -186,8 +186,9 @@ export const DEMO_PRODUCTS: Product[] = [
     ],
     specs: [
       { label: 'Comprimento', value: '7 m' },
-      { label: 'Material do casco', value: 'Alumínio' },
       { label: 'Boca / Pontal', value: SOB_CONSULTA },
+      { label: 'Material do casco', value: 'Alumínio' },
+      { label: 'Capota', value: SOB_CONSULTA },
       { label: 'Motorização', value: SOB_CONSULTA },
     ],
     features: ['Projeto sob medida', 'Passeio e pesca'],
@@ -205,8 +206,10 @@ export const DEMO_PRODUCTS: Product[] = [
       'Canoa de alumínio de 6 metros construída em chapa de 2 mm de espessura, com opção de capota conversível em vinil, conforme o projeto publicado.',
     images: [img('canoa-aluminio-6m', 1, 'Canoa de alumínio no rio (foto ilustrativa)')],
     specs: [
-      { label: 'Dimensões', value: '6 m x 1,30 m x 0,45 m' },
-      { label: 'Chapa', value: 'Alumínio 2 mm' },
+      // Medidas publicadas: 6 m x 1,30 m x 0,45 m (comprimento × boca × pontal)
+      { label: 'Comprimento', value: '6 m' },
+      { label: 'Boca / Pontal', value: '1,30 m / 0,45 m' },
+      { label: 'Material do casco', value: 'Alumínio, chapa de 2 mm' },
       { label: 'Capota', value: 'Conversível em vinil' },
       { label: 'Motorização', value: SOB_CONSULTA },
     ],

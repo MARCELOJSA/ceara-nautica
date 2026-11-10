@@ -26,8 +26,8 @@ describe('product-info', () => {
     expect(canoa7[0]).toBe('Comprimento');
     expect(canoa7.at(-1)).toBe('Motorização');
     const canoa6 = orderedSpecs(bySlug('canoa-aluminio-6m').specs).map((s) => s.label);
-    expect(canoa6[0]).toBe('Dimensões');
-    expect(canoa6.at(-1)).toBe('Motorização');
+    // UX-12: as duas canoas têm as mesmas linhas, na mesma ordem, para comparar
+    expect(canoa6).toEqual(canoa7);
   });
 
   it('glossário só traz termos presentes no produto', () => {
