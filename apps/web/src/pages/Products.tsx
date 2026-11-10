@@ -110,6 +110,12 @@ export default function Products() {
             ? cat.description
             : 'Projetos de lanchas, canoas, botes e semi-chatas em alumínio fabricados pela Ceará Náutica, além de motores de popa e estofamentos. Tudo sob medida.'
         }
+        // UX-20: no celular, uma frase curta e completa (as das categorias já são curtas)
+        introShort={
+          cat
+            ? undefined
+            : 'Lanchas, canoas, botes e semi-chatas em alumínio, além de motores e estofamentos.'
+        }
         crumbs={crumbs}
         compact
       />

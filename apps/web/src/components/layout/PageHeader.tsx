@@ -6,12 +6,18 @@ interface Props {
   eyebrow: string;
   title: ReactNode;
   intro?: ReactNode;
+  /**
+   * Versão curta e COMPLETA da introdução para o celular (UX-20). Substitui a
+   * longa abaixo de `sm`, em vez de cortá-la com reticências no meio da frase.
+   */
+  introShort?: ReactNode;
   crumbs: Crumb[];
   image?: { src: string; alt: string };
   children?: ReactNode;
   /**
-   * Versão baixa no celular (catálogo, UX-09): menos respiro, título menor e
-   * introdução em 2 linhas, para os filtros e resultados aparecerem na 1ª tela.
+   * Versão baixa no celular (catálogo, UX-09): menos respiro e título menor,
+   * para os filtros e resultados aparecerem na 1ª tela. Para encurtar o texto,
+   * use `introShort` (nunca cortar a frase).
    */
   compact?: boolean;
 }
@@ -21,6 +27,7 @@ export function PageHeader({
   eyebrow,
   title,
   intro,
+  introShort,
   crumbs,
   image,
   children,
@@ -59,9 +66,17 @@ export function PageHeader({
           </h1>
           {intro && (
             <p
-              className={`max-w-2xl leading-relaxed text-white/80 sm:mt-5 sm:text-lg ${compact ? 'mt-2 text-sm max-sm:line-clamp-2' : 'mt-5 text-base'}`}
+              className={`max-w-2xl leading-relaxed text-white/80 sm:mt-5 sm:text-lg ${compact ? 'mt-2 text-sm' : 'mt-5 text-base'} ${introShort ? 'max-sm:hidden' : ''}`}
             >
               {intro}
+            </p>
+          )}
+          {introShort && (
+            <p
+              className={`max-w-2xl leading-relaxed text-white/80 sm:hidden ${compact ? 'mt-2 text-sm' : 'mt-5 text-base'}`}
+              data-testid="intro-short"
+            >
+              {introShort}
             </p>
           )}
           {children}

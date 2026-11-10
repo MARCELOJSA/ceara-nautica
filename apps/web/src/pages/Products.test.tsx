@@ -72,4 +72,27 @@ describe('Catálogo /produtos', () => {
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/produtos$/);
     await screen.findByTestId('product-grid');
   });
+
+  it('[UX-20] celular tem introdução curta e completa (sem corte nem reticências)', async () => {
+    renderAt(<Products />, { route: '/produtos' });
+    await screen.findByTestId('product-grid');
+    const short = screen.getByTestId('intro-short');
+    expect(short).toHaveTextContent(
+      'Lanchas, canoas, botes e semi-chatas em alumínio, além de motores e estofamentos.',
+    );
+    expect(short.className).toContain('sm:hidden');
+    expect(short.className).not.toMatch(/line-clamp|truncate/);
+  });
+
+  it('[UX-23] toda embarcação mostra "Indicado para", com termo único e "sob consulta"', async () => {
+    renderAt(<Products />, { route: '/produtos' });
+    await screen.findByTestId('product-grid');
+    const boats = DEMO_PRODUCTS.filter(
+      (p) => !['motores-de-popa', 'estofamentos'].includes(p.category),
+    );
+    const lines = screen.getAllByTestId('card-uses').map((el) => el.textContent ?? '');
+    expect(lines).toHaveLength(boats.length);
+    expect(lines.join(' ')).not.toMatch(/Passeio/);
+    expect(lines.filter((l) => /sob consulta/.test(l)).length).toBeGreaterThan(0);
+  });
 });
