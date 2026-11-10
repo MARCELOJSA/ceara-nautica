@@ -1,140 +1,169 @@
-# UX-REPORT — Site Ceará Náutica
+# UX-REPORT — Site Ceará Náutica · Rodada 2
 
-_AGENT 04 (cn-ux-evaluator) · avaliação em 09/11/2026 · site em http://localhost:5173 com API real (3333)_
+> A rodada anterior (09/11/2026) deu **nota 7,0** e está no histórico do git (versão anterior deste arquivo, com as capturas em `docs/ux-screenshots/`). Esta rodada confere as correções na prática e procura novos problemas.
 
-## Metodologia
-- Navegação real com Playwright (Chromium) em **celular 390×844** (isMobile, hasTouch) e **desktop 1440×900**, páginas inteiras e trechos; todas as capturas foram revisadas visualmente.
-- Scripts: `apps/web/e2e/ux/shots.mjs`, `slices.mjs`, `journeys.mjs`, `menu.mjs`, `menu2.mjs` (só leitura/navegação; não fazem parte da suíte de testes).
-- 4 personas simuladas do início ao fim, contando toques/rolagens. **1 orçamento enviado** (nome "UX-TEST", serviço manutenção) → API respondeu **201**, tela de sucesso exibida.
-- Console do navegador: **0 erros** em todas as páginas.
-- Capturas principais em `docs/ux-screenshots/` (numeradas 01–19).
+_AGENT 04 (cn-ux-evaluator) · 10/11/2026 · site em http://localhost:5173 com API real (3333)_
 
-## Resumo executivo
-O site passa a impressão de **empresa séria e bem cuidada**: identidade visual coerente (grafite + laranja, Barlow Condensed em caixa alta), hierarquia clara, bom ritmo de seções, catálogo com medidas reais vindas do Instagram, fluxo de orçamento muito bom (produto/serviço pré-preenchido, erros claros, confirmação explicando o próximo passo). No desktop, fica acima da média dos sites de estaleiros regionais.
+## Método
+- Usei o site como uma pessoa leiga de Manaus que chega pela primeira vez. Naveguei com Playwright (Chromium) em **computador 1366×768 e 1920×1080** e **celular 390×844 e 360×740** (isMobile, hasTouch), e olhei todas as capturas.
+- Roteiros reutilizáveis salvos em `apps/web/e2e/ux/` (só navegação, não fazem parte da suíte):
+  `r2-tour.mjs` (páginas inteiras), `r2-widgets.mjs` (menu, cookies, barra inferior, FAQ, galeria), `r2-search.mjs` (busca com erro de digitação, filtros, botão voltar), `r2-forms.mjs` (formulários com erros de propósito e envio real), `r2-extra.mjs` (galeria/lightbox, estado vazio).
+- Envios reais: **1 orçamento** (canoa 6 m, "João QA-TEST") e **1 mensagem de contato** ("Maria QA-TEST", motor falhando). Os dois retornaram **201** com a tela de sucesso. No fim, apaguei do banco todos os leads com "QA-TEST" (3 em `quote_requests` e 3 em `contact_messages`, contando sobras de rodadas anteriores).
+- Console do navegador: **0 erros** em todas as páginas e viewports.
+- Capturas citadas: `docs/ux-screenshots/r2/` (21 PNG, ~1,6 MB).
 
-Porém há **um defeito bloqueante no celular**: o **menu mobile está quebrado** (a gaveta fica com 68 px de altura e os links de navegação ficam invisíveis — ver `12-mobile-MENU-QUEBRADO.png`). Como a maioria dos visitantes de Manaus virá do Instagram pelo celular, isso precisa ser corrigido antes de qualquer publicação.
+## Resumo
+O site está **bem melhor que na rodada 1**. O defeito grave do celular (menu quebrado) foi resolvido. A barra inferior "Pedir orçamento + Instagram" ficou clara e honesta, e o site agora diz em vários lugares como o cliente recebe a resposta ("pelo telefone informado, ligação ou WhatsApp"). Também ganhou FAQ, textos certos para motores e estofamento, Home mais curta no celular e chips de categoria que aparecem na tela. Passa a impressão de empresa organizada.
 
-Sobre o **WhatsApp oculto**: a troca está tecnicamente bem feita (nenhum número falso, CTAs levam a /orcamento, /contato ou Instagram), mas o **ícone de balão de conversa** usado no botão flutuante e em "Falar com um vendedor"/"Fale com a equipe" cria a expectativa de um chat/WhatsApp e entrega um formulário. Além disso, o visitante não recebe nenhuma estimativa de **quando e como** será respondido — e é exatamente isso que o WhatsApp oferecia. Sugestões de compensação na seção dedicada abaixo.
+O que ainda atrapalha o visitante comum está **no formulário**, que hoje é o único canal de contato além do Instagram:
+1. Quem não marca a autorização vê **"Invalid literal value, expected true"**, em inglês e técnico. A causa provável é o ambiente de desenvolvimento (ver UX-01), mas foi o que a pessoa viu.
+2. O telefone escrito do jeito comum em Manaus, **"(92) 9 9999-0000"**, é **recusado** como "Telefone inválido".
 
-As fotos de banco de imagem estão corretamente sinalizadas, mas algumas **contradizem o texto** (ex.: "Lancha cargueira 9 m com 6 poltronas" ilustrada por uma canoa de madeira ao longe + interior de lancha de fibra de luxo; logo da Yamaha visível na foto de motores, marca não confirmada).
+Fora isso: a busca só acha o texto exato ("canoa aluminio", "canoa 6m", "estofado" e "motr" dão 0 resultados). Quem tem **motor de popa com defeito** não descobre se a empresa conserta motor. A página do produto não diz nada sobre **preço**, nem que é "sob consulta". E para a **pessoa desconfiada** só há o Instagram como prova de que a empresa existe; esta parte depende em grande parte de dados que a empresa ainda não enviou.
 
-**Nota geral: 7,0 / 10** (desktop ≈ 8; celular ≈ 6 por causa do menu — sobe para ≈ 8 com os itens Alta corrigidos).
+**Nota geral: 7,8 / 10** (era 7,0). Com UX-01 e UX-02 resolvidos, chega a ≈ 8,3.
 
 ---
 
-## Avaliação por persona
+## Avaliação por situação
 
-### Persona 1 — Quer comprar uma lancha
-| | Desktop | Celular |
+### 1. Pescador que quer canoa de alumínio de ~6 m (celular 390)
+- **Caminho:** Home → ☰ → Embarcações → chip **Canoas** → 2 canoas → "Canoa de Alumínio 6 m" → **Solicitar orçamento**. São 5 toques. Pela Home também dá: as categorias aparecem logo depois do topo (`02-m390-home-barra-inferior.png`).
+- **Comparar:** as duas canoas usam **linhas de especificação diferentes**. A de 6 m mostra Dimensões, Chapa, Capota e Motorização. A de 7 m mostra Comprimento, Material, "Boca / Pontal: sob consulta" e Motorização. Não dá para comparar lado a lado, e nenhuma informa **quantas pessoas ou quanto peso** leva, que é o que o pescador quer saber. "Boca / Pontal" não é explicado (UX-11, UX-12).
+- **Preço/prazo:** a página do produto não fala de preço em lugar nenhum. A resposta "dependem do projeto e são informados no orçamento" só existe no FAQ da página **Serviços**, e o pescador não passa por lá (UX-05).
+- **Foto:** a canoa de 6 m aparece com um lago de outono e floresta de clima temperado (`08-m390-canoa-6m.png`). Para quem é de Manaus, a foto não combina com o rio daqui (UX-07).
+- **Orçamento:** chegou com o produto, a categoria e o tipo "Nova embarcação" já preenchidos. Ótimo. Errei de propósito e travei em duas mensagens (UX-01, UX-02), ver a situação 7. Depois de corrigir, o envio funcionou e a confirmação ficou clara (`12-m390-orcamento-sucesso.png`).
+- **Voltar:** o botão voltar do celular depois do envio levou de volta à canoa. Natural.
+
+### 2. Família que quer uma lancha para passear (PC 1366/1920 e celular)
+- **Caminho:** "Ver embarcações" → chip Lanchas → 3 lanchas. Fácil.
+- **Decidir:** nada no card indica **para que serve** cada lancha. Uma se chama "cargueira", a outra "10 m" sem uso definido e a terceira "7 m – 11 passageiros". Só a de 7 m informa a capacidade, e a de 10 m diz "Capacidade: sob consulta". Uma família não sabe qual serve para passeio sem abrir as três. Buscar "lancha familia" dá 0 resultados (UX-06, UX-03).
+- **Fotos:** a de 7 m (lancha com motor no rio azul) e a cargueira (barco regional coberto) ficaram coerentes. A de **10 m é a silhueta de uma canoa no pôr do sol** (`09-d1366-lancha-10m.png`). O selo de "fotos ilustrativas" está sempre visível. O botão "Ampliar" e a galeria funcionam.
+- **Página do produto no PC:** muito boa (`14-d1366-produto-lancha-7m.png`). Tem tabela clara, características, "Sobre este projeto", a fonte com a data da publicação no Instagram, e os botões **Solicitar orçamento** e **Perguntar no Instagram**, que agora são ações diferentes. Falta só uma linha sobre preço e prazo (UX-05).
+- **Orçamento no PC (1920):** o produto escolhido aparece com miniatura. Mas o formulário repete a mesma informação em três lugares: "Produto selecionado", "Categoria: Lanchas" e "Modelo de referência: Lancha de Alumínio 7 m" (`20-d1920-orcamento-lancha.png`, UX-10).
+
+### 3. Dono de barco com motor de popa falhando
+- **O que tentei:** descobrir se fazem conserto ou revisão de motor. A Home fala em "Revenda de motores de popa". A página **Serviços** tem "Manutenção náutica", que cita "casco, equipamentos e acabamento" (`18-m390-servicos-manutencao.png`), e "Revenda de motores de popa". A página do produto "Motores de popa" só fala de revenda (`10-m390-motores-produto.png`). No FAQ, "Que tipos de reparo e manutenção vocês fazem?" responde "em embarcações de alumínio".
+- **Onde travei:** **o site não diz em lugar nenhum se a empresa mexe em motor**. A pessoa fica sem saber e precisa perguntar (UX-04). No formulário, o tipo "Motor de popa" não deixa claro se é para comprar ou consertar.
+- **Como pedir:** pelo formulário de contato ou de orçamento. Mandei a mensagem "motor falhando" pelo Contato e recebi "Mensagem enviada… Retornamos pelo telefone informado (ligação ou WhatsApp)". O próximo passo ficou claro. O prazo de retorno não aparece, mas isso depende da empresa.
+
+### 4. Reformar o estofamento do barco
+- **Caminho:** Home → categoria **Estofamentos** → "Estofamento Náutico" → orçamento. Ou Serviços → **Orçar estofamento**, que preenche o tipo "Estofamento" e a mensagem. Os dois caminhos funcionam.
+- **Clareza:** os textos agora falam de "Sobre o serviço", "Materiais, cores e prazo sob consulta" e "Reforma de estofados". Está bom.
+- **Estranheza:** o estofamento aparece no catálogo com a trilha "Início › **Embarcações** › Estofamentos", como se fosse um barco à venda (UX-17). Também não diz se é preciso **levar o barco** ou só as almofadas, que é a dúvida prática de quem quer reformar.
+
+### 5. Pessoa desconfiada: a empresa é séria?
+- **Onde fica:** o site só diz "Manaus – AM". No Contato há o link **"Manaus no mapa"**, que abre o mapa da cidade inteira. Parece que vai mostrar um endereço e não mostra (`16-m390-contato.png`, UX-08).
+- **Há quanto tempo existe:** o site não diz. A página Sobre não tem história, ano nem equipe.
+- **Fotos reais:** todas são de banco de imagens, e o site avisa isso honestamente.
+- **Falar com alguém:** só por formulário ou Instagram.
+- **O que transmite confiança:** as datas das publicações no Instagram nas páginas de produto ("publicação de 29/08/2022", "09/12/2023"), as medidas reais, nenhum número inventado e o tom "sem rodeios".
+- **O que tira confiança:** a página Sobre repete **palavra por palavra** a lista "Fatos" da Home, oito itens iguais (`19-m390-sobre-fatos-repetidos.png`), e parece conteúdo de preenchimento.
+- _Contexto do negócio:_ endereço, telefone, horário e fotos reais foram retidos pela empresa e não são defeito do site. Mesmo assim, esta é hoje a situação mais fraca, e a sugestão em UX-08 usa apenas fatos que o site já tem.
+
+### 6. Procurou "reparo", errou a digitação, usou filtros e voltou (celular)
+- **"reparo" e "manutencao" (sem acento):** a caixa "Nenhum produto encontrado" mostra a dica **"Procura reparo, manutenção ou outro serviço? Veja nossos serviços."**, que resolve o B1 da rodada anterior. Mas a dica fica **abaixo da dobra e atrás da barra inferior**: o cabeçalho escuro, os chips e a busca ocupam a primeira tela inteira (`07-m390-busca-reparo-vazio.png`, `21-m390-catalogo-topo.png`, UX-09).
+- **Com erro de digitação:** "repraro" e "concerto" (escrita comum de "conserto") não mostram a dica, só um botão "Ver serviços" no fim da caixa (`06-m390-busca-concerto-vazio.png`).
+- **Busca rígida:** "canoa aluminio", "canoa 6", "motr", "estofado" e "lancha familia" dão **0 resultados**. "canoa", "motor" e "6 m" funcionam (UX-03).
+- **Filtros e voltar:** chip Canoas → abri um produto → voltar do celular. O filtro **e a posição da rolagem foram mantidos**, e a busca combinada com filtro também. Muito bom. Com o link direto para Motores de popa, o chip ativo aparece centralizado e a trilha mostra a categoria (`13-m390-catalogo-motores-chip.png`).
+- **Produto que não existe:** mostra o 404 "Essa rota não está no mapa" com os botões "Página inicial" e "Ver embarcações". Simpático e claro.
+
+### 7. Formulários com erros de propósito
+| Tentativa | Mensagem exibida | Avaliação |
 |---|---|---|
-| Caminho | Home → "Ver embarcações" → chip "Lanchas" → card → "Solicitar orçamento" | Home → ☰ → Embarcações → chip "Lanchas" → card → "Solicitar orçamento" |
-| Cliques/toques até o formulário | **4** (ou 3 pelos "Projetos em destaque", que já mostram as 3 lanchas na 1ª rolagem) | **5** (menu quebrado: na prática o usuário precisa usar o botão "Ver embarcações" do hero) |
-| Rolagens | 1 tela até os destaques | ~2 telas até o 1º card de lancha |
+| Enviar vazio (orçamento) | "Informe seu nome." / "Telefone inválido. Ex.: (92) 99999-9999" / "Descreva o que você precisa (mín. 10 caracteres)." | Claras. O cursor vai para o primeiro erro (`05-m390-orcamento-erros.png`). Para o telefone vazio, "Informe seu telefone" seria melhor que "inválido". |
+| Não marcar a autorização (orçamento e contato) | **"Invalid literal value, expected true"** | **Inglês e técnico.** O leigo não entende o que fazer (`04-m390-erro-consentimento-ingles.png`, UX-01). |
+| Telefone "9299" / "abc" / "(92) 99999-000" | "Telefone inválido. Ex.: (92) 99999-9999" | Adequado. |
+| Telefone **"(92) 9 9999-0000"** ou **"92 9 9999 0000"** | "Telefone inválido…" | **Número certo recusado** (UX-02). |
+| Telefone sem DDD "99999-0000" | "Telefone inválido…" | Deveria dizer "inclua o DDD". |
+| Mensagem "oi" | "Descreva o que você precisa (mín. 10 caracteres)." | Clara. |
+| Contato: assunto "a" | "Informe o assunto." | Confunde, porque o assunto foi informado. Melhor "Assunto muito curto" (UX-16). |
+| Contato: e-mail "maria@gmail" | "E-mail inválido." | Ok. |
+| Envio correto | Tela "Pedido de orçamento enviado… vendedor vai retornar pelo telefone informado (ligação ou WhatsApp)" | Ótima. Poderia repetir o número digitado para a pessoa conferir (UX-19). |
 
-- **Navegação/clareza:** boa. O menu chama "Embarcações", a página "Embarcações e produtos", e os destaques já começam pelas lanchas. Breadcrumb na página de produto mostra a categoria.
-- **Página do produto:** excelente estrutura (título, resumo, 2 CTAs, tabela de especificações, características, "Sobre este projeto", fonte do Instagram com data, "Veja também"). Passa credibilidade.
-- **Problemas:** as fotos não batem com o produto (cargueira de 9 m = canoa de madeira; segunda foto = cockpit de iate de fibra). "Solicitar orçamento" e "Falar com um vendedor" levam **ao mesmo lugar** (`/orcamento?produto=…`) — dois botões, uma ação. Não há nenhuma noção de faixa de preço, prazo de fabricação ou forma de pagamento/financiamento (nem que seja "sob consulta"), que é a 1ª dúvida de quem compra lancha.
-- **Orçamento:** o produto aparece pré-selecionado com miniatura ("Produto selecionado — Lancha de alumínio 7 m"), ótimo. Envio e confirmação claros.
-
-### Persona 2 — Procura uma canoa
-- **Desktop:** Home → destaques (a "Canoa de alumínio 7 m" aparece na 2ª linha, 2 rolagens) → card → orçamento: **2–3 cliques**. Ou Embarcações → chip "Canoas": 3 cliques.
-- **Celular:** os 6 destaques ficam empilhados um por tela; a categoria "Canoas" na Home só aparece após **~7,5 telas de rolagem** (a Home mobile tem ~14.000 px ≈ 16,6 telas). Pelo hero: "Ver embarcações" → chip "Canoas" (visível sem rolar) → card: 3 toques. A busca "canoa" funciona (2 resultados).
-- **Faltam:** usos típicos (pesca, ribeirinho, transporte escolar?), capacidade de pessoas/carga e motor recomendado para cada canoa — itens que o vendedor vai perguntar de qualquer jeito.
-- **Visual:** a foto de canoas é de canoas canadenses de lazer em lago — destoa de "canoa de alumínio da Amazônia", mas está sinalizada como ilustrativa.
-
-### Persona 3 — Procura motor de popa
-- **Caminho:** Home → card "Motores de popa" (categoria) ou Serviços → "Consultar motores" → orçamento. **3 cliques** desktop / **3–4 toques** celular.
-- **Experiência fraca:** a categoria tem **1 único card genérico** chamado "Motores de popa", cuja página diz "Marcas: sob consulta / Potências: sob consulta". O visitante não descobre nada que já não soubesse — nem faixas de potência (15, 40, 60, 90 HP…), nem se há motores a pronta entrega, nem se fazem instalação/revisão de motor.
-- **Texto errado para o contexto:** a página do motor mostra "Sobre este projeto" e "Medidas, layout, motorização, cor e acabamento podem ser ajustados ao seu uso" — isso é texto de embarcação. A faixa CTA ao final do catálogo de motores diz "Vamos projetar a sua embarcação?".
-- **Celular:** com `?categoria=motores-de-popa`, o chip ativo "Motores de popa" fica **fora da tela** (rolagem horizontal não é ajustada) — o usuário não vê qual filtro está ativo. Breadcrumb do catálogo continua "Início > Embarcações" sem a categoria.
-- **Busca:** "motor" → 2 resultados ok; "yamaha" → 0 (esperado).
-- **Risco:** a foto de motores na página Serviços mostra claramente a marca **Yamaha** — sugere revenda autorizada de marca não confirmada.
-
-### Persona 4 — Precisa de manutenção/reparo
-- **Caminho bom:** Home → faixa "03 Reparos e manutenção" (não clicável) → seção escura "Do projeto à manutenção" → item "Manutenção náutica" → /servicos#manutencao → "Agendar manutenção" → formulário com a mensagem **pré-preenchida** ("Tenho interesse no serviço: Manutenção náutica."). **3 cliques** desktop, **4 toques** celular.
-- **Pelo catálogo/busca falha:** buscar "reparo" ou "manutenção" em Embarcações → 0 resultados; o estado vazio oferece "Solicitar orçamento", mas não aponta para /servicos.
-- **Faltam informações-chave:** que tipos de reparo (solda de alumínio? casco furado? pintura? elétrica? motor?), se atende só alumínio ou também madeira/fibra, se busca a embarcação, onde deixar o barco (sem endereço — compreensível), prazo médio de avaliação. O formulário não tem campo "tipo de solicitação" (Nova embarcação / Reparo / Manutenção / Motor / Estofamento) — o serviço só entra como texto livre na mensagem e o campo "Categoria" oferece apenas categorias de produto.
-- **Visual:** 2 das 5 fotos de Serviços são de solda (fabricação e manutenção) — repetitivo; a de manutenção não mostra barco.
-- **"Agendar manutenção"** promete agendamento, mas leva a um pedido de orçamento. Melhor "Solicitar manutenção".
+### 8. Menu, cookies, barra inferior, FAQ e galeria
+- **Menu do celular:** abre como gaveta de altura total, com links grandes, "Solicitar orçamento" e o Instagram, e fecha ao navegar (`01-m360-menu-aberto.png`). **Resolvido.**
+- **Banner de cookies:** compacto, com "Recusar" e "Aceitar todos" lado a lado e "Preferências" como link. Em "Preferências", as categorias estão explicadas em linguagem simples. A 360 px ele ainda cobre os botões do topo da Home (`03-m360-cookie-banner.png`), o que é aceitável porque some com um toque.
+- **Barra inferior (celular):** "Pedir orçamento" com ícone de prancheta e "Instagram" deixam claro o que cada um faz. Na página de orçamento, ela troca para "Contato", um bom detalhe. A 360 px o texto "Pedir orçamento" quebra em duas linhas (UX-15).
+- **FAQ (Serviços):** acordeão simples, com respostas honestas (`11-m360-faq.png`). Só existe na página Serviços (UX-05).
+- **Galeria "A vida no rio" e "Ampliar" nos produtos:** a ampliação abre com contador, legenda, setas e botão de fechar (`15-m390-lightbox.png`). **No celular não dá para arrastar com o dedo** para passar as fotos, só pelas setas (UX-13). A galeria inclui uma foto de faíscas de esmerilhadeira, que destoa do título "A vida no rio".
+- **PC:** o cabeçalho agora é sólido ao rolar (B3 resolvido). O botão flutuante "Orçamento" é redundante com o botão do cabeçalho e fica por cima das fotos dos cards e da tabela do produto (`17-d1366-catalogo-botao-flutuante.png`, UX-14).
 
 ---
 
-## Ausência do WhatsApp — está claro e fluido?
-**O que funciona:** nenhum número inventado; o Contato explica "Mande sua mensagem pelo formulário ou pelo Instagram" e "Para visitar, combine com a equipe"; o formulário de orçamento tem o card "Prefere conversar antes? → Mensagem no Instagram"; o campo se chama "Telefone / WhatsApp" (o cliente informa o dele); a confirmação diz que um vendedor ligará no telefone informado.
+## Verificação dos itens da rodada 1
 
-**O que confunde:**
-1. O **botão flutuante laranja com balão de conversa** (padrão universal de WhatsApp/chat) leva a `/orcamento`. Quem toca espera conversar e cai num formulário de 8 campos.
-2. "Falar com um vendedor" (produto) e "Fale com a equipe" (CTA band, rodapé, menu) usam o mesmo ícone de balão e levam a formulários.
-3. Não há expectativa de **tempo de resposta** nem de **canal** do retorno (ligação? WhatsApp?).
-
-**Como compensar (sugestões concretas):**
-- Trocar o ícone do flutuante por um de documento/prancheta + rótulo visível ("Orçamento") ou transformá-lo numa **barra fixa inferior no celular** com dois botões: "Pedir orçamento" e "Instagram" (ícone do Instagram). Arquivo: `apps/web/src/components/layout/FloatingContact.tsx`.
-- Nos CTAs de fallback, usar `icon={false}` ou ícone `Send`/`FileText`, e rótulos honestos: "Enviar mensagem" (→ /contato) em vez de "Fale com a equipe". Arquivos: `components/ui/WhatsAppCta.tsx` (default do fallback), `CtaBand.tsx`, `Footer.tsx`, `Header.tsx`.
-- No produto, substituir o segundo botão (duplicado) por **"Perguntar no Instagram"** (abre o direct) — dá ao visitante uma alternativa realmente conversacional. Arquivo: `pages/ProductDetail.tsx` (linhas ~136–143).
-- Adicionar, perto do botão de envio e na confirmação, uma linha de expectativa: "Retornamos pelo telefone informado (ligação ou WhatsApp)" — e, quando a empresa confirmar, o prazo ("em até 1 dia útil"). Arquivos: `components/forms/QuoteForm.tsx`, `ContactForm.tsx`.
-- Incluir no formulário a preferência de retorno: rádio "Prefiro: ligação / mensagem no WhatsApp" — mantém o cliente no canal que ele quer sem expor o número da empresa (exige campo opcional no `quoteSchema` em `packages/shared`).
-- Mostrar o Instagram com mais força como prova social: grade "Veja nossos projetos no Instagram" com link (mesmo sem embed) na Home.
-
----
-
-## Problemas priorizados
-
-### Alta
-| # | Problema | Evidência | Sugestão concreta | Arquivo provável |
-|---|---|---|---|---|
-| A1 | **Menu mobile quebrado.** O `<header>` tem `backdrop-blur-sm` (backdrop-filter), que cria um *containing block* para elementos `fixed`; a gaveta `fixed inset-0` fica presa à altura do header (**68 px**). Os links Início/Embarcações/Serviços/Sobre/Contato ficam invisíveis (nav com 32 px e overflow), os botões transbordam sobre o conteúdo e o overlay escuro não cobre a tela. | `12-mobile-MENU-QUEBRADO.png`; medição: painel `height: 68`, `backdropFilter: blur(8px)` | Renderizar a gaveta fora do `<header>` via `createPortal(…, document.body)` (ou remover o `backdrop-blur` do header). Acrescentar teste e2e mobile que verifique `#menu-mobile` com altura ≈ viewport e links visíveis. | `apps/web/src/components/layout/Header.tsx` (bloco "Drawer mobile", ~l. 81–170) |
-| A2 | **Botão flutuante e CTAs com ícone de chat levam a formulário** (expectativa de WhatsApp frustrada). | `11-mobile-home-hero.png`, `14-mobile-detalhe-lancha.png` | Ver "Como compensar": ícone/rótulo de orçamento ou barra inferior "Orçamento + Instagram"; fallback sem ícone de balão. | `components/layout/FloatingContact.tsx`, `components/ui/WhatsAppCta.tsx` |
-| A3 | **Nenhuma expectativa de retorno** (quando/como) após trocar o WhatsApp por formulário. | `08-desktop-orcamento.png`, `17-mobile-orcamento-sucesso.png` | Linha "Retornamos pelo telefone informado (ligação ou WhatsApp)" junto ao botão e na confirmação; prazo quando a empresa confirmar; opção de canal preferido. | `components/forms/QuoteForm.tsx`, `ContactForm.tsx`, `pages/Quote.tsx` (STEPS) |
-| A4 | **Fotos que contradizem o produto** — "Lancha cargueira 9 m / 6 poltronas" com canoa de madeira ao longe + cockpit de iate; "Lancha 10 m" com lancha de fibra em lago nórdico; **logo Yamaha** visível na foto de motores (marca não confirmada). A nota "ilustrativa" não neutraliza a contradição para quem compra. | `06-desktop-detalhe-lancha.png`, `07-desktop-servicos-manutencao-motores.png` | Até chegarem as fotos reais: preferir fotos neutras e coerentes (casco de alumínio, rio amazônico) e **remover a foto com marca Yamaha**; nos produtos com foto incoerente, usar 1 foto só. Prioridade máxima: pedir à empresa as fotos do Instagram. | `packages/shared/src/catalog.ts` (images), `apps/web/src/data/content.ts`, `apps/web/public/images` |
-
-### Média
-| # | Problema | Sugestão concreta | Arquivo provável |
-|---|---|---|---|
-| M1 | **Motores de popa sem conteúdo útil** (1 card genérico, "sob consulta" em tudo) e textos de embarcação na página do motor ("Sobre este projeto", "Medidas, layout…"); CTA band "Vamos projetar a sua embarcação?" no catálogo de motores. | Textos condicionais por categoria em ProductDetail ("Sobre o produto" e frase de ajuste só para embarcações); CtaBand com props de título/texto por contexto; quando a empresa confirmar, listar faixas de potência/marcas; mencionar instalação/revisão se oferecida. | `pages/ProductDetail.tsx` (~l. 175–186), `components/layout/CtaBand.tsx`, `pages/Products.tsx` |
-| M2 | **Formulário sem "tipo de solicitação"**: manutenção/reparo entra só como texto; "Categoria" só tem produtos. Dificulta triagem e relatórios de lead. | Campo opcional "O que você precisa?" (Nova embarcação · Reparo · Manutenção · Motor de popa · Estofamento), pré-selecionado por `?servico=`/`?categoria=`. Requer ajuste do `quoteSchema`. | `components/forms/QuoteForm.tsx`, `pages/Quote.tsx`, `packages/shared/src/schemas.ts` (orquestrador), API |
-| M3 | **CTAs duplicados no produto** ("Solicitar orçamento" e "Falar com um vendedor" → mesma URL). | Segundo botão vira "Perguntar no Instagram" ou é removido enquanto não houver WhatsApp. | `pages/ProductDetail.tsx` (~l. 130–143) |
-| M4 | **Home mobile muito longa** (~16,6 telas); categorias só após ~7,5 telas, depois dos 6 destaques empilhados. | No celular: mover "Encontre a sua embarcação" para logo após o hero, em chips/carrossel horizontal; reduzir destaques a 3 ou carrossel com scroll-snap. | `pages/Home.tsx` (ordem das seções, l. ~146–220) |
-| M5 | **Cookie banner cobre ~45% da 1ª tela no celular**, escondendo os CTAs do hero. | Versão compacta no mobile (texto de 1–2 linhas, botões "Recusar" e "Aceitar" lado a lado, "Preferências" como link). | `components/consent/CookieBanner.tsx` |
-| M6 | **Chip de categoria ativo fora da tela no celular** (ex.: Motores de popa) e breadcrumb do catálogo sem a categoria. | `scrollIntoView({inline:'center'})` no chip ativo ao montar; breadcrumb "Início > Embarcações > Motores de popa" quando filtrado; indicar rolagem (fade na borda). | `pages/Products.tsx` |
-| M7 | **Faltam informações de decisão**: prazo de fabricação, formas de pagamento/financiamento, garantia, capacidade (pessoas/carga) em canoas/botes, tipos de reparo atendidos (alumínio? fibra? solda? pintura?). | Seção "Perguntas frequentes" (Home/Serviços/Produto) com respostas "sob consulta" onde não houver dado confirmado; checklist de reparos detalhado após confirmação com a empresa. | `data/content.ts`, `pages/Services.tsx`, `pages/ProductDetail.tsx` |
-| M8 | **Botão flutuante sobrepõe conteúdo** no celular (texto do resumo do produto, faixa "Fabricação sob medida" no hero, imagens dos cards). | Adicionar `padding-bottom` ao `main` no mobile ou trocar por barra inferior fixa (ver A2); esconder o flutuante quando os CTAs do hero/produto estiverem visíveis. | `components/layout/FloatingContact.tsx`, `components/layout/Layout.tsx` |
-
-### Baixa
-| # | Problema | Sugestão | Arquivo provável |
-|---|---|---|---|
-| B1 | Busca por "reparo"/"manutenção" no catálogo → estado vazio sem caminho para Serviços. | No estado vazio, link "Procura reparo ou manutenção? Veja nossos serviços". | `pages/Products.tsx` (empty-state) |
-| B2 | "Agendar manutenção" promete agenda; leva a orçamento. | "Solicitar manutenção". | `data/content.ts` (l. 56) |
-| B3 | Header no desktop fica translúcido ao rolar e o texto da seção aparece "fantasma" atrás do menu. | Aumentar opacidade (`bg-white/95` também com backdrop) ou fundo sólido. | `components/layout/Header.tsx` (l. 33) |
-| B4 | Fotos repetidas (mesma imagem em destaque, categoria e galeria; duas fotos de solda em Serviços). | Variar imagens; trocar foto de manutenção por casco/oficina. | `data/content.ts`, `lib/images.ts` |
-| B5 | Faixa do hero "01 Embarcações… 04 Motores de popa" parece clicável mas não é. | Tornar cada item link para a seção/categoria correspondente. | `pages/Home.tsx` |
-| B6 | Números "01…05" grandes em Serviços cortados na borda superior da foto. | Posicionar com margem interna ou fora da imagem. | `pages/Services.tsx` |
-| B7 | Hero da Home sem nenhuma embarcação (pôr do sol genérico) e headline genérica ("Seu próximo destino começa aqui") — é o trecho com mais "cara de template". | Headline concreta ("Embarcações em alumínio feitas sob medida em Manaus") e foto com barco de alumínio assim que houver foto real. | `pages/Home.tsx`, `data/content.ts` |
-| B8 | Nome do produto "Motores de Popa" com maiúscula inconsistente no breadcrumb. | "Motores de popa". | `packages/shared/src/catalog.ts` |
+| Item | Situação | Comentário |
+|---|---|---|
+| A1 Menu mobile quebrado | **Resolvido** | Gaveta de altura total com os links visíveis. |
+| A2 Ícone de chat levando a formulário | **Resolvido** | Barra inferior "Pedir orçamento + Instagram" (prancheta) e pílula "Orçamento" no PC. Os rótulos são honestos. |
+| A3 Sem expectativa de retorno | **Resolvido** (falta o prazo) | "Retornamos pelo telefone informado (ligação ou WhatsApp)" aparece nos formulários, no sucesso, no FAQ e nas faixas de chamada. O prazo depende da empresa. |
+| A4 Fotos que contradizem o produto | **Parcial** | A foto com marca Yamaha saiu e a cargueira ficou coerente. Continuam incoerentes: lancha 10 m (silhueta de canoa), canoa 6 m (lago de outono, clima temperado) e faíscas na galeria "A vida no rio". → UX-07 |
+| M1 Textos de embarcação em motores | **Resolvido** | "Sobre os motores" e "Sobre o serviço", com faixa de chamada por contexto. |
+| M2 Tipo de solicitação | **Resolvido** | Campo vem pré-preenchido pelo serviço ou produto. Criou redundância com Categoria e Modelo → UX-10 |
+| M3 Botões duplicados no produto | **Resolvido** | O segundo botão virou "Perguntar no Instagram". |
+| M4 Home longa no celular | **Resolvido** | Caiu de 16,6 para 13,3 telas, com as categorias logo depois do topo e 3 destaques. |
+| M5 Banner de cookies grande | **Resolvido** | Ocupa ~25% da tela (antes ~45%). |
+| M6 Chip ativo fora da tela | **Resolvido** | Chip centralizado e trilha com a categoria. |
+| M7 Faltam informações de decisão | **Parcial** | O FAQ existe, mas só em Serviços. A página do produto não fala de preço. Faltam capacidade das canoas e conserto de motor → UX-04, UX-05, UX-06 |
+| M8 Flutuante cobrindo conteúdo | **Resolvido no celular**, parcial no PC | → UX-14 |
+| B1 Busca "reparo" sem caminho | **Resolvido** (parcial com erro de digitação) | → UX-03, UX-09 |
+| B2 "Agendar manutenção" | **Resolvido** | Agora é "Solicitar manutenção". |
+| B3 Cabeçalho translúcido | **Resolvido** | |
+| B4 Fotos repetidas | **Ainda incomoda (baixa)** | As capas das categorias repetem as fotos dos produtos na mesma Home. A foto dos barcos atracados aparece em Sobre e na galeria → UX-18 |
+| B5 Faixa do topo não clicável | **Resolvido** | Os quatro itens viraram links. |
+| B6 Números cortados em Serviços | **Resolvido** | |
+| B7 Manchete genérica do topo | **Aguardando o cliente** | "Seu próximo destino começa aqui" continua sendo o trecho com mais cara de modelo pronto. Não contei como defeito. |
+| B8 "Motores de Popa" com maiúscula | **Resolvido** | |
 
 ---
 
-## Qualidade visual — parece empresa consolidada?
-- **Sim, no geral.** Paleta disciplinada (laranja só para ação), tipografia condensada forte e consistente, espaçamentos generosos, cantos discretos, cards e tabelas limpos, rodapé completo. Não parece template genérico — exceto o hero (B7) e a galeria "A vida no rio", que é bonita mas é puro banco de imagens.
-- **Consistência:** botões, eyebrows com traço laranja e cabeçalhos de página escuros se repetem em todas as páginas — boa sensação de sistema.
-- **O que mais tira credibilidade hoje:** fotos que não batem com o texto (A4) e a ausência de qualquer canal "imediato" (A2/A3). Ambos se resolvem com conteúdo real da empresa.
+## Problemas encontrados (Rodada 2)
+
+| ID | Prioridade | Onde (página + elemento) | O que eu tentava | Problema | Como melhorar | Arquivo provável |
+|---|---|---|---|---|---|---|
+| UX-01 | **Alta** | /orcamento e /contato, caixa "Autorizo a Ceará Náutica…" | Enviar sem marcar a autorização | Aparece **"Invalid literal value, expected true"**, em inglês e técnico. Investigação: o Zod instalado (v4) gera a mensagem certa ("É necessário autorizar o contato para enviar."), mas o servidor de desenvolvimento usa um pacote pré-compilado **antigo do Zod 3** (`apps/web/node_modules/.vite/deps/zod.js`, de 09/11, anterior à atualização). Nessa versão o parâmetro `error:` é ignorado. Provavelmente não acontece no build de produção, mas foi o que o usuário viu. | Reiniciar o Vite com `--force` (ou apagar `node_modules/.vite`) e conferir de novo. Criar teste e2e que verifique o texto em português do erro de autorização (e o de telefone vazio, que também deveria ser "Informe seu telefone/WhatsApp."). Opcional: destacar a caixa em vermelho e rolar até ela. | `packages/shared/src/schemas.ts` (consent), `apps/web/e2e/` (teste novo), cache do Vite |
+| UX-02 | **Alta** | /orcamento e /contato, campo "Telefone / WhatsApp" | Digitar o número como se escreve em Manaus | "(92) 9 9999-0000" e "92 9 9999 0000" são **recusados** como inválidos. A pessoa acha que o número está certo e que o site está quebrado. Sem DDD, a mensagem não diz o que falta. | Validar só os dígitos (remover espaços, parênteses e traços e aceitar 10–13 dígitos com DDD). Formatar automaticamente enquanto a pessoa digita. Mensagem específica: "Inclua o DDD. Ex.: (92) 99999-9999". | `packages/shared/src/schemas.ts` (`phoneRegex`), `apps/web/src/components/forms/fields.tsx` |
+| UX-03 | Média | /produtos, caixa "Buscar por nome" | Buscar como leigo | Só acha o texto exato: "canoa aluminio", "canoa 6", "motr", "estofado" e "lancha familia" dão 0. A dica de serviços não aparece para "concerto" nem "repraro". | Buscar palavra por palavra (todas as palavras em qualquer ordem). Tratar "6m" como "6 m". Usar sinônimos (estofado→estofamento, família/passeio→lanchas, conserto/concerto→serviços). Ampliar `SERVICE_TERMS` com "concert", "arrum", "furo", "vazam", "falh" e "motor". Quando der 0, sugerir categorias parecidas. | `apps/web/src/lib/api.ts` (`filterProducts`), `apps/web/src/pages/Products.tsx` (`SERVICE_TERMS`) |
+| UX-04 | Média | /servicos (Manutenção, Motores), FAQ, /produtos/motores-de-popa | Saber se consertam motor de popa | O site só fala em **revenda** de motor. A manutenção cita casco, equipamentos e acabamento. Quem tem motor falhando não sabe se pode pedir ajuda. | Confirmar com a empresa e escrever claramente, nos dois casos: "Fazemos revisão de motor de popa" ou "Não consertamos motores, mas orientamos…". Até lá, criar a pergunta no FAQ "Vocês consertam motor de popa?" com a resposta "descreva o problema no pedido e a equipe informa". Separar no formulário "Comprar motor" e "Problema no motor". | `apps/web/src/data/content.ts` (SERVICES/FAQ), `packages/shared/src/schemas.ts` (REQUEST_TYPES, orquestrador) |
+| UX-05 | Média | /produtos/:slug, perto dos botões | Saber quanto custa e quanto demora | A página do produto **não menciona preço nem prazo**, nem como "sob consulta". O FAQ que responde isso fica só em Serviços. | Acrescentar perto do CTA uma linha "Preço e prazo: sob consulta, informados no orçamento, conforme o projeto". Mostrar um FAQ curto (preço, prazo, pagamento, entrega) também no produto e no orçamento. | `apps/web/src/pages/ProductDetail.tsx`, `apps/web/src/components/ui/Faq.tsx` |
+| UX-06 | Média | /produtos (cards de lanchas) | Escolher uma lancha para a família | Os cards não mostram uso indicado nem capacidade. A capacidade só aparece na de 7 m (a de 10 m diz "sob consulta"). Não há como filtrar por "passeio". | Mostrar no card selos de uso (Passeio · Pesca · Trabalho) e a capacidade quando houver. Na categoria Lanchas, um texto curto "Qual lancha para mim?" que leve ao orçamento. | `apps/web/src/components/product/ProductCard.tsx`, `packages/shared/src/catalog.ts` (orquestrador) |
+| UX-07 | Média | Lancha 10 m, Canoa 6 m, galeria da Home | Ver fotos | A foto da lancha 10 m é a silhueta de uma canoa. A da canoa 6 m é um lago de outono em clima temperado. Na galeria "A vida no rio" há faíscas de esmerilhadeira. Isso contradiz o texto e o lugar. | Trocar por imagens neutras e coerentes (rio amazônico, casco de alumínio) ou usar uma só foto genérica por categoria. A prioridade é receber da empresa as fotos do Instagram. | `packages/shared/src/catalog.ts` (images), `apps/web/src/data/content.ts` (GALLERY), `apps/web/public/images` |
+| UX-08 | Média | /sobre (lista "Fatos sobre o nosso trabalho"), /contato ("Manaus no mapa") | Verificar se a empresa é séria | A página Sobre repete a lista da Home palavra por palavra e não traz nada verificável. "Manaus no mapa" sugere um endereço e abre a cidade inteira. | Trocar a lista repetida por uma linha do tempo de **projetos publicados**, com as datas que já estão no catálogo (fonte do Instagram), e link para cada post. Renomear o link do mapa para "Atendemos em Manaus" ou removê-lo até haver endereço. Destacar "Veja os projetos reais no Instagram" com a contagem de publicações quando a empresa confirmar. | `apps/web/src/pages/About.tsx`, `apps/web/src/pages/Contact.tsx` |
+| UX-09 | Média | /produtos no celular (cabeçalho escuro + estado vazio) | Ver o resultado da busca | O cabeçalho, os chips e a busca ocupam a primeira tela inteira (390×844). Os resultados e a dica "Procura reparo…?" ficam abaixo da dobra e atrás da barra inferior. | No celular, usar um cabeçalho compacto no catálogo (título e uma linha). Pôr a dica de serviço acima do título "Nenhum produto encontrado". | `apps/web/src/pages/Products.tsx`, `apps/web/src/components/layout/PageHeader.tsx` |
+| UX-10 | Baixa | /orcamento?produto=… | Preencher o orçamento | "Produto selecionado", "Categoria" e "Modelo de referência" repetem a mesma informação. São 9 campos no celular. | Com o produto escolhido, esconder Categoria e Modelo (ou recolher em "Alterar produto"). Pôr o "Tipo de solicitação" primeiro. | `apps/web/src/components/forms/QuoteForm.tsx` |
+| UX-11 | Baixa | Tabelas de especificação | Entender a ficha | Termos de estaleiro sem explicação: "Boca / Pontal", "Popa lavada", "hp". | Explicação curta (dica ou legenda): "Boca = largura; Pontal = altura do casco". | `apps/web/src/pages/ProductDetail.tsx`, `packages/shared/src/catalog.ts` |
+| UX-12 | Baixa | Canoa 6 m × Canoa 7 m | Comparar as duas | As linhas da ficha mudam de um produto para outro (Dimensões × Comprimento, Chapa × Material). | Padronizar as linhas por categoria (Dimensões, Chapa, Capacidade, Motorização), usando "sob consulta" quando faltar o dado. | `packages/shared/src/catalog.ts` (orquestrador) |
+| UX-13 | Baixa | Ampliação de fotos (Home e produto), celular | Passar as fotos com o dedo | Arrastar não funciona, só as setas. | Suportar o gesto de arrastar (touchstart/touchend) no Lightbox. | `apps/web/src/components/ui/Lightbox.tsx` |
+| UX-14 | Baixa | PC 1366, botão flutuante "Orçamento" | Ver cards e ficha técnica | O botão fica por cima das fotos dos cards e perto da tabela, e é redundante com o "Solicitar orçamento" fixo no cabeçalho. | No PC, ocultar o botão flutuante (o cabeçalho já tem o CTA) ou só mostrá-lo depois que o cabeçalho sair da tela. | `apps/web/src/components/layout/FloatingContact.tsx` |
+| UX-15 | Baixa | Barra inferior a 360 px | — | "Pedir orçamento" quebra em duas linhas. | Abaixo de 380 px, usar "Orçamento". | `apps/web/src/components/layout/FloatingContact.tsx` |
+| UX-16 | Baixa | /contato, campo "Assunto" | Digitar assunto curto | "a" gera "Informe o assunto.", mas a pessoa informou. | "Assunto muito curto (mínimo 2 letras)." | `packages/shared/src/schemas.ts` (`trimmed`) |
+| UX-17 | Baixa | Trilha e menu "Embarcações" em Estofamentos e Motores | Reformar estofado | "Início › Embarcações › Estofamentos" trata o serviço de estofamento como barco à venda. | Renomear para "Catálogo" ou "Produtos" na trilha e no título do catálogo, ou levar Estofamentos direto para Serviços. Dizer se é preciso levar o barco ou só as almofadas. | `apps/web/src/pages/ProductDetail.tsx`, `apps/web/src/pages/Products.tsx`, `data/content.ts` (NAV_LINKS) |
+| UX-18 | Baixa | Home (categorias × destaques), Sobre × galeria | — | Mesma foto em lugares próximos (B4 da rodada 1). | Variar as capas de categoria e as fotos da galeria. | `apps/web/src/data/content.ts` (CATEGORY_COVERS, GALLERY) |
+| UX-19 | Baixa | Tela de sucesso do orçamento e do contato | Conferir se deu certo | A tela não repete o telefone informado, e a pessoa não sabe se digitou errado. | "Vamos retornar no (92) 99999-0000. Número errado? Envie de novo." | `apps/web/src/components/forms/QuoteForm.tsx`, `ContactForm.tsx` |
+
+---
 
 ## Pontos fortes
-- Fluxo de orçamento exemplar: pré-seleção de produto com miniatura, mensagem pré-preenchida por serviço, validação inline em português, consentimento LGPD, confirmação explicando o próximo passo; envio real funcionando (201).
-- Página de produto com especificações reais e **fonte com data do Instagram** — transparência que gera confiança.
-- Honestidade de dados: nada inventado; "a confirmar" tratado com elegância no Contato ("Para visitar, combine com a equipe").
-- Seção "O que fazemos, sem rodeios" — diferencial de tom, sem números de vitrine.
-- Desktop: navegação clara, CTA "Solicitar orçamento" sempre visível no header.
-- Acessibilidade: alvos de toque grandes, foco/labels, `prefers-reduced-motion` respeitado; 0 erros de console.
+- **Menu do celular, barra inferior e cabeçalho** funcionando bem. A navegação no celular passou de "quebrada" para boa.
+- **O caminho até o orçamento é curto e já vem preenchido.** De qualquer produto ou serviço, o formulário chega com produto, categoria, tipo e mensagem prontos. A confirmação explica o próximo passo.
+- **O botão voltar do celular mantém o filtro e a rolagem** do catálogo, um detalhe que poucos sites acertam.
+- **Honestidade:** "sob consulta", "fotos ilustrativas", a fonte com a data do Instagram e o FAQ "sem promessas que não podemos cumprir". Nada inventado.
+- **Textos de cada contexto corrigidos** em motores, estofamento, faixas de chamada e na dica de serviços na busca.
+- **Visual consistente e profissional** no PC (1366 e 1920) e no celular, sem rolagem horizontal e sem erros no console.
+- Cookies com escolha clara e explicação em linguagem simples.
 
 ## Nota
-| Critério | Nota |
-|---|---|
-| Navegação desktop | 8,5 |
-| Navegação celular | 4,5 (menu quebrado) |
-| Clareza / conteúdo | 7 |
-| Encontrar produto | 7,5 (motores 5) |
-| Qualidade visual | 8 |
-| Contato / orçamento | 7 |
-| **Geral** | **7,0 / 10** |
 
-Com A1–A4 corrigidos, a expectativa é **8,0–8,5**; com fotos reais e o WhatsApp liberado, **9**.
+| Critério | R1 | R2 |
+|---|---|---|
+| Navegação no PC | 8,5 | 8,5 |
+| Navegação no celular | 4,5 | 8,0 |
+| Clareza / conteúdo | 7,0 | 7,5 |
+| Encontrar produto ou serviço | 7,5 | 7,5 (busca rígida, motor sem resposta) |
+| Qualidade visual | 8,0 | 8,0 |
+| Formulários / contato | 7,0 | 7,0 (UX-01, UX-02) |
+| Confiança (visitante desconfiado) | — | 6,5 (depende de dados da empresa) |
+| **Geral** | **7,0** | **7,8 / 10** |
+
+Com UX-01 e UX-02 resolvidos, a nota sobe para **≈ 8,3**. Com UX-03 a UX-06 também, chega a **≈ 8,7**. Com fotos reais, endereço e o WhatsApp liberados pela empresa, **9+**.
