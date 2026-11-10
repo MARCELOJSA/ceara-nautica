@@ -110,6 +110,58 @@ test.describe('fluxos principais', () => {
     );
   });
 
+  test('[UX-22] motor: caminho para defeito, secundário à compra, e dúvida honesta', async ({
+    page,
+  }) => {
+    await presetConsent(page);
+    await page.goto('/produtos/motores-de-popa');
+    const issue = page.getByTestId('motor-issue-link');
+    await expect(issue).toHaveText(/problema no motor\? descreva aqui/i);
+    await expect(issue).toHaveAttribute('href', '/orcamento?servico=motor-revisao');
+    // o CTA de compra (orçamento do produto) continua sendo o primeiro e principal
+    const buy = page.locator('main').getByRole('link', { name: /solicitar orçamento/i }).first();
+    await expect(buy).toHaveAttribute('href', '/orcamento?produto=motores-de-popa');
+    expect((await buy.boundingBox())!.y).toBeLessThan((await issue.boundingBox())!.y);
+    await expect(page.getByText(/revisão ou conserto de motor\?/i)).toBeVisible();
+    // só no motor
+    await page.goto('/produtos/lancha-aluminio-7m');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByTestId('motor-issue-link')).toHaveCount(0);
+  });
+
+  test('[UX-23] cards: toda embarcação diz o uso, com termo único', async ({ page }) => {
+    await presetConsent(page);
+    await page.goto('/produtos');
+    const grid = page.getByTestId('product-grid');
+    await expect(grid).toBeVisible();
+    const boats = DEMO_PRODUCTS.filter(
+      (p) => !['motores-de-popa', 'estofamentos'].includes(p.category),
+    );
+    await expect(grid.getByTestId('card-uses')).toHaveCount(boats.length);
+    await expect(grid.getByText(/passeio/i)).toHaveCount(0);
+    const card10 = grid.locator('article', { hasText: 'Lancha de Alumínio 10 m' });
+    await expect(card10.getByTestId('card-uses')).toHaveText(/indicado para:\s*sob consulta/i);
+  });
+
+  test('[UX-26] /sobre: Instagram explícito e categorias que levam ao catálogo', async ({
+    page,
+  }) => {
+    await presetConsent(page);
+    await page.goto('/sobre');
+    await expect(page.getByText('Destaques do perfil')).toHaveCount(0);
+    const ig = page.getByTestId('about-instagram');
+    await expect(ig).toHaveAccessibleName(/ver no instagram.*abre em nova aba/i);
+    await expect(ig).toHaveAttribute('href', 'https://www.instagram.com/cearanautica/');
+    await expect(ig).toHaveAttribute('target', '_blank');
+    const cats = page.getByTestId('featured-categories').getByRole('link');
+    await expect(cats).toHaveCount(5);
+    for (const href of await cats.evaluateAll((els) => els.map((e) => e.getAttribute('href')))) {
+      expect(href).toMatch(/^\/produtos\?categoria=/);
+    }
+    await cats.filter({ hasText: 'Canoas' }).click();
+    await expect(page).toHaveURL(/\/produtos\?categoria=canoas$/);
+  });
+
   test('orçamento: envio com sucesso (POST /api/quotes) e aviso de retorno', async ({
     page,
     consoleErrors,
@@ -350,5 +402,24 @@ test.describe('mobile', () => {
       expect(box.height).toBeGreaterThanOrEqual(44);
       expect(box.width).toBeGreaterThanOrEqual(44);
     }
+  });
+
+  test('[UX-20] catálogo: introdução curta e completa, sem corte no meio da palavra', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(!isMobile, 'apenas no projeto mobile');
+    await presetConsent(page);
+    await page.goto('/produtos');
+    const short = page.getByTestId('intro-short');
+    await expect(short).toBeVisible();
+    await expect(short).toHaveText(
+      'Lanchas, canoas, botes e semi-chatas em alumínio, além de motores e estofamentos.',
+    );
+    await expect(page.getByText(/^Projetos de lanchas, canoas/)).toBeHidden();
+    // nada cortado: a altura renderizada cobre todo o texto
+    expect(await short.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+    // a busca continua na primeira tela (UX-09)
+    await expect(page.getByRole('searchbox', { name: /buscar por nome/i })).toBeInViewport();
   });
 });

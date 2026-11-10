@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { getCategory } from '@cn/shared';
-import { Instagram } from 'lucide-react';
+import { ArrowRight, ExternalLink, Instagram } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd } from '@/components/seo/jsonld';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -34,14 +34,12 @@ const STEPS = [
   },
 ];
 
-/** Destaques do perfil no Instagram → páginas do catálogo. */
-const HIGHLIGHTS = [
-  { label: 'Lanchas', to: '/produtos?categoria=lanchas' },
-  { label: 'Estofamento', to: '/produtos?categoria=estofamentos' },
-  { label: 'Botes', to: '/produtos?categoria=botes' },
-  { label: 'Semi-chata', to: '/produtos?categoria=semi-chatas' },
-  { label: 'Canoas', to: '/produtos?categoria=canoas' },
-];
+/**
+ * Categorias em destaque (as mesmas dos destaques do Instagram) → catálogo DESTE
+ * site (UX-26). O nome da seção diz para onde o botão leva; o Instagram tem
+ * link próprio, explícito e marcado como externo.
+ */
+const FEATURED_CATEGORIES = ['lanchas', 'canoas', 'botes', 'semi-chatas', 'estofamentos'];
 
 export default function About() {
   const { data } = useProducts();
@@ -177,24 +175,41 @@ export default function About() {
               rel="noopener noreferrer"
               onClick={() => track('instagram_click', { location: 'sobre' })}
               className="btn-dark mt-8"
+              data-testid="about-instagram"
             >
               <Instagram aria-hidden="true" className="size-5" />
-              <span className="sr-only">Ver no Instagram </span>
-              {site.instagramHandle}
+              <span className="whitespace-nowrap">Ver no Instagram</span>
+              <span className="font-sans text-sm font-normal tracking-normal normal-case opacity-80 max-sm:sr-only">
+                {site.instagramHandle}
+              </span>
+              <ExternalLink aria-hidden="true" className="size-4 opacity-80" />
               <span className="sr-only"> (abre em nova aba)</span>
             </a>
-            <h3 className="mt-10 eyebrow text-graphite-deep">Destaques do perfil</h3>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {HIGHLIGHTS.map((h) => (
-                <li key={h.label}>
-                  <Link
-                    to={h.to}
-                    className="inline-flex min-h-11 items-center rounded-sm border border-steel/30 px-4 font-display text-base font-semibold tracking-[0.06em] text-graphite uppercase transition-colors hover:border-graphite-deep"
-                  >
-                    {h.label}
-                  </Link>
-                </li>
-              ))}
+            <h3 id="categorias-destaque" className="mt-10 eyebrow text-graphite-deep">
+              Categorias em destaque
+            </h3>
+            <p className="mt-1 text-sm text-steel">Abrem o catálogo aqui no site.</p>
+            <ul
+              className="mt-3 flex flex-wrap gap-2"
+              aria-labelledby="categorias-destaque"
+              data-testid="featured-categories"
+            >
+              {FEATURED_CATEGORIES.map((slug) => {
+                const c = getCategory(slug);
+                if (!c) return null;
+                return (
+                  <li key={slug}>
+                    <Link
+                      to={`/produtos?categoria=${slug}`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-sm border border-steel/30 px-4 font-display text-base font-semibold tracking-[0.06em] text-graphite uppercase transition-colors hover:border-graphite-deep"
+                    >
+                      {c.name}
+                      <ArrowRight aria-hidden="true" className="size-4 text-steel" />
+                      <span className="sr-only"> no catálogo do site</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
