@@ -8,7 +8,7 @@ import request from 'supertest';
 import { loadConfig } from '../../src/config.js';
 import type { PrismaClient } from '@prisma/client';
 import { createApp } from '../../src/app.js';
-import { makeApp, testConfig } from '../helpers.js';
+import { makeApp, PROD_ENV, testConfig } from '../helpers.js';
 
 const limited = (env: Record<string, string> = {}) =>
   makeApp({ RATE_LIMIT_DISABLED: 'false', RATE_LIMIT_MAX: '5', RATE_LIMIT_WINDOW_MS: '60000', ...env });
@@ -71,13 +71,9 @@ describe('rate limit dos POST (5/min por IP)', () => {
     expect(statuses[5]).toBe(429);
   });
 
-  it('[SEC-05] com TRUST_PROXY=true qualquer cliente forja X-Forwarded-For e contorna o limite', async () => {
-    const app = limited({ TRUST_PROXY: 'true' });
-    const statuses: number[] = [];
-    for (let i = 0; i < 8; i++) {
-      statuses.push((await request(app).post('/api/contact').set('X-Forwarded-For', `203.0.113.${i}`).send({})).status);
-    }
-    expect(statuses).not.toContain(429); // demonstra o risco → usar contagem de hops (TRUST_PROXY=1)
+  it('[SEC-05 corrigido] TRUST_PROXY=true é recusado (permitiria forjar X-Forwarded-For)', () => {
+    expect(() => limited({ TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY=true/);
+    expect(() => limited({ TRUST_PROXY: ' TRUE ' })).toThrow(/TRUST_PROXY=true/);
   });
 
   it('com TRUST_PROXY=1 o IP usado é o último hop: prefixar XFF não contorna', async () => {
@@ -101,7 +97,7 @@ describe('rate limit dos POST (5/min por IP)', () => {
 });
 
 describe('erros sem stack trace / sem enumeração', () => {
-  const prod = makeApp({ NODE_ENV: 'production', IP_HASH_SALT: 'salt-forte-de-teste-0123456789' });
+  const prod = makeApp(PROD_ENV);
 
   it.each([
     ['GET', '/api/nao-existe'],
@@ -133,7 +129,7 @@ describe('erros sem stack trace / sem enumeração', () => {
         ),
     });
     const app = createApp({
-      config: testConfig({ NODE_ENV: 'production', IP_HASH_SALT: 'salt-forte-de-teste-0123456789' }),
+      config: testConfig(PROD_ENV),
       prisma: failing,
     });
     const res = await request(app).get('/api/products');
@@ -157,14 +153,25 @@ describe('configuração de produção', () => {
     expect(() => loadConfig({ ...base, IP_HASH_SALT: 'troque-este-valor' })).toThrow(/IP_HASH_SALT/);
   });
 
-  it('[SEC-07] produção aceita RATE_LIMIT_DISABLED=true e salt fraco sem aviso', () => {
-    const cfg = loadConfig({ ...base, IP_HASH_SALT: 'a', RATE_LIMIT_DISABLED: 'true' });
-    expect(cfg.rateLimit.disabled).toBe(true);
-    expect(cfg.ipHashSalt).toBe('a');
+  const ok = { ...base, IP_HASH_SALT: 'x'.repeat(32), WEB_ORIGIN: 'https://www.exemplo.com.br' };
+
+  it('[SEC-07 corrigido] produção recusa salt curto', () => {
+    expect(() => loadConfig({ ...ok, IP_HASH_SALT: 'a' })).toThrow(/IP_HASH_SALT/);
+    expect(() => loadConfig({ ...ok, IP_HASH_SALT: 'x'.repeat(15) })).toThrow(/IP_HASH_SALT/);
   });
 
-  it('[SEC-07] WEB_ORIGIN vazio em produção cai no padrão localhost (CORS sem origem real)', () => {
-    const cfg = loadConfig({ ...base, IP_HASH_SALT: 'x'.repeat(32) });
-    expect(cfg.webOrigins).toEqual(['http://localhost:5173', 'http://localhost:4173']);
+  it('[SEC-07 corrigido] produção recusa RATE_LIMIT_DISABLED=true', () => {
+    expect(() => loadConfig({ ...ok, RATE_LIMIT_DISABLED: 'true' })).toThrow(/RATE_LIMIT_DISABLED/);
+  });
+
+  it('[SEC-07 corrigido] produção exige WEB_ORIGIN explícito (sem cair no padrão localhost)', () => {
+    expect(() => loadConfig({ ...ok, WEB_ORIGIN: '' })).toThrow(/WEB_ORIGIN/);
+    expect(() => loadConfig({ ...ok, WEB_ORIGIN: undefined })).toThrow(/WEB_ORIGIN/);
+  });
+
+  it('produção com configuração completa sobe normalmente', () => {
+    const cfg = loadConfig(ok);
+    expect(cfg.webOrigins).toEqual(['https://www.exemplo.com.br']);
+    expect(cfg.rateLimit.disabled).toBe(false);
   });
 });

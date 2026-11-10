@@ -25,6 +25,14 @@ export function testConfig(env: Record<string, string> = {}): AppConfig {
   });
 }
 
+/** Variáveis mínimas para um app em modo produção nos testes (SEC-07 exige todas). */
+export const PROD_ENV = {
+  NODE_ENV: 'production',
+  IP_HASH_SALT: 'salt-forte-de-teste-0123456789',
+  RATE_LIMIT_DISABLED: 'false',
+  RATE_LIMIT_MAX: '1000',
+};
+
 export function makeApp(env: Record<string, string> = {}, notify?: LeadNotifier) {
   return createApp({ config: testConfig(env), prisma, notify });
 }

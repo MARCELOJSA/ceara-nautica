@@ -51,12 +51,39 @@ export type AppConfig = {
   logLevel: string;
 };
 
+/** Tamanho mínimo do IP_HASH_SALT em produção (o .env.example sugere `openssl rand -hex 32`). */
+export const MIN_SALT_LENGTH = 16;
+
 function parseTrustProxy(raw: string): boolean | number | string {
   const v = raw.trim().toLowerCase();
   if (v === '' || v === '0' || v === 'false') return false;
-  if (v === 'true') return true;
+  if (v === 'true') {
+    // SEC-05: com `true` o Express usa o primeiro IP do X-Forwarded-For, que o cliente controla,
+    // e o rate limit pode ser contornado forjando o header.
+    throw new Error(
+      'TRUST_PROXY=true permite forjar o IP pelo header X-Forwarded-For. ' +
+        'Informe o número de proxies à frente da API (ex.: TRUST_PROXY=1) ou a lista de IPs/sub-redes.',
+    );
+  }
   if (/^\d+$/.test(v)) return Number(v);
   return raw.trim(); // lista de IPs/sub-redes ou 'loopback', 'uniquelocal'...
+}
+
+/** SEC-07: em produção a API não sobe com configuração insegura ou incompleta. */
+function assertProductionSafe(env: NodeJS.ProcessEnv, e: z.output<typeof envSchema>): void {
+  const salt = e.IP_HASH_SALT;
+  if (!salt || salt === 'troque-este-valor' || salt.length < MIN_SALT_LENGTH) {
+    throw new Error(
+      `IP_HASH_SALT precisa ser um valor aleatório com pelo menos ${MIN_SALT_LENGTH} caracteres em produção ` +
+        '(ex.: openssl rand -hex 32).',
+    );
+  }
+  if (e.RATE_LIMIT_DISABLED) {
+    throw new Error('RATE_LIMIT_DISABLED=true não é permitido em produção.');
+  }
+  if (!env.WEB_ORIGIN?.trim()) {
+    throw new Error('WEB_ORIGIN precisa listar o(s) domínio(s) do site em produção (CORS).');
+  }
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -67,9 +94,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   }
   const e = parsed.data;
   const isProduction = e.NODE_ENV === 'production';
-  if (isProduction && (!e.IP_HASH_SALT || e.IP_HASH_SALT === 'troque-este-valor')) {
-    throw new Error('IP_HASH_SALT precisa ser definido com um valor aleatório em produção.');
-  }
+  if (isProduction) assertProductionSafe(env, e);
   return {
     nodeEnv: e.NODE_ENV,
     isProduction,

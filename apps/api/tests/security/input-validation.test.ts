@@ -11,7 +11,7 @@
  */
 import { afterAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { makeApp, prisma, validContact, validQuote } from '../helpers.js';
+import { makeApp, PROD_ENV, prisma, validContact, validQuote } from '../helpers.js';
 
 const app = makeApp();
 const MARK = 'QA-TEST';
@@ -78,7 +78,7 @@ describe('A03 — injeção na busca (GET /api/products?q=)', () => {
   });
 
   it('[SEC-01 corrigido] byte nulo não chega ao Prisma (prod e dev → 400 sem vazamento)', async () => {
-    const prod = makeApp({ NODE_ENV: 'production', IP_HASH_SALT: 'salt-forte-de-teste-0123456789' });
+    const prod = makeApp(PROD_ENV);
     for (const target of [prod, app]) {
       const res = await request(target).get('/api/products?q=%00');
       expect(res.status).toBe(400);

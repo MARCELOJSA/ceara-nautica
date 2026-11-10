@@ -3,7 +3,7 @@ import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 import { hashIp, isHoneypotFilled, truncateUserAgent } from '../src/lib/leads.js';
-import { testConfig } from './helpers.js';
+import { PROD_ENV, testConfig } from './helpers.js';
 import type { PrismaClient } from '@prisma/client';
 
 /** Prisma falso que sempre falha, para exercitar o handler de erro 500. */
@@ -20,7 +20,7 @@ const brokenPrisma = new Proxy(
 
 describe('handler de erros', () => {
   it('em produção não vaza mensagem nem stack', async () => {
-    const config = testConfig({ NODE_ENV: 'production', IP_HASH_SALT: 'um-salt-forte' });
+    const config = testConfig(PROD_ENV);
     const app = createApp({ config, prisma: brokenPrisma });
     const res = await request(app).get('/api/products');
     expect(res.status).toBe(500);
@@ -54,7 +54,7 @@ describe('config', () => {
 
   it('interpreta TRUST_PROXY', () => {
     expect(loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: '1' }).trustProxy).toBe(1);
-    expect(loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'true' }).trustProxy).toBe(true);
+    expect(() => loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY=true/);
     expect(loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'loopback' }).trustProxy).toBe('loopback');
   });
 });
