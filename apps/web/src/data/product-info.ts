@@ -114,9 +114,12 @@ export function glossaryFor(p: Product): GlossaryEntry[] {
 
 /* ------------------------------------------------------------------ cards */
 
+/**
+ * Usos citados nos textos (UX-06/UX-23). Um só rótulo por assunto: "passeio" e
+ * "lazer" viram "Lazer", o mesmo termo das categorias e da página Sobre.
+ */
 const USES: { label: string; match: RegExp }[] = [
-  { label: 'Passeio', match: /\bpasseio/ },
-  { label: 'Lazer', match: /\blazer\b/ },
+  { label: 'Lazer', match: /\bpasseio|\blazer\b/ },
   { label: 'Pesca', match: /\bpesca\b/ },
   { label: 'Trabalho', match: /\btrabalho\b/ },
   { label: 'Transporte', match: /\btransporte\b/ },
@@ -151,11 +154,18 @@ export function capacity(p: Product): string | undefined {
 
 /**
  * Resumo discreto do card: medida · capacidade (quando publicadas) e usos
- * citados nos textos. Para motor/estofamento não há resumo de medida.
+ * citados nos textos. Para motor/estofamento não há resumo de medida nem uso.
+ * `usesPending`: embarcação sem uso publicado — o card mostra "sob consulta"
+ * (UX-23) em vez de omitir a linha ou deduzir um uso.
  */
-export function cardSummary(p: Product): { facts: string[]; uses: string[] } {
+export function cardSummary(p: Product): {
+  facts: string[];
+  uses: string[];
+  usesPending: boolean;
+} {
   const facts = [mainMeasure(p), capacity(p)].filter((x): x is string => !!x);
-  return { facts, uses: usageTags(p) };
+  const uses = usageTags(p);
+  return { facts, uses, usesPending: productKind(p) === 'embarcacao' && uses.length === 0 };
 }
 
 /* -------------------------------------------------------- preço e prazo */
@@ -194,6 +204,11 @@ export function productFaq(p: Product): FaqEntry[] {
       {
         q: 'Como sei qual potência escolher?',
         a: 'Conte no pedido qual é a sua embarcação (tamanho e material) e como você navega. A equipe orienta a escolha da motorização.',
+      },
+      {
+        // UX-22: conserto de motor não é confirmado — sem prometer o serviço
+        q: 'Vocês fazem revisão ou conserto de motor?',
+        a: 'Descreva o modelo e o problema no pedido; a equipe confirma se atende e como.',
       },
     ];
   }

@@ -42,11 +42,49 @@ describe('product-info', () => {
     for (const p of DEMO_PRODUCTS) {
       const { facts, uses } = cardSummary(p);
       for (const f of facts) expect(allText(p)).toContain(f.toLowerCase());
-      for (const u of uses) expect(allText(p)).toMatch(new RegExp(u.slice(0, 5), 'i'));
+      // "Lazer" cobre "passeio" e "lazer" nos textos (UX-23)
+      const source: Record<string, RegExp> = { Lazer: /passeio|lazer/i };
+      for (const u of uses) expect(allText(p)).toMatch(source[u] ?? new RegExp(u, 'i'));
     }
     expect(cardSummary(bySlug('lancha-aluminio-7m')).facts).toEqual(['7 m', '11 passageiros']);
     expect(cardSummary(bySlug('lancha-aluminio-10m')).facts).toEqual(['10 m']);
     expect(usageTags(bySlug('motores-de-popa'))).toEqual([]);
+  });
+
+  it('[UX-23] um só termo para lazer/passeio; sem uso publicado fica "pendente", sem deduzir', () => {
+    const all = DEMO_PRODUCTS.flatMap((p) => usageTags(p));
+    expect(all).not.toContain('Passeio');
+    expect(usageTags(bySlug('lancha-aluminio-7m'))).toEqual(['Lazer', 'Pesca', 'Trabalho']);
+    expect(usageTags(bySlug('semi-chata-aluminio-sob-medida'))).toEqual([
+      'Lazer',
+      'Pesca',
+      'Trabalho',
+    ]);
+    const pending = DEMO_PRODUCTS.filter((p) => cardSummary(p).usesPending).map((p) => p.slug);
+    expect(pending).toEqual(
+      expect.arrayContaining([
+        'lancha-aluminio-10m',
+        'canoa-aluminio-6m',
+        'bote-aluminio-6m',
+        'bote-aluminio-6m-90hp',
+      ]),
+    );
+    // motor e estofamento não têm linha de uso
+    expect(cardSummary(bySlug('motores-de-popa')).usesPending).toBe(false);
+    expect(cardSummary(bySlug('estofamento-nautico')).usesPending).toBe(false);
+    for (const p of DEMO_PRODUCTS) {
+      const { uses, usesPending } = cardSummary(p);
+      expect(usesPending && uses.length > 0).toBe(false);
+    }
+  });
+
+  it('[UX-22] motor: dúvida sobre revisão/conserto sem prometer o serviço', () => {
+    const faq = productFaq(bySlug('motores-de-popa'));
+    const item = faq.find((f) => /revisão ou conserto/i.test(f.q));
+    expect(item?.a).toBe(
+      'Descreva o modelo e o problema no pedido; a equipe confirma se atende e como.',
+    );
+    expect(item?.a).not.toMatch(/fazemos|consertamos|garant/i);
   });
 
   it('FAQ não traz números que não estejam no produto', () => {

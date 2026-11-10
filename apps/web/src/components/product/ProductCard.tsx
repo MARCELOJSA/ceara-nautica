@@ -26,7 +26,7 @@ export function ProductCard({
   const cover = productImages(product)[0];
   const category = getCategory(product.category);
   // medida e capacidade publicadas + usos citados nos textos (UX-06); nada inventado
-  const { facts, uses } = cardSummary(product);
+  const { facts, uses, usesPending } = cardSummary(product);
   const isBoat = productKind(product) === 'embarcacao';
   const H = headingLevel === 2 ? 'h2' : 'h3';
 
@@ -55,10 +55,15 @@ export function ProductCard({
         <p className="mt-2 line-clamp-3 text-[0.9375rem] leading-relaxed text-steel">
           {product.shortDescription}
         </p>
-        {uses.length > 0 && (
+        {/* UX-23: toda embarcação tem a linha; sem uso publicado, "sob consulta" */}
+        {(uses.length > 0 || usesPending) && (
           <p className="mt-3 text-sm text-graphite" data-testid="card-uses">
             <span className="text-steel">Indicado para: </span>
-            {uses.join(' · ')}
+            {uses.length > 0 ? (
+              uses.join(' · ')
+            ) : (
+              <span className="text-steel italic">sob consulta</span>
+            )}
           </p>
         )}
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowRight, Check, Expand, Instagram, Tag } from 'lucide-react';
+import { ArrowRight, Check, Expand, Instagram, Tag, Wrench } from 'lucide-react';
 import { getCategory } from '@cn/shared';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd, productJsonLd } from '@/components/seo/jsonld';
@@ -17,7 +17,13 @@ import { productWhatsAppMessage } from '@/lib/whatsapp';
 import { productImages } from '@/lib/images';
 import { track } from '@/lib/analytics';
 import { site } from '@/config/site';
-import { glossaryFor, orderedSpecs, priceNote, productFaq } from '@/data/product-info';
+import {
+  glossaryFor,
+  orderedSpecs,
+  priceNote,
+  productFaq,
+  productKind,
+} from '@/data/product-info';
 import NotFound from './NotFound';
 
 const BOAT_COPY = {
@@ -25,6 +31,9 @@ const BOAT_COPY = {
   adjust:
     'Medidas, layout, motorização, cor e acabamento podem ser ajustados ao seu uso. Fale com a equipe para montar o seu projeto.',
 };
+
+/** Pedido de revisão/defeito no motor (contrato com o formulário de orçamento, UX-22). */
+const MOTOR_ISSUE_HREF = '/orcamento?servico=motor-revisao';
 
 /** Textos que mudam conforme o tipo de item (embarcação, motor ou estofamento). */
 function detailCopy(category: string) {
@@ -186,6 +195,26 @@ export default function ProductDetail() {
                 instagramLabel="Perguntar no Instagram"
               />
             </div>
+
+            {/* UX-22: caminho próprio para quem já tem motor com defeito — secundário à compra */}
+            {productKind(product) === 'motor' && (
+              <p className="mt-4">
+                <Link
+                  to={MOTOR_ISSUE_HREF}
+                  className="group inline-flex min-h-11 items-center gap-2.5 font-medium text-graphite-deep underline decoration-orange decoration-2 underline-offset-4 hover:text-orange-ink"
+                  data-testid="motor-issue-link"
+                >
+                  <Wrench aria-hidden="true" className="size-5 shrink-0 text-graphite" />
+                  <span>
+                    Problema no motor? Descreva aqui
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="ml-1.5 inline size-4 align-[-0.15em] transition-transform group-hover:translate-x-0.5"
+                    />
+                  </span>
+                </Link>
+              </p>
+            )}
 
             {/* UX-05: preço e prazo sem números — explicados no lugar da decisão */}
             <div
