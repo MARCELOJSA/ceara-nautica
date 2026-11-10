@@ -1,8 +1,31 @@
 import { z } from 'zod';
 import { CATEGORY_SLUGS } from './categories';
 
-/** Telefone brasileiro: aceita (92) 99999-9999, 92999999999, +55 92 99999-9999 etc. */
-const phoneRegex = /^(\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}$/;
+/**
+ * Telefone brasileiro com DDD. Aceita os jeitos comuns de digitar:
+ * (92) 99999-9999 · (92) 9 9999-9999 · 92 9 9999 9999 · 92999999999 · +55 (92) 99999-9999.
+ * A validação conta os dígitos (10 ou 11, ou 12/13 com o 55), sem depender da pontuação.
+ */
+export const PHONE_EXAMPLE = '(92) 99999-9999';
+const phoneChars = /^[\d\s()+.-]+$/;
+export function phoneDigits(value: string): string {
+  const d = value.replace(/\D/g, '');
+  return d.length >= 12 && d.startsWith('55') ? d.slice(2) : d;
+}
+export function isValidPhone(value: string): boolean {
+  if (!phoneChars.test(value)) return false;
+  const d = phoneDigits(value);
+  // DDD 11–99; celular (11 dígitos) começa com 9 depois do DDD; fixo (10 dígitos) com 2–5
+  return /^[1-9][1-9](9\d{8}|[2-5]\d{7})$/.test(d);
+}
+export function phoneError(value: string): string | undefined {
+  if (isValidPhone(value)) return undefined;
+  const d = phoneDigits(value);
+  const hasDdd = /^\s*(\+?\s*55\s*)?\(\s*\d{2}\s*\)/.test(value);
+  if (!hasDdd && (d.length === 8 || d.length === 9)) return `Inclua o DDD. Ex.: ${PHONE_EXAMPLE}`;
+  if (d.length < 10) return `Número incompleto. Ex.: ${PHONE_EXAMPLE}`;
+  return `Telefone inválido. Ex.: ${PHONE_EXAMPLE}`;
+}
 
 /**
  * Caracteres proibidos em texto livre:
@@ -21,11 +44,16 @@ export const hasUnsafeChars = (s: string, multiline = false): boolean =>
 
 export const UNSAFE_CHARS_MSG = 'Contém caractere inválido.';
 
-const trimmed = (min: number, max: number, msg: string, multiline = false) =>
+/**
+ * Texto obrigatório com limites. `msg` aparece quando o campo está vazio;
+ * `shortMsg`, quando foi preenchido mas é curto demais.
+ */
+const trimmed = (min: number, max: number, msg: string, multiline = false, shortMsg?: string) =>
   z
     .string({ error: msg })
     .trim()
-    .min(min, msg)
+    .min(1, { error: msg, abort: true })
+    .min(min, shortMsg ?? msg)
     .max(max, `Máximo de ${max} caracteres.`)
     .refine((s) => !hasUnsafeChars(s, multiline), UNSAFE_CHARS_MSG);
 
@@ -33,7 +61,7 @@ const utmField = (max: number) =>
   z
     .string()
     .refine((s) => !hasUnsafeChars(s), UNSAFE_CHARS_MSG)
-    .pipe(z.string().max(max))
+    .pipe(z.string().max(max, `Máximo de ${max} caracteres.`))
     .optional();
 
 export const utmSchema = z
@@ -52,16 +80,22 @@ export const utmSchema = z
   .optional();
 
 const baseLead = {
-  name: trimmed(2, 120, 'Informe seu nome.'),
+  name: trimmed(2, 120, 'Informe seu nome.', false, 'Nome muito curto.'),
   phone: z
     .string({ error: 'Informe seu telefone/WhatsApp.' })
     .trim()
-    .regex(phoneRegex, 'Telefone inválido. Ex.: (92) 99999-9999'),
+    .min(1, { error: 'Informe seu telefone/WhatsApp.', abort: true })
+    .max(30, `Telefone inválido. Ex.: ${PHONE_EXAMPLE}`)
+    .superRefine((v, ctx) => {
+      if (!v) return;
+      const msg = phoneError(v);
+      if (msg) ctx.addIssue({ code: 'custom', message: msg });
+    }),
   email: z
     .string()
     .trim()
-    .email('E-mail inválido.')
-    .max(160)
+    .max(160, 'Máximo de 160 caracteres.')
+    .email('E-mail inválido. Ex.: nome@provedor.com.br')
     .optional()
     .or(z.literal('').transform(() => undefined)),
   /** Consentimento LGPD para contato — obrigatório */
@@ -75,7 +109,7 @@ const baseLead = {
 
 export const contactSchema = z.object({
   ...baseLead,
-  subject: trimmed(2, 120, 'Informe o assunto.'),
+  subject: trimmed(2, 120, 'Informe o assunto.', false, 'Assunto muito curto (mín. 2 caracteres).'),
   message: trimmed(10, 2000, 'A mensagem deve ter pelo menos 10 caracteres.', true),
 });
 
@@ -104,7 +138,7 @@ export const quoteSchema = z.object({
   city: z
     .string()
     .trim()
-    .max(120)
+    .max(120, 'Máximo de 120 caracteres.')
     .refine((s) => !hasUnsafeChars(s), UNSAFE_CHARS_MSG)
     .optional(),
   message: trimmed(10, 2000, 'Descreva o que você precisa (mín. 10 caracteres).', true),

@@ -36,8 +36,8 @@ describe('Formulário de contato', () => {
     await user.type(screen.getByLabelText(/telefone/i), '123');
     await user.type(screen.getByLabelText(/e-mail/i), 'nao-e-email');
     await user.click(screen.getByRole('button', { name: /enviar mensagem/i }));
-    expect(await screen.findByText(/Telefone inválido/)).toBeInTheDocument();
-    expect(screen.getByText('E-mail inválido.')).toBeInTheDocument();
+    expect(await screen.findByText(/Número incompleto/)).toBeInTheDocument();
+    expect(screen.getByText(/^E-mail inválido\./)).toBeInTheDocument();
   });
 
   it('faz POST real em /api/contact com UTM e mostra sucesso', async () => {
