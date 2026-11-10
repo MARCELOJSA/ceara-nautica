@@ -4,23 +4,37 @@ import { CATEGORY_SLUGS } from './categories';
 /** Telefone brasileiro: aceita (92) 99999-9999, 92999999999, +55 92 99999-9999 etc. */
 const phoneRegex = /^(\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}$/;
 
-/** Byte nulo (U+0000) é rejeitado: o PostgreSQL não aceita esse caractere em texto (SEC-01). */
-export const hasNullByte = (s: string) => s.includes('\u0000');
-const NULL_BYTE_MSG = 'Contém caractere inválido.';
+/**
+ * Caracteres proibidos em texto livre:
+ * - U+0000: o PostgreSQL não aceita esse caractere em texto (SEC-01);
+ * - demais controles C0/C1 (só a mensagem aceita quebra de linha e tab);
+ * - controles de direção bidi (U+202A–U+202E, U+2066–U+2069), que disfarçam
+ *   o texto exibido em e-mails e planilhas de leads (SEC-08).
+ */
+// eslint-disable-next-line no-control-regex -- a regra existe justamente para barrar controles
+const UNSAFE_SINGLE_LINE = /[\u0000-\u001F\u007F-\u009F‪-‮⁦-⁩]/;
+// eslint-disable-next-line no-control-regex -- idem, permitindo \t, \n e \r
+const UNSAFE_MULTILINE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F‪-‮⁦-⁩]/;
 
-/** String sem byte nulo. */
-const text = (params?: Parameters<typeof z.string>[0]) =>
-  z.string(params).refine((s) => !hasNullByte(s), NULL_BYTE_MSG);
+export const hasUnsafeChars = (s: string, multiline = false): boolean =>
+  (multiline ? UNSAFE_MULTILINE : UNSAFE_SINGLE_LINE).test(s);
 
-const trimmed = (min: number, max: number, msg: string) =>
+export const UNSAFE_CHARS_MSG = 'Contém caractere inválido.';
+
+const trimmed = (min: number, max: number, msg: string, multiline = false) =>
   z
     .string({ required_error: msg })
     .trim()
     .min(min, msg)
     .max(max, `Máximo de ${max} caracteres.`)
-    .refine((s) => !hasNullByte(s), NULL_BYTE_MSG);
+    .refine((s) => !hasUnsafeChars(s, multiline), UNSAFE_CHARS_MSG);
 
-const utmField = (max: number) => text().pipe(z.string().max(max)).optional();
+const utmField = (max: number) =>
+  z
+    .string()
+    .refine((s) => !hasUnsafeChars(s), UNSAFE_CHARS_MSG)
+    .pipe(z.string().max(max))
+    .optional();
 
 export const utmSchema = z
   .object({
@@ -62,7 +76,7 @@ const baseLead = {
 export const contactSchema = z.object({
   ...baseLead,
   subject: trimmed(2, 120, 'Informe o assunto.'),
-  message: trimmed(10, 2000, 'A mensagem deve ter pelo menos 10 caracteres.'),
+  message: trimmed(10, 2000, 'A mensagem deve ter pelo menos 10 caracteres.', true),
 });
 
 /** Tipo de solicitação do orçamento (campo opcional do formulário) */
@@ -95,9 +109,9 @@ export const quoteSchema = z.object({
     .string()
     .trim()
     .max(120)
-    .refine((s) => !hasNullByte(s), NULL_BYTE_MSG)
+    .refine((s) => !hasUnsafeChars(s), UNSAFE_CHARS_MSG)
     .optional(),
-  message: trimmed(10, 2000, 'Descreva o que você precisa (mín. 10 caracteres).'),
+  message: trimmed(10, 2000, 'Descreva o que você precisa (mín. 10 caracteres).', true),
 });
 
 export type ContactInput = z.input<typeof contactSchema>;

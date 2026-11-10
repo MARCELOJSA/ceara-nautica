@@ -231,8 +231,31 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
     expect(row.name).toBe(name);
   });
 
-  it('[SEC-08] caracteres de controle/bidi (U+202E) são aceitos no nome (spoofing em painel/e-mail)', async () => {
-    const res = await request(app).post('/api/contact').send(contact({ name: `${MARK} \u202Eabc` }));
+  it.each([
+    ['bidi U+202E', '\u202Eabc'],
+    ['isolador bidi U+2066', '\u2066abc'],
+    ['controle C0 U+0007', 'a\u0007b'],
+    ['controle C1 U+0085', 'a\u0085b'],
+    ['quebra de linha', 'a\nb'],
+  ])('[SEC-08 corrigido] %s no nome → 400', async (_label, bad) => {
+    const res = await request(app).post('/api/contact').send(contact({ name: `${MARK} ${bad}` }));
+    expect(res.status).toBe(400);
+    expect(res.body.details?.name).toBeDefined();
+  });
+
+  it('[SEC-08 corrigido] bidi na mensagem e na cidade → 400', async () => {
+    const msg = await request(app)
+      .post('/api/contact')
+      .send(contact({ message: 'Mensagem com \u202Etexto invertido' }));
+    expect(msg.status).toBe(400);
+    const city = await request(app).post('/api/quotes').send(quote({ city: 'Manaus\u202E' }));
+    expect(city.status).toBe(400);
+  });
+
+  it('mensagem com quebras de linha e tab continua aceita', async () => {
+    const res = await request(app)
+      .post('/api/contact')
+      .send(contact({ message: `${MARK} Linha 1\nLinha 2\r\n\tItem com tab` }));
     expect(res.status).toBe(201);
   });
 

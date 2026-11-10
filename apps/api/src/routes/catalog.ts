@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { CATEGORIES, CATEGORY_SLUGS, hasNullByte, type CategoryWithCount, type Product } from '@cn/shared';
+import { CATEGORIES, CATEGORY_SLUGS, hasUnsafeChars, type CategoryWithCount, type Product } from '@cn/shared';
 import { notFound } from '../lib/http-error.js';
 import { parseOr400 } from '../lib/validate.js';
 import { productInclude, productOrderBy, toProduct } from '../lib/products.js';
@@ -29,7 +29,7 @@ const productsQuerySchema = z.object({
       .string({ invalid_type_error: 'Busca inválida.' })
       .trim()
       .max(100, 'Busca muito longa.')
-      .refine((s) => !hasNullByte(s), 'Busca inválida.')
+      .refine((s) => !hasUnsafeChars(s), 'Busca inválida.')
       .optional(),
   ),
   featured: z.preprocess(
