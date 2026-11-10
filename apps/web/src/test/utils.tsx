@@ -17,10 +17,7 @@ export function renderAt(
     <HelmetProvider>
       <LazyMotion features={domAnimation}>
         <MotionConfig reducedMotion="always">
-          <MemoryRouter
-            initialEntries={[route]}
-            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-          >
+          <MemoryRouter initialEntries={[route]}>
             <Routes>
               <Route
                 path={path}

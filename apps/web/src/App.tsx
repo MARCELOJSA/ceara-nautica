@@ -37,7 +37,7 @@ export function App() {
     <HelmetProvider>
       <LazyMotion features={domAnimation} strict>
         <MotionConfig reducedMotion="user">
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>
         </MotionConfig>
