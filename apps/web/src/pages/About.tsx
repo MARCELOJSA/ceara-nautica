@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { getCategory } from '@cn/shared';
 import { Instagram } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd } from '@/components/seo/jsonld';
@@ -6,13 +7,45 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { CtaBand } from '@/components/layout/CtaBand';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { Reveal, SectionHeading } from '@/components/ui/Reveal';
-import { DIFFERENTIALS } from '@/data/content';
 import { site } from '@/config/site';
 import { track } from '@/lib/analytics';
+import { useProducts } from '@/hooks/useProducts';
+import { publishedProjects } from '@/data/product-info';
 
 const VALUES = ['Resistência', 'Leveza', 'Segurança', 'Conforto', 'Durabilidade'];
 
+/** Etapas — só o que a empresa publica (projeto personalizado, pintura, entregas). */
+const STEPS = [
+  {
+    title: 'Você conta o uso',
+    text: 'Lazer, pesca, trabalho ou transporte: o uso define o tipo de embarcação e o projeto.',
+  },
+  {
+    title: 'Projeto sob medida',
+    text: 'Medidas, layout e motorização são definidos com a equipe. O projeto é 100% personalizado.',
+  },
+  {
+    title: 'Pintura do seu jeito',
+    text: 'A pintura também é personalizada: você escolhe a cor e o acabamento.',
+  },
+  {
+    title: 'Entrega',
+    text: 'Em Manaus ou em outras regiões. A empresa já entregou embarcações em Belém e no Suriname.',
+  },
+];
+
+/** Destaques do perfil no Instagram → páginas do catálogo. */
+const HIGHLIGHTS = [
+  { label: 'Lanchas', to: '/produtos?categoria=lanchas' },
+  { label: 'Estofamento', to: '/produtos?categoria=estofamentos' },
+  { label: 'Botes', to: '/produtos?categoria=botes' },
+  { label: 'Semi-chata', to: '/produtos?categoria=semi-chatas' },
+  { label: 'Canoas', to: '/produtos?categoria=canoas' },
+];
+
 export default function About() {
+  const { data } = useProducts();
+  const projects = publishedProjects(data);
   const crumbs = [
     { name: 'Início', path: '/' },
     { name: 'Sobre', path: '/sobre' },
@@ -93,47 +126,107 @@ export default function About() {
         </div>
       </section>
 
-      <section className="py-20 lg:py-28" aria-labelledby="o-que-fazemos">
+      <section className="py-20 lg:py-28" aria-labelledby="como-funciona">
         <div className="container-x">
           <SectionHeading
-            id="o-que-fazemos"
-            eyebrow="O que fazemos"
-            title="Fatos sobre o nosso trabalho"
+            id="como-funciona"
+            eyebrow="Como funciona"
+            title="Do pedido à entrega"
+            intro="O caminho de uma embarcação feita sob medida na Ceará Náutica."
           />
-          <ul className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-            {DIFFERENTIALS.map((d) => (
-              <li key={d.title} className="border-t-2 border-graphite-deep pt-5">
-                <h3 className="text-2xl font-bold uppercase">{d.title}</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-steel">{d.text}</p>
+          <ol className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((step, i) => (
+              <li key={step.title} className="border-t-2 border-graphite-deep pt-5">
+                <span
+                  aria-hidden="true"
+                  className="font-display text-sm font-semibold tracking-[0.18em] text-orange-ink"
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 className="mt-1 text-2xl font-bold uppercase">{step.title}</h3>
+                <p className="mt-2 text-[0.9375rem] leading-relaxed text-steel">{step.text}</p>
               </li>
             ))}
-          </ul>
-          <div className="mt-14 flex flex-col gap-4 rounded-md border border-steel-light bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-            <p className="max-w-2xl text-graphite">
-              Quer ver os projetos reais? Publicamos as embarcações fabricadas no nosso Instagram.
-            </p>
+          </ol>
+          <p className="mt-10 max-w-3xl text-[0.9375rem] leading-relaxed text-graphite">
+            Depois da entrega, a empresa também faz reparos, manutenção, revenda de motores de popa
+            e estofamento.{' '}
+            <Link to="/servicos" className="link-underline font-medium">
+              Ver os serviços
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
+      <section
+        className="border-t border-steel-light bg-white py-20 lg:py-28"
+        aria-labelledby="projetos-publicados"
+      >
+        <div className="container-x grid gap-12 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
+          <div>
+            <SectionHeading
+              id="projetos-publicados"
+              eyebrow="Projetos publicados"
+              title="O que já saiu do estaleiro"
+              intro="A Ceará Náutica publica os seus projetos no Instagram desde 2022. Estes são os projetos do catálogo, com a data da publicação original."
+            />
             <a
               href={site.instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => track('instagram_click', { location: 'sobre' })}
-              className="btn-dark shrink-0"
+              className="btn-dark mt-8"
             >
-              <Instagram aria-hidden="true" className="size-5" /> {site.instagramHandle}
+              <Instagram aria-hidden="true" className="size-5" />
+              <span className="sr-only">Ver no Instagram </span>
+              {site.instagramHandle}
               <span className="sr-only"> (abre em nova aba)</span>
             </a>
+            <h3 className="mt-10 eyebrow text-graphite-deep">Destaques do perfil</h3>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {HIGHLIGHTS.map((h) => (
+                <li key={h.label}>
+                  <Link
+                    to={h.to}
+                    className="inline-flex min-h-11 items-center rounded-sm border border-steel/30 px-4 font-display text-base font-semibold tracking-[0.06em] text-graphite uppercase transition-colors hover:border-graphite-deep"
+                  >
+                    {h.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <p className="mt-6 text-sm text-steel">
-            Veja também os nossos{' '}
-            <Link to="/servicos" className="link-underline">
-              serviços
-            </Link>{' '}
-            e as{' '}
-            <Link to="/produtos" className="link-underline">
-              embarcações
-            </Link>
-            .
-          </p>
+
+          <div>
+            {projects.length > 0 ? (
+              <ol className="border-l border-steel-light" data-testid="published-projects">
+                {projects.map((p) => (
+                  <li key={p.slug} className="relative pb-6 pl-6 last:pb-0">
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-2 -left-[5px] size-2.5 rounded-full border-2 border-white bg-graphite-deep"
+                    />
+                    <p className="text-sm text-steel">
+                      <time dateTime={p.iso}>{p.date}</time> · {getCategory(p.category)?.name}
+                    </p>
+                    <Link
+                      to={`/produtos/${p.slug}`}
+                      className="inline-flex min-h-11 items-center font-display text-xl font-semibold text-graphite-deep uppercase hover:text-orange-ink"
+                    >
+                      {p.name}
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-steel">Carregando projetos…</p>
+            )}
+            <p className="mt-6 text-xs leading-relaxed text-steel">
+              Medidas e detalhes conforme cada publicação. Cada embarcação é feita sob medida: um
+              novo projeto pode ter outras medidas e acabamento.
+            </p>
+          </div>
         </div>
       </section>
       <CtaBand context="geral" />

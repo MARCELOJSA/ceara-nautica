@@ -109,7 +109,7 @@ export default function Contact() {
                       href={mapUrlFor(site.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium"
+                      className="link-underline inline-flex min-h-11 items-center gap-1 text-sm font-medium"
                     >
                       Ver no mapa <ExternalLink aria-hidden="true" className="size-3.5" />
                       <span className="sr-only"> (abre em nova aba)</span>
@@ -118,18 +118,22 @@ export default function Contact() {
                 ) : (
                   <>
                     <p className="font-medium text-graphite-deep">{site.locationLabel}</p>
-                    <p className="mt-1 text-sm text-steel">
+                    <p className="mt-1 text-sm text-steel" data-testid="address-note">
+                      <strong className="font-semibold text-graphite">
+                        Endereço a confirmar com a equipe.
+                      </strong>{' '}
                       Atendemos em Manaus e entregamos para outras regiões. Para visitar, combine
-                      com a equipe pelo formulário ou pelo Instagram.
+                      pelo formulário ou pelo Instagram e a equipe informa o endereço completo.
                     </p>
                     <a
                       href={site.cityMapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium"
+                      className="link-underline inline-flex min-h-11 items-center gap-1 text-sm font-medium"
                     >
-                      Manaus no mapa <ExternalLink aria-hidden="true" className="size-3.5" />
-                      <span className="sr-only"> (abre em nova aba)</span>
+                      Ver a cidade de Manaus no mapa{' '}
+                      <ExternalLink aria-hidden="true" className="size-3.5" />
+                      <span className="sr-only"> (abre em nova aba; não indica o endereço)</span>
                     </a>
                   </>
                 )}
