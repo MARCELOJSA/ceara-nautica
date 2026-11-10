@@ -23,7 +23,7 @@ export const UNSAFE_CHARS_MSG = 'Contém caractere inválido.';
 
 const trimmed = (min: number, max: number, msg: string, multiline = false) =>
   z
-    .string({ required_error: msg })
+    .string({ error: msg })
     .trim()
     .min(min, msg)
     .max(max, `Máximo de ${max} caracteres.`)
@@ -54,7 +54,7 @@ export const utmSchema = z
 const baseLead = {
   name: trimmed(2, 120, 'Informe seu nome.'),
   phone: z
-    .string({ required_error: 'Informe seu telefone/WhatsApp.' })
+    .string({ error: 'Informe seu telefone/WhatsApp.' })
     .trim()
     .regex(phoneRegex, 'Telefone inválido. Ex.: (92) 99999-9999'),
   email: z
@@ -66,7 +66,7 @@ const baseLead = {
     .or(z.literal('').transform(() => undefined)),
   /** Consentimento LGPD para contato — obrigatório */
   consent: z.literal(true, {
-    errorMap: () => ({ message: 'É necessário autorizar o contato para enviar.' }),
+    error: 'É necessário autorizar o contato para enviar.',
   }),
   /** Honeypot anti-spam: deve vir vazio */
   website: z.string().max(0).optional(),
@@ -93,12 +93,8 @@ const REQUEST_TYPE_VALUES = REQUEST_TYPES.map((r) => r.value) as [RequestType, .
 
 export const quoteSchema = z.object({
   ...baseLead,
-  requestType: z
-    .enum(REQUEST_TYPE_VALUES, { errorMap: () => ({ message: 'Tipo de solicitação inválido.' }) })
-    .optional(),
-  category: z
-    .enum(CATEGORY_SLUGS, { errorMap: () => ({ message: 'Categoria inválida.' }) })
-    .optional(),
+  requestType: z.enum(REQUEST_TYPE_VALUES, { error: 'Tipo de solicitação inválido.' }).optional(),
+  category: z.enum(CATEGORY_SLUGS, { error: 'Categoria inválida.' }).optional(),
   productSlug: z
     .string()
     .trim()

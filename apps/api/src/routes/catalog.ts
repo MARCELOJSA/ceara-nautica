@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { CATEGORIES, CATEGORY_SLUGS, hasUnsafeChars, type CategoryWithCount, type Product } from '@cn/shared';
+import {
+  CATEGORIES,
+  CATEGORY_SLUGS,
+  hasUnsafeChars,
+  type CategoryWithCount,
+  type Product,
+} from '@cn/shared';
 import { notFound } from '../lib/http-error.js';
 import { parseOr400 } from '../lib/validate.js';
 import { productInclude, productOrderBy, toProduct } from '../lib/products.js';
@@ -11,22 +17,21 @@ const RELATED_LIMIT = 4;
 /** Escapa os curingas do LIKE/ILIKE (o Prisma não escapa `%`, `_` e `\` em `contains`). */
 const escapeLike = (term: string) => term.replace(/[\\%_]/g, (c) => `\\${c}`);
 
-const emptyToUndefined = (v: unknown) =>
-  typeof v === 'string' && v.trim() === '' ? undefined : v;
+const emptyToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 
 const productsQuerySchema = z.object({
   category: z.preprocess(
     emptyToUndefined,
     z
       .enum(CATEGORY_SLUGS, {
-        errorMap: () => ({ message: `Categoria inválida. Use: ${CATEGORY_SLUGS.join(', ')}.` }),
+        error: `Categoria inválida. Use: ${CATEGORY_SLUGS.join(', ')}.`,
       })
       .optional(),
   ),
   q: z.preprocess(
     emptyToUndefined,
     z
-      .string({ invalid_type_error: 'Busca inválida.' })
+      .string({ error: 'Busca inválida.' })
       .trim()
       .max(100, 'Busca muito longa.')
       .refine((s) => !hasUnsafeChars(s), 'Busca inválida.')
@@ -36,7 +41,7 @@ const productsQuerySchema = z.object({
     emptyToUndefined,
     z
       .enum(['true', 'false', '1', '0'], {
-        errorMap: () => ({ message: 'Use featured=true ou featured=false.' }),
+        error: 'Use featured=true ou featured=false.',
       })
       .transform((v) => v === 'true' || v === '1')
       .optional(),
