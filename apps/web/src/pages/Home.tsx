@@ -13,6 +13,7 @@ import { IllustrativeNote } from '@/components/layout/PageHeader';
 import { CATEGORY_COVERS, DIFFERENTIALS, GALLERY, SERVICES } from '@/data/content';
 import { useProducts } from '@/hooks/useProducts';
 import { track } from '@/lib/analytics';
+import { homeFeatured } from '@/lib/featured';
 
 const CAPABILITIES = [
   { label: 'Embarcações em alumínio', to: '/produtos' },
@@ -168,8 +169,8 @@ function Intro() {
 }
 
 function Featured() {
-  const { data, loading } = useProducts({ featured: true });
-  const items = data.slice(0, 6);
+  const { data, loading } = useProducts();
+  const items = homeFeatured(data);
   return (
     <section
       aria-labelledby="destaques-title"
