@@ -36,9 +36,27 @@ Fluxo: desenvolvimento → QA técnico → usuário final → correções → no
 - `152373b`: QA-08 (removidas do catálogo 4 fotos inexistentes).
 - `139f01b`: `lib/search.ts` com `looksLikeService`, contrato entre os dois desenvolvedores.
 
-**Desenvolvedor 1 (`cn-backend`), em andamento:** QA-05 + UX-03 (busca única em `packages/shared/src/search.ts` para API e site: sem acento, várias palavras, sinônimos e pequenos erros de digitação), QA-08 (reseed), QA-02, UX-10, UX-19 (formulários), UX-04 (texto sobre motores sem inventar), UX-07/UX-18 (fotos).
+**Desenvolvedor 1 (`cn-backend`), concluído**
+- `dcabc99`: QA-05 + UX-03. Busca única (`packages/shared/src/search.ts`) usada pela API e pelo site: sem acento, todas as palavras em qualquer ordem, 6m/6 m/6 metros, plural, sinônimos e 1 erro de digitação. `looksLikeService` reconhece "concerto", "arrumar" e outros.
+- `9b84314`: QA-08 (seed avisa sobre foto inexistente; banco de dev semeado de novo).
+- `5596f8f`: QA-02, UX-10 (orçamento com cartão do produto e "Trocar"), UX-19 (tela de sucesso confirma o telefone).
+- `effd2a0`: UX-04 (motor de popa sem promessa), UX-07/UX-18 (fotos coerentes, sem repetição na galeria).
 
-**Desenvolvedor 2 (`cn-frontend`), em andamento:** QA-01 + UX-13 (lightbox), QA-06 (salto de layout no carregamento), QA-07 (alvos de toque), UX-05/11/12 (preço e prazo, glossário e ficha técnica no produto), UX-06 (cards), UX-08 (Sobre e Contato), UX-09 (catálogo no celular), UX-14/15 (botão flutuante e barra inferior), UX-17 (trilha "Catálogo").
+**Desenvolvedor 2 (`cn-frontend`), concluído**
+- `4f0eae1`: QA-01 + UX-13 (foco do lightbox e arrastar no celular), QA-06 (CLS no desktop de 0,19–0,36 para ≤ 0,03), QA-07 (alvos de 44px).
+- `a98e18e`: UX-05/11/12 (preço e prazo, dúvidas comuns e glossário no produto; ficha em ordem fixa), UX-06 (cards), UX-09 (catálogo compacto no celular), UX-17 (trilha "Catálogo").
+- `8fe033e`: UX-08 (/sobre com etapas, projetos publicados e destaques; /contato sem parecer endereço).
+- `74301ae`: UX-14/15 (sem botão flutuante no desktop; barra móvel sem quebra de linha).
+
+**Orquestrador, ajustes pedidos pelos desenvolvedores**
+- `cebd515`: novo tipo "Problema ou revisão no motor"; alt da canoa 6 m.
+- `d5fb787`: menu "Catálogo" (UX-17); foto da página Sobre sem placas estrangeiras.
+
+**Verificação após as correções:** typecheck e lint limpos; API 203/203; site 71/71; Playwright 52/52 (+8 pulados por viewport). Cada commit foi conferido compilando sozinho.
+
+### Rodada 2 — revalidação (em andamento)
+
+Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a API. QA técnico revalida QA-01 a QA-08 e faz regressão; usuário final revalida UX-01 a UX-19 e procura problemas novos.
 
 ## Fila de tarefas (ordem obrigatória)
 
@@ -54,7 +72,7 @@ Fluxo: desenvolvimento → QA técnico → usuário final → correções → no
 ## Pendências
 
 - [x] Rodada 1 de testes
-- [ ] Rodada 1 de correções (desenvolvedores 1 e 2)
+- [x] Rodada 1 de correções (desenvolvedores 1 e 2)
 - [ ] Rodada 2: revalidação do QA e do usuário final
 - [ ] SEC-04: headers de segurança na hospedagem (depende da escolha da hospedagem)
 - [ ] B7: manchete da página inicial (decisão do cliente)
