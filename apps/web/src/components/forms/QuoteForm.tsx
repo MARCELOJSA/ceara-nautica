@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
@@ -18,7 +18,7 @@ import { SmartImage } from '@/components/ui/SmartImage';
 import { productImages } from '@/lib/images';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess } from './FormFeedback';
+import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
 
 export interface QuoteFormValues {
   name: string;
@@ -89,6 +89,10 @@ export function QuoteForm({
   initialRequestType,
 }: Props) {
   const initialProduct = products.find((p) => p.slug === initialProductSlug);
+  const validInitialType =
+    initialRequestType && REQUEST_TYPES.some((r) => r.value === initialRequestType)
+      ? initialRequestType
+      : undefined;
   const startCategory =
     initialProduct?.category ??
     (initialCategory && getCategory(initialCategory) ? initialCategory : '');
@@ -98,6 +102,7 @@ export function QuoteForm({
     handleSubmit,
     reset,
     setError,
+    setFocus,
     setValue,
     watch,
     formState: { errors },
@@ -109,10 +114,7 @@ export function QuoteForm({
       phone: '',
       email: '',
       city: '',
-      requestType:
-        initialRequestType && REQUEST_TYPES.some((r) => r.value === initialRequestType)
-          ? initialRequestType
-          : requestTypeForCategory(startCategory),
+      requestType: validInitialType ?? requestTypeForCategory(startCategory),
       category: startCategory,
       productSlug: initialProduct?.slug ?? '',
       message: initialMessage,
@@ -121,15 +123,25 @@ export function QuoteForm({
     },
   });
 
+  /**
+   * QA-02: o tipo de solicitação é "automático" (sugerido pela categoria) até a
+   * pessoa escolher um tipo manualmente. Um tipo vindo da URL (?servico=) conta
+   * como escolha e não é sobrescrito.
+   */
+  const typeIsAuto = useRef(!validInitialType);
+  const suggestType = (cat: string) => {
+    if (typeIsAuto.current) setValue('requestType', requestTypeForCategory(cat));
+  };
+
   // produtos podem chegar depois (API) — aplica a pré-seleção quando disponíveis
   useEffect(() => {
     if (initialProduct) {
       setValue('productSlug', initialProduct.slug);
       setValue('category', initialProduct.category);
-      if (!initialRequestType)
+      if (typeIsAuto.current)
         setValue('requestType', requestTypeForCategory(initialProduct.category));
     }
-  }, [initialProduct, initialRequestType, setValue]);
+  }, [initialProduct, setValue]);
 
   const category = watch('category');
   const productSlug = watch('productSlug');
@@ -139,10 +151,30 @@ export function QuoteForm({
     [category, products],
   );
 
+  /**
+   * UX-10: com o produto vindo do link (?produto=), mostra só o cartão do
+   * produto; Categoria e Modelo ficam ocultos (os valores continuam no envio).
+   * "Trocar" remove o produto e volta a mostrar os dois campos.
+   */
+  const [productRemoved, setProductRemoved] = useState(false);
+  const compact = Boolean(initialProduct && selected && !productRemoved);
+  const categoryName = selected ? getCategory(selected.category)?.name : undefined;
+
   const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
+  const [sentPhone, setSentPhone] = useState('');
+  const [editPhone, setEditPhone] = useState(false);
+
+  // "Corrigir o telefone" na tela de sucesso: volta ao formulário com o foco no telefone
+  useEffect(() => {
+    if (editPhone && status.kind === 'idle') {
+      setFocus('phone', { shouldSelect: true });
+      setEditPhone(false);
+    }
+  }, [editPhone, status.kind, setFocus]);
 
   const onSubmit = handleSubmit((values) => {
     const data = values as unknown as QuoteData;
+    setSentPhone(values.phone);
     return run(
       () => sendQuote({ ...data, utm: getUtm() }),
       () =>
@@ -161,6 +193,8 @@ export function QuoteForm({
         title="Pedido de orçamento enviado"
         resetLabel="Fazer outro pedido"
         onReset={() => {
+          typeIsAuto.current = true;
+          setProductRemoved(true);
           reset({
             name: '',
             phone: '',
@@ -176,10 +210,22 @@ export function QuoteForm({
           setStatus({ kind: 'idle' });
         }}
       >
-        <p>
-          Recebemos o seu pedido. Um vendedor da Ceará Náutica vai retornar pelo telefone informado
-          (ligação ou WhatsApp) para entender o que você precisa.
-        </p>
+        <p>Recebemos o seu pedido.</p>
+        <PhoneConfirmation
+          phone={sentPhone}
+          onEdit={() => {
+            setStatus({ kind: 'idle' });
+            setEditPhone(true);
+          }}
+        />
+        <div>
+          <p className="font-semibold text-graphite-deep">O que acontece agora</p>
+          <ol className="mt-1 list-decimal space-y-1 pl-5" data-testid="next-steps">
+            <li>Um vendedor da Ceará Náutica confere o seu pedido.</li>
+            <li>Ele entra em contato nesse número para entender os detalhes.</li>
+            <li>Preço, prazo e condições são informados no orçamento, conforme o projeto.</li>
+          </ol>
+        </div>
         <p>
           Enquanto isso, veja mais{' '}
           <Link to="/produtos" className="link-underline font-medium text-graphite-deep">
@@ -201,8 +247,11 @@ export function QuoteForm({
       className="relative space-y-5"
       aria-label="Formulário de orçamento"
     >
-      {selected && (
-        <div className="flex items-center gap-4 rounded-md border border-graphite/15 bg-white p-3">
+      {compact && selected && (
+        <div
+          className="flex items-center gap-4 rounded-md border border-graphite/15 bg-white p-3"
+          data-testid="selected-product"
+        >
           <div className="h-16 w-20 shrink-0 overflow-hidden rounded-sm bg-steel-light">
             <SmartImage
               src={productImages(selected)[0]?.src ?? ''}
@@ -213,15 +262,21 @@ export function QuoteForm({
           </div>
           <div className="min-w-0 flex-1">
             <p className="eyebrow text-orange-ink">Produto selecionado</p>
-            <p className="truncate font-display text-xl font-semibold uppercase">{selected.name}</p>
+            <p className="font-display text-xl leading-tight font-semibold uppercase">
+              {selected.name}
+            </p>
+            {categoryName && <p className="text-sm text-steel">{categoryName}</p>}
           </div>
           <button
             type="button"
-            onClick={() => setValue('productSlug', '')}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-sm text-steel hover:bg-steel-light/60 hover:text-graphite-deep"
+            onClick={() => {
+              setValue('productSlug', '');
+              setProductRemoved(true);
+            }}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-sm px-2 text-sm font-medium text-steel hover:bg-steel-light/60 hover:text-graphite-deep"
           >
             <X aria-hidden="true" className="size-5" />
-            <span className="sr-only">Remover produto selecionado</span>
+            Trocar<span className="sr-only"> produto (remover produto selecionado)</span>
           </button>
         </div>
       )}
@@ -246,7 +301,12 @@ export function QuoteForm({
           label="Tipo de solicitação"
           optional
           error={errors.requestType?.message}
-          {...register('requestType')}
+          {...register('requestType', {
+            onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
+              // escolha manual: a categoria deixa de sugerir o tipo (vazio = volta a sugerir)
+              typeIsAuto.current = !e.target.value;
+            },
+          })}
         >
           <option value="">Selecione (opcional)</option>
           {REQUEST_TYPES.map((r) => (
@@ -271,6 +331,13 @@ export function QuoteForm({
           error={errors.city?.message}
           {...register('city')}
         />
+      </div>
+      {/* Com produto vindo do link, Categoria e Modelo ficam ocultos (UX-10). */}
+      <div
+        className={compact ? 'hidden' : 'grid gap-5 sm:grid-cols-2'}
+        hidden={compact}
+        data-testid="product-fields"
+      >
         <SelectField
           label="Categoria"
           optional
@@ -278,9 +345,8 @@ export function QuoteForm({
           {...register('category', {
             onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
               const current = products.find((p) => p.slug === productSlug);
-              if (current) setValue('productSlug', '');
-              if (!watch('requestType'))
-                setValue('requestType', requestTypeForCategory(e.target.value));
+              if (current && current.category !== e.target.value) setValue('productSlug', '');
+              suggestType(e.target.value);
             },
           })}
         >
@@ -295,7 +361,16 @@ export function QuoteForm({
           label="Modelo de referência"
           optional
           error={errors.productSlug?.message}
-          {...register('productSlug')}
+          {...register('productSlug', {
+            onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
+              // escolher um modelo define a categoria dele (e o tipo sugerido)
+              const p = products.find((x) => x.slug === e.target.value);
+              if (p && p.category !== category) {
+                setValue('category', p.category);
+                suggestType(p.category);
+              }
+            },
+          })}
         >
           <option value="">Nenhum / projeto sob medida</option>
           {options.map((p) => (

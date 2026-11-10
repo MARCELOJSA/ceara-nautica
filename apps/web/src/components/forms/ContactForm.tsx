@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Send } from 'lucide-react';
@@ -7,7 +8,7 @@ import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { ConsentField, HoneypotField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess } from './FormFeedback';
+import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
 
 export interface ContactFormValues {
   name: string;
@@ -28,6 +29,7 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
     handleSubmit,
     reset,
     setError,
+    setFocus,
     formState: { errors },
   } = useForm<ContactFormValues>({
     resolver,
@@ -43,10 +45,21 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
     },
   });
   const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
+  const [sentPhone, setSentPhone] = useState('');
+  const [editPhone, setEditPhone] = useState(false);
+
+  // "Corrigir o telefone" na tela de sucesso: volta ao formulário com o foco no telefone
+  useEffect(() => {
+    if (editPhone && status.kind === 'idle') {
+      setFocus('phone', { shouldSelect: true });
+      setEditPhone(false);
+    }
+  }, [editPhone, status.kind, setFocus]);
 
   const onSubmit = handleSubmit((values) => {
     // após o resolver, os valores já estão no formato de saída do contactSchema
     const data = values as unknown as ContactData;
+    setSentPhone(values.phone);
     return run(
       () => sendContact({ ...data, utm: getUtm() }),
       () => track('form_submit', { form: 'contact' }),
@@ -63,7 +76,14 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
           setStatus({ kind: 'idle' });
         }}
       >
-        <p>Obrigado pelo contato! Retornamos pelo telefone informado (ligação ou WhatsApp).</p>
+        <p>Obrigado pelo contato! A equipe da Ceará Náutica vai ler a sua mensagem.</p>
+        <PhoneConfirmation
+          phone={sentPhone}
+          onEdit={() => {
+            setStatus({ kind: 'idle' });
+            setEditPhone(true);
+          }}
+        />
       </FormSuccess>
     );
   }

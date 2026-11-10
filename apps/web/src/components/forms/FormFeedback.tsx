@@ -1,7 +1,35 @@
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, CheckCircle2, Instagram } from 'lucide-react';
 import { site } from '@/config/site';
+import { formatPhone } from './phone';
 import type { SubmitStatus } from './useLeadSubmit';
+
+/**
+ * Repete o telefone informado na tela de sucesso (UX-19) e oferece corrigir.
+ * Não promete prazo de retorno (não confirmado pela empresa).
+ */
+export function PhoneConfirmation({ phone, onEdit }: { phone: string; onEdit: () => void }) {
+  return (
+    <>
+      <p data-testid="success-phone">
+        Vamos retornar no{' '}
+        <strong className="whitespace-nowrap text-graphite-deep">{formatPhone(phone)}</strong>, por
+        ligação ou WhatsApp.
+      </p>
+      <p>
+        Número errado?{' '}
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex min-h-11 items-center font-semibold text-graphite-deep underline decoration-orange underline-offset-4"
+        >
+          Corrigir o telefone
+        </button>{' '}
+        e envie de novo.
+      </p>
+    </>
+  );
+}
 
 export function FormSuccess({
   title,
