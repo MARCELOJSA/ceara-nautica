@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { getCategory, type Product } from '@cn/shared';
 import { SmartImage } from '@/components/ui/SmartImage';
+import { productImages } from '@/lib/images';
 
 export function DemoBadge({ className = '' }: { className?: string }) {
   return (
@@ -20,8 +21,14 @@ function keySpec(p: Product): string | undefined {
   return s ? s.value : undefined;
 }
 
-export function ProductCard({ product, headingLevel = 3 }: { product: Product; headingLevel?: 2 | 3 }) {
-  const cover = product.images[0];
+export function ProductCard({
+  product,
+  headingLevel = 3,
+}: {
+  product: Product;
+  headingLevel?: 2 | 3;
+}) {
+  const cover = productImages(product)[0];
   const category = getCategory(product.category);
   const spec = keySpec(product);
   const H = headingLevel === 2 ? 'h2' : 'h3';
@@ -48,7 +55,9 @@ export function ProductCard({ product, headingLevel = 3 }: { product: Product; h
             {product.name}
           </Link>
         </H>
-        <p className="mt-2 line-clamp-3 text-[0.9375rem] leading-relaxed text-steel">{product.shortDescription}</p>
+        <p className="mt-2 line-clamp-3 text-[0.9375rem] leading-relaxed text-steel">
+          {product.shortDescription}
+        </p>
         <div className="mt-auto flex items-center justify-between gap-3 pt-5">
           {spec ? (
             <span className="truncate font-display text-sm font-semibold tracking-[0.06em] text-graphite uppercase">

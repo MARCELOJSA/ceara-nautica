@@ -9,12 +9,18 @@ export function LocationProbe() {
   return <output data-testid="location">{`${loc.pathname}${loc.search}`}</output>;
 }
 
-export function renderAt(ui: ReactElement, { route = '/', path = '*' }: { route?: string; path?: string } = {}) {
+export function renderAt(
+  ui: ReactElement,
+  { route = '/', path = '*' }: { route?: string; path?: string } = {},
+) {
   return render(
     <HelmetProvider>
       <LazyMotion features={domAnimation}>
         <MotionConfig reducedMotion="always">
-          <MemoryRouter initialEntries={[route]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MemoryRouter
+            initialEntries={[route]}
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
             <Routes>
               <Route
                 path={path}

@@ -38,7 +38,11 @@ export function PageHeader({ eyebrow, title, intro, crumbs, image, children }: P
           <h1 className="mt-3 text-[2.75rem] leading-[0.98] font-bold text-white uppercase sm:text-6xl lg:text-7xl">
             {title}
           </h1>
-          {intro && <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">{intro}</p>}
+          {intro && (
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
+              {intro}
+            </p>
+          )}
           {children}
         </div>
       </div>

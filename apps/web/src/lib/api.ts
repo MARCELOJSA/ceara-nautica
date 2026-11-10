@@ -35,7 +35,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(`${site.apiUrl}${path}`, {
       ...init,
       signal: init?.signal ?? ctrl.signal,
-      headers: { Accept: 'application/json', ...(init?.body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: {
+        Accept: 'application/json',
+        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      },
     });
     const isJson = res.headers.get('content-type')?.includes('application/json');
     const body: unknown = isJson ? await res.json().catch(() => null) : null;
@@ -73,11 +76,7 @@ export function filterProducts(list: Product[], query: ProductQuery = {}): Produ
 }
 
 export function normalize(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
 export interface Loaded<T> {
@@ -125,7 +124,10 @@ export async function getRelated(product: Product): Promise<Product[]> {
 }
 
 export function sendContact(body: ContactInput): Promise<FormSubmissionResponse> {
-  return request<FormSubmissionResponse>('/contact', { method: 'POST', body: JSON.stringify(body) });
+  return request<FormSubmissionResponse>('/contact', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 }
 
 export function sendQuote(body: QuoteInput): Promise<FormSubmissionResponse> {

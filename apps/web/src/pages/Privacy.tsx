@@ -20,7 +20,12 @@ export default function Privacy() {
         path="/politica-de-privacidade"
         jsonLd={breadcrumbJsonLd(crumbs)}
       />
-      <PageHeader eyebrow="LGPD" title="Política de Privacidade" intro={`Última atualização: ${UPDATED}.`} crumbs={crumbs} />
+      <PageHeader
+        eyebrow="LGPD"
+        title="Política de Privacidade"
+        intro={`Última atualização: ${UPDATED}.`}
+        crumbs={crumbs}
+      />
       <article className="container-x py-14 lg:py-20">
         <div className="max-w-3xl space-y-10 text-[1.0625rem] leading-relaxed text-graphite [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:uppercase [&_li]:ml-5 [&_li]:list-disc [&_p+p]:mt-3 [&_ul]:mt-3 [&_ul]:space-y-1.5">
           <section>
@@ -34,23 +39,30 @@ export default function Privacy() {
 
           <section>
             <h2>2. Dados que coletamos nos formulários</h2>
-            <p className="mt-3">Quando você envia o formulário de contato ou de orçamento, recebemos:</p>
+            <p className="mt-3">
+              Quando você envia o formulário de contato ou de orçamento, recebemos:
+            </p>
             <ul>
               <li>nome e telefone/WhatsApp (obrigatórios);</li>
               <li>e-mail e cidade (opcionais);</li>
               <li>categoria, modelo de interesse, assunto e mensagem que você escrever;</li>
               <li>
-                dados de origem da visita (ex.: parâmetros UTM de campanhas, página de entrada e site
-                de origem), usados para saber quais canais trazem contatos;
+                dados de origem da visita (ex.: parâmetros UTM de campanhas, página de entrada e
+                site de origem), usados para saber quais canais trazem contatos;
               </li>
-              <li>dados técnicos mínimos de segurança (ex.: endereço IP), para evitar spam e abuso.</li>
+              <li>
+                dados técnicos mínimos de segurança (ex.: endereço IP), para evitar spam e abuso.
+              </li>
             </ul>
             <p>
-              <strong>Finalidade:</strong> responder à sua solicitação, elaborar orçamentos e manter o
-              histórico do atendimento. <strong>Base legal:</strong> seu consentimento (art. 7º, I) e
-              procedimentos preliminares a um contrato a seu pedido (art. 7º, V).
+              <strong>Finalidade:</strong> responder à sua solicitação, elaborar orçamentos e manter
+              o histórico do atendimento. <strong>Base legal:</strong> seu consentimento (art. 7º,
+              I) e procedimentos preliminares a um contrato a seu pedido (art. 7º, V).
             </p>
-            <p>Não vendemos seus dados e não os usamos para finalidades diferentes das descritas aqui.</p>
+            <p>
+              Não vendemos seus dados e não os usamos para finalidades diferentes das descritas
+              aqui.
+            </p>
           </section>
 
           <section>
@@ -62,17 +74,21 @@ export default function Privacy() {
                 durante a sessão. Sempre ativos.
               </li>
               <li>
-                <strong>Medição</strong> — estatísticas de uso do site (ex.: Google Analytics). Só são
-                carregados se você autorizar.
+                <strong>Medição</strong> — estatísticas de uso do site (ex.: Google Analytics). Só
+                são carregados se você autorizar.
               </li>
               <li>
-                <strong>Marketing</strong> — medição de anúncios (ex.: Meta Pixel, Google Ads). Só são
-                carregados se você autorizar.
+                <strong>Marketing</strong> — medição de anúncios (ex.: Meta Pixel, Google Ads). Só
+                são carregados se você autorizar.
               </li>
             </ul>
             <p>
               Você pode mudar sua escolha a qualquer momento:{' '}
-              <button type="button" onClick={openCookiePreferences} className="link-underline font-medium">
+              <button
+                type="button"
+                onClick={openCookiePreferences}
+                className="link-underline font-medium"
+              >
                 abrir preferências de cookies
               </button>
               .
@@ -83,17 +99,17 @@ export default function Privacy() {
             <h2>4. Compartilhamento</h2>
             <p className="mt-3">
               Os dados podem ser processados por fornecedores que nos ajudam a operar o site
-              (hospedagem, banco de dados e, se autorizados por você, ferramentas de medição), sempre
-              para as finalidades acima. Também podemos compartilhar dados quando exigido por lei ou
-              autoridade competente.
+              (hospedagem, banco de dados e, se autorizados por você, ferramentas de medição),
+              sempre para as finalidades acima. Também podemos compartilhar dados quando exigido por
+              lei ou autoridade competente.
             </p>
           </section>
 
           <section>
             <h2>5. Por quanto tempo guardamos</h2>
             <p className="mt-3">
-              Pelo tempo necessário para atender à sua solicitação e manter o histórico comercial, ou
-              pelo prazo exigido por lei. Depois disso, os dados são excluídos ou anonimizados.
+              Pelo tempo necessário para atender à sua solicitação e manter o histórico comercial,
+              ou pelo prazo exigido por lei. Depois disso, os dados são excluídos ou anonimizados.
             </p>
           </section>
 
@@ -114,11 +130,19 @@ export default function Privacy() {
               </Link>
               {site.email ? (
                 <>
-                  , pelo e-mail <a href={`mailto:${site.email}`} className="link-underline">{site.email}</a>
+                  , pelo e-mail{' '}
+                  <a href={`mailto:${site.email}`} className="link-underline">
+                    {site.email}
+                  </a>
                 </>
               ) : null}{' '}
               ou pelo Instagram{' '}
-              <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="link-underline">
+              <a
+                href={site.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-underline"
+              >
                 {site.instagramHandle}
                 <span className="sr-only"> (abre em nova aba)</span>
               </a>
@@ -138,7 +162,8 @@ export default function Privacy() {
           <section>
             <h2>8. Alterações</h2>
             <p className="mt-3">
-              Esta política pode ser atualizada. A data da última atualização fica no topo da página.
+              Esta política pode ser atualizada. A data da última atualização fica no topo da
+              página.
             </p>
           </section>
         </div>

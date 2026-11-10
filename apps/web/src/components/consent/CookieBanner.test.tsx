@@ -35,7 +35,9 @@ describe('Banner de cookies (LGPD) e Consent Mode', () => {
     renderAt(<CookieBanner />);
     expect(screen.getByRole('heading', { name: /privacidade e cookies/i })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /aceitar todos/i }));
-    expect(screen.queryByRole('heading', { name: /privacidade e cookies/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /privacidade e cookies/i }),
+    ).not.toBeInTheDocument();
     expect(readConsent()).toMatchObject({ analytics: true, marketing: true });
     const upd = consentCalls().find((c) => c[1] === 'update');
     expect(upd?.[2]).toMatchObject({ analytics_storage: 'granted', ad_storage: 'granted' });
@@ -65,7 +67,9 @@ describe('Banner de cookies (LGPD) e Consent Mode', () => {
       JSON.stringify({ analytics: false, marketing: false, decidedAt: '2026-01-01', version: 1 }),
     );
     renderAt(<CookieBanner />);
-    expect(screen.queryByRole('heading', { name: /privacidade e cookies/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /privacidade e cookies/i }),
+    ).not.toBeInTheDocument();
     act(() => openCookiePreferences());
     expect(await screen.findByRole('button', { name: /salvar preferências/i })).toBeInTheDocument();
   });

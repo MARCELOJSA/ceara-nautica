@@ -10,7 +10,11 @@ interface State<T> {
 
 /** Lista de produtos (filtragem fina é feita no cliente). */
 export function useProducts(query: ProductQuery = {}): State<Product[]> {
-  const [state, setState] = useState<State<Product[]>>({ data: [], loading: true, fallback: false });
+  const [state, setState] = useState<State<Product[]>>({
+    data: [],
+    loading: true,
+    fallback: false,
+  });
   const { category, q, featured } = query;
 
   useEffect(() => {

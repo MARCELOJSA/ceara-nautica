@@ -2,7 +2,7 @@ import { Suspense, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { FloatingContact } from './FloatingContact';
+import { FloatingContact, MobileBarSpacer } from './FloatingContact';
 import { CookieBanner } from '@/components/consent/CookieBanner';
 
 function ScrollToTop() {
@@ -15,7 +15,11 @@ function ScrollToTop() {
 
 export function PageFallback() {
   return (
-    <div className="container-x flex min-h-[60vh] items-center justify-center" role="status" aria-live="polite">
+    <div
+      className="container-x flex min-h-[60vh] items-center justify-center"
+      role="status"
+      aria-live="polite"
+    >
       <span className="eyebrow text-steel">Carregando…</span>
     </div>
   );
@@ -38,6 +42,7 @@ export function Layout() {
         </Suspense>
       </main>
       <Footer />
+      <MobileBarSpacer />
       <FloatingContact />
       <CookieBanner />
     </>

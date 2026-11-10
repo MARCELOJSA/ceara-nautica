@@ -241,7 +241,7 @@ export const DEMO_PRODUCTS: Product[] = [
   // ---------------------------------------------------------------- Motores
   {
     slug: 'motores-de-popa',
-    name: 'Motores de Popa',
+    name: 'Motores de popa',
     category: 'motores-de-popa',
     shortDescription: 'Revenda de motores de popa, com orientação para escolher a potência certa.',
     description:

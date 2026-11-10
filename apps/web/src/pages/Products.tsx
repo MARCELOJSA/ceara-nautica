@@ -6,10 +6,19 @@ import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd } from '@/components/seo/jsonld';
 import { IllustrativeNote, PageHeader } from '@/components/layout/PageHeader';
 import { ProductCard } from '@/components/product/ProductCard';
-import { CtaBand } from '@/components/layout/CtaBand';
+import { CtaBand, type CtaContext } from '@/components/layout/CtaBand';
 import { useProducts } from '@/hooks/useProducts';
-import { filterProducts } from '@/lib/api';
+import { filterProducts, normalize } from '@/lib/api';
 import { track } from '@/lib/analytics';
+
+/** Termos que indicam serviço (não produto) — o estado vazio sugere a página Serviços. */
+const SERVICE_TERMS = /(repar|manuten|consert|solda|pintur|revis|reform|servi|instal)/;
+
+function ctaContext(category: string): CtaContext {
+  if (category === 'motores-de-popa') return 'motores';
+  if (category === 'estofamentos') return 'estofamento';
+  return 'embarcacao';
+}
 
 export default function Products() {
   const [params, setParams] = useSearchParams();
@@ -19,6 +28,18 @@ export default function Products() {
   const [term, setTerm] = useState(q);
   const { data, loading } = useProducts();
   const lastTracked = useRef('');
+  const chipsRef = useRef<HTMLDivElement>(null);
+
+  // mantém o chip ativo visível na rolagem horizontal (celular)
+  useEffect(() => {
+    const el = chipsRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    const box = chipsRef.current;
+    if (!el || !box || box.scrollWidth <= box.clientWidth) return;
+    box.scrollTo({
+      left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2,
+      behavior: 'auto',
+    });
+  }, [category]);
 
   // mantém o campo sincronizado com a URL (voltar/avançar do navegador)
   useEffect(() => setTerm(q), [q]);
@@ -43,7 +64,10 @@ export default function Products() {
     }
   }, [q]);
 
-  const results = useMemo(() => filterProducts(data, { category: category || undefined, q }), [data, category, q]);
+  const results = useMemo(
+    () => filterProducts(data, { category: category || undefined, q }),
+    [data, category, q],
+  );
 
   const setCategory = (slug: string) => {
     const next = new URLSearchParams(params);
@@ -64,16 +88,20 @@ export default function Products() {
     ? `${cat.description} Fabricação sob medida pela Ceará Náutica, em Manaus – AM.`
     : 'Lanchas, canoas, botes e semi-chatas em alumínio, motores de popa e estofamentos. Projetos sob medida da Ceará Náutica em Manaus – AM.';
 
+  const crumbs = [
+    { name: 'Início', path: '/' },
+    { name: 'Embarcações', path: '/produtos' },
+    ...(cat ? [{ name: cat.name, path: `/produtos?categoria=${cat.slug}` }] : []),
+  ];
+  const looksLikeService = SERVICE_TERMS.test(normalize(q));
+
   return (
     <>
       <Seo
         title={title}
         description={description}
         path={category ? `/produtos?categoria=${category}` : '/produtos'}
-        jsonLd={breadcrumbJsonLd([
-          { name: 'Início', path: '/' },
-          { name: 'Embarcações', path: '/produtos' },
-        ])}
+        jsonLd={breadcrumbJsonLd(crumbs)}
       />
       <PageHeader
         eyebrow="Catálogo"
@@ -83,16 +111,18 @@ export default function Products() {
             ? cat.description
             : 'Projetos de lanchas, canoas, botes e semi-chatas em alumínio fabricados pela Ceará Náutica, além de motores de popa e estofamentos. Tudo sob medida.'
         }
-        crumbs={[
-          { name: 'Início', path: '/' },
-          { name: 'Embarcações', path: '/produtos' },
-        ]}
+        crumbs={crumbs}
       />
 
       <section className="py-10 lg:py-14" aria-label="Lista de produtos">
         <div className="container-x">
           <div className="flex flex-col gap-5 border-b border-steel-light pb-6 lg:flex-row lg:items-end lg:justify-between">
-            <div role="group" aria-label="Filtrar por categoria" className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+            <div
+              ref={chipsRef}
+              role="group"
+              aria-label="Filtrar por categoria"
+              className="-mx-5 flex scroll-px-5 gap-2 overflow-x-auto px-5 pb-1 [mask-image:linear-gradient(90deg,#000_88%,transparent)] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:[mask-image:none]"
+            >
               {[{ slug: '', name: 'Todas' }, ...CATEGORIES].map((c) => {
                 const active = c.slug === category;
                 return (
@@ -112,11 +142,18 @@ export default function Products() {
                 );
               })}
             </div>
-            <form role="search" onSubmit={(e) => e.preventDefault()} className="relative w-full lg:max-w-xs">
+            <form
+              role="search"
+              onSubmit={(e) => e.preventDefault()}
+              className="relative w-full lg:max-w-xs"
+            >
               <label htmlFor="busca" className="sr-only">
                 Buscar por nome
               </label>
-              <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-steel" />
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-steel"
+              />
               <input
                 id="busca"
                 type="search"
@@ -142,7 +179,10 @@ export default function Products() {
               ))}
             </ul>
           ) : results.length ? (
-            <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-testid="product-grid">
+            <ul
+              className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              data-testid="product-grid"
+            >
               {results.map((p) => (
                 <li key={p.slug}>
                   <ProductCard product={p} headingLevel={2} />
@@ -150,11 +190,26 @@ export default function Products() {
               ))}
             </ul>
           ) : (
-            <div className="mt-6 flex flex-col items-start gap-4 rounded-md border border-dashed border-steel/40 bg-white p-8 sm:p-12" data-testid="empty-state">
+            <div
+              className="mt-6 flex flex-col items-start gap-4 rounded-md border border-dashed border-steel/40 bg-white p-8 sm:p-12"
+              data-testid="empty-state"
+            >
               <h2 className="text-3xl font-bold uppercase">Nenhum produto encontrado</h2>
+              {looksLikeService && (
+                <p
+                  className="max-w-xl rounded-sm bg-offwhite p-4 text-graphite"
+                  data-testid="service-hint"
+                >
+                  Procura reparo, manutenção ou outro serviço?{' '}
+                  <Link to="/servicos" className="link-underline font-semibold">
+                    Veja nossos serviços
+                  </Link>
+                  .
+                </p>
+              )}
               <p className="max-w-xl text-steel">
-                Não encontramos itens com esses filtros. Como cada embarcação é feita sob medida, você
-                também pode descrever o que precisa no pedido de orçamento.
+                Não encontramos itens com esses filtros. Como cada embarcação é feita sob medida,
+                você também pode descrever o que precisa no pedido de orçamento.
               </p>
               <div className="flex flex-wrap gap-3">
                 <button type="button" onClick={clearAll} className="btn-dark">
@@ -163,13 +218,21 @@ export default function Products() {
                 <Link to="/orcamento" className="btn-outline">
                   Solicitar orçamento
                 </Link>
+                {!looksLikeService && (
+                  <Link
+                    to="/servicos"
+                    className="inline-flex min-h-11 items-center px-2 font-medium text-graphite underline decoration-orange underline-offset-4"
+                  >
+                    Ver serviços
+                  </Link>
+                )}
               </div>
             </div>
           )}
           <IllustrativeNote className="mt-8" />
         </div>
       </section>
-      <CtaBand />
+      <CtaBand context={ctaContext(category)} />
     </>
   );
 }

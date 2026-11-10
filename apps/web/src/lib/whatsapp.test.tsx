@@ -32,36 +32,73 @@ describe('buildWhatsAppUrl', () => {
 describe('<WhatsAppCta />', () => {
   it('com número: link externo seguro para o WhatsApp com o nome do produto', () => {
     renderAt(
-      <WhatsAppCta number={TEST_NUMBER} location="teste" message={productWhatsAppMessage('Bote de Alumínio 7 m')} />,
+      <WhatsAppCta
+        number={TEST_NUMBER}
+        location="teste"
+        message={productWhatsAppMessage('Bote de Alumínio 7 m')}
+      />,
     );
     const link = screen.getByRole('link', { name: /falar no whatsapp/i });
-    expect(link).toHaveAttribute('href', expect.stringContaining('https://wa.me/5500000000000?text='));
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining('https://wa.me/5500000000000?text='),
+    );
     expect(decodeURIComponent(link.getAttribute('href')!)).toContain('Bote de Alumínio 7 m');
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('sem número: leva para uma página do site, sem prometer número', () => {
-    renderAt(<WhatsAppCta number={undefined} location="teste" fallbackTo="/orcamento?produto=x" />);
-    const link = screen.getByRole('link', { name: /fale com a equipe/i });
-    expect(link).toHaveAttribute('href', '/orcamento?produto=x');
+  it('sem número (padrão): oferece o direct do Instagram, sem prometer número', () => {
+    renderAt(<WhatsAppCta number={undefined} location="teste" />);
+    const link = screen.getByRole('link', { name: /perguntar no instagram/i });
+    expect(link).toHaveAttribute('href', 'https://www.instagram.com/cearanautica/');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.queryByText(/whatsapp/i)).not.toBeInTheDocument();
+  });
+
+  it('sem número com fallback interno: link honesto para a página indicada', () => {
+    renderAt(
+      <WhatsAppCta
+        number={undefined}
+        location="teste"
+        fallback={{ to: '/orcamento?produto=x', label: 'Pedir orçamento' }}
+      />,
+    );
+    expect(screen.getByRole('link', { name: 'Pedir orçamento' })).toHaveAttribute(
+      'href',
+      '/orcamento?produto=x',
+    );
   });
 });
 
 describe('<FloatingContact />', () => {
-  it('com número abre o WhatsApp', () => {
+  it('com número: barra mobile e botão desktop abrem o WhatsApp', () => {
     renderAt(<FloatingContact number={TEST_NUMBER} />);
-    expect(screen.getByTestId('floating-contact')).toHaveAttribute('href', expect.stringContaining('wa.me'));
+    expect(screen.getByTestId('mobile-bar-secondary')).toHaveAttribute(
+      'href',
+      expect.stringContaining('wa.me'),
+    );
+    expect(screen.getByTestId('floating-desktop')).toHaveAttribute(
+      'href',
+      expect.stringContaining('wa.me'),
+    );
   });
 
-  it('sem número leva para /orcamento', () => {
+  it('sem número: "Pedir orçamento" + Instagram, sem balão de WhatsApp', () => {
     renderAt(<FloatingContact number={undefined} />, { route: '/' });
     expect(screen.getByTestId('floating-contact')).toHaveAttribute('href', '/orcamento');
+    expect(screen.getByTestId('floating-contact')).toHaveTextContent('Pedir orçamento');
+    expect(screen.getByTestId('mobile-bar-secondary')).toHaveAttribute(
+      'href',
+      'https://www.instagram.com/cearanautica/',
+    );
+    expect(screen.getByTestId('floating-desktop')).toHaveTextContent('Orçamento');
+    expect(screen.queryByText(/whatsapp/i)).not.toBeInTheDocument();
   });
 
-  it('sem número fica oculto na própria página de orçamento', () => {
+  it('sem número, na página de orçamento: barra aponta para Contato e some o botão desktop', () => {
     renderAt(<FloatingContact number={undefined} />, { route: '/orcamento' });
-    expect(screen.queryByTestId('floating-contact')).not.toBeInTheDocument();
+    expect(screen.getByTestId('floating-contact')).toHaveAttribute('href', '/contato');
+    expect(screen.queryByTestId('floating-desktop')).not.toBeInTheDocument();
   });
 });

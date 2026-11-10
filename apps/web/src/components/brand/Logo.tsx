@@ -43,7 +43,12 @@ export function Logo({ className, tone = 'light', layout = 'horizontal' }: LogoP
 
   if (layout === 'stacked') {
     return (
-      <svg viewBox="0 0 520 330" className={className} role="img" aria-label="Ceará Náutica — Náutica & Estaleiro">
+      <svg
+        viewBox="0 0 520 330"
+        className={className}
+        role="img"
+        aria-label="Ceará Náutica — Náutica & Estaleiro"
+      >
         <svg x="40" y="0" width="440" height="176" viewBox="64 124 516 206">
           <MarkShapes color={markColor} />
         </svg>
@@ -90,14 +95,22 @@ export function Logo({ className, tone = 'light', layout = 'horizontal' }: LogoP
           CEARÁ NÁUTICA
         </span>
         <span className="mt-1 flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-px w-3 shrink-0" style={{ background: lineColor }} />
+          <span
+            aria-hidden="true"
+            className="h-px w-3 shrink-0"
+            style={{ background: lineColor }}
+          />
           <span
             className="text-[0.5625rem] font-bold tracking-[0.12em] whitespace-nowrap sm:text-[0.625rem]"
             style={{ color: subColor }}
           >
             NÁUTICA &amp; ESTALEIRO
           </span>
-          <span aria-hidden="true" className="h-px w-3 shrink-0" style={{ background: lineColor }} />
+          <span
+            aria-hidden="true"
+            className="h-px w-3 shrink-0"
+            style={{ background: lineColor }}
+          />
         </span>
       </span>
       <span className="sr-only">Ceará Náutica — página inicial</span>

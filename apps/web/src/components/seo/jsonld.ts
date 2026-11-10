@@ -1,5 +1,6 @@
 import { getCategory, type Product } from '@cn/shared';
 import { absoluteUrl, site } from '@/config/site';
+import { productImages } from '@/lib/images';
 
 /** LocalBusiness apenas com dados confirmados (endereço/horário/e-mail só se configurados). */
 export function localBusinessJsonLd() {
@@ -37,11 +38,12 @@ export function productJsonLd(p: Product) {
     name: p.name,
     description: p.shortDescription,
     category: getCategory(p.category)?.name,
-    image: p.images.map((i) => absoluteUrl(i.src)),
+    image: productImages(p).map((i) => absoluteUrl(i.src)),
     url: absoluteUrl(`/produtos/${p.slug}`),
     brand: { '@type': 'Brand', name: site.name },
     manufacturer: { '@type': 'Organization', name: site.name },
-    material: p.category === 'motores-de-popa' || p.category === 'estofamentos' ? undefined : 'Alumínio',
+    material:
+      p.category === 'motores-de-popa' || p.category === 'estofamentos' ? undefined : 'Alumínio',
   };
 }
 
@@ -61,4 +63,16 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
 /** Serializa JSON-LD com `<` escapado (evita fechar a tag <script>). */
 export function serializeJsonLd(data: object): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
+}
+
+export function faqJsonLd(items: { q: string; a: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((it) => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: { '@type': 'Answer', text: it.a },
+    })),
+  };
 }

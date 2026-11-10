@@ -13,9 +13,35 @@ import { IllustrativeNote } from '@/components/layout/PageHeader';
 import { PageFallback } from '@/components/layout/Layout';
 import { useProduct, useRelated } from '@/hooks/useProducts';
 import { productWhatsAppMessage } from '@/lib/whatsapp';
+import { productImages } from '@/lib/images';
 import { track } from '@/lib/analytics';
 import { site } from '@/config/site';
 import NotFound from './NotFound';
+
+const BOAT_COPY = {
+  aboutTitle: 'Sobre este projeto',
+  adjust:
+    'Medidas, layout, motorização, cor e acabamento podem ser ajustados ao seu uso. Fale com a equipe para montar o seu projeto.',
+};
+
+/** Textos que mudam conforme o tipo de item (embarcação, motor ou estofamento). */
+function detailCopy(category: string) {
+  if (category === 'motores-de-popa') {
+    return {
+      aboutTitle: 'Sobre os motores',
+      adjust:
+        'Marcas, modelos e potências disponíveis são informados no orçamento. Conte qual é a sua embarcação e como você navega para receber a indicação adequada.',
+    };
+  }
+  if (category === 'estofamentos') {
+    return {
+      aboutTitle: 'Sobre o serviço',
+      adjust:
+        'Materiais, cores e prazo são definidos no orçamento, conforme os assentos e o uso da sua embarcação.',
+    };
+  }
+  return BOAT_COPY;
+}
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -39,7 +65,9 @@ export default function ProductDetail() {
   if (!product) return <NotFound />;
 
   const category = getCategory(product.category);
-  const images = product.images.length ? product.images : [{ src: '', alt: product.name }];
+  const available = productImages(product);
+  const images = available.length ? available : [{ src: '', alt: product.name }];
+  const copy = detailCopy(product.category);
   const current = images[Math.min(active, images.length - 1)]!;
   const crumbs = [
     { name: 'Início', path: '/' },
@@ -55,7 +83,7 @@ export default function ProductDetail() {
         title={`${product.name} — ${category?.name ?? 'Embarcações'} em Manaus`}
         description={`${product.shortDescription} Ceará Náutica, Manaus – AM. Solicite um orçamento.`}
         path={`/produtos/${product.slug}`}
-        image={product.images[0]?.src}
+        image={available[0]?.src}
         type="product"
         jsonLd={[productJsonLd(product), breadcrumbJsonLd(crumbs)]}
       />
@@ -101,11 +129,20 @@ export default function ProductDetail() {
                       onClick={() => setActive(i)}
                       aria-current={i === active ? 'true' : undefined}
                       className={`block aspect-[4/3] w-full overflow-hidden rounded-sm border-2 bg-steel-light ${
-                        i === active ? 'border-orange' : 'border-transparent opacity-75 hover:opacity-100'
+                        i === active
+                          ? 'border-orange'
+                          : 'border-transparent opacity-75 hover:opacity-100'
                       }`}
                     >
-                      <SmartImage src={img.src} alt="" sizes="120px" className="h-full w-full object-cover" />
-                      <span className="sr-only">Ver imagem {i + 1}: {img.alt}</span>
+                      <SmartImage
+                        src={img.src}
+                        alt=""
+                        sizes="120px"
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="sr-only">
+                        Ver imagem {i + 1}: {img.alt}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -138,17 +175,23 @@ export default function ProductDetail() {
                 location="produto"
                 productSlug={product.slug}
                 className="btn-outline flex-1 px-6"
-                fallbackTo={quoteHref}
-                fallbackLabel="Falar com um vendedor"
+                instagramLabel="Perguntar no Instagram"
               />
             </div>
 
             <h2 className="mt-10 eyebrow text-graphite-deep">Especificações</h2>
             <dl className="mt-3 divide-y divide-steel-light border-y border-steel-light">
               {product.specs.map((s) => (
-                <div key={s.label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-3 text-[0.9375rem]">
+                <div
+                  key={s.label}
+                  className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-3 text-[0.9375rem]"
+                >
                   <dt className="text-steel">{s.label}</dt>
-                  <dd className={`font-medium ${/sob consulta/i.test(s.value) ? 'text-steel italic' : 'text-graphite-deep'}`}>{s.value}</dd>
+                  <dd
+                    className={`font-medium ${/sob consulta/i.test(s.value) ? 'text-steel italic' : 'text-graphite-deep'}`}
+                  >
+                    {s.value}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -159,13 +202,19 @@ export default function ProductDetail() {
                 <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                   {product.features.map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-[0.9375rem] text-graphite">
-                      <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-orange-ink" strokeWidth={2.5} />
+                      <Check
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-orange-ink"
+                        strokeWidth={2.5}
+                      />
                       {f}
                     </li>
                   ))}
                 </ul>
                 {product.features.some((f) => f.endsWith('*')) && (
-                  <p className="mt-2 text-xs text-steel">* Condição do projeto publicado; confirme com a equipe.</p>
+                  <p className="mt-2 text-xs text-steel">
+                    * Condição do projeto publicado; confirme com a equipe.
+                  </p>
                 )}
               </>
             )}
@@ -173,23 +222,28 @@ export default function ProductDetail() {
         </div>
       </section>
 
-      <section aria-labelledby="descricao-title" className="border-t border-steel-light py-16 lg:py-20">
+      <section
+        aria-labelledby="descricao-title"
+        className="border-t border-steel-light py-16 lg:py-20"
+      >
         <div className="container-x grid gap-8 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
           <h2 id="descricao-title" className="text-4xl font-bold uppercase">
-            Sobre este projeto
+            {copy.aboutTitle}
           </h2>
           <div>
             <p className="text-lg leading-relaxed text-graphite">{product.description}</p>
-            <p className="mt-4 leading-relaxed text-steel">
-              Medidas, layout, motorização, cor e acabamento podem ser ajustados ao seu uso. Fale com
-              a equipe para montar o seu projeto.
-            </p>
+            <p className="mt-4 leading-relaxed text-steel">{copy.adjust}</p>
             {product.source && (
               <p className="mt-6 flex items-center gap-2 text-sm text-steel">
                 <Instagram aria-hidden="true" className="size-4 shrink-0" />
                 <span>
                   Fonte:{' '}
-                  <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="link-underline">
+                  <a
+                    href={site.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-underline"
+                  >
                     {product.source}
                     <span className="sr-only"> (abre em nova aba)</span>
                   </a>
@@ -201,7 +255,10 @@ export default function ProductDetail() {
       </section>
 
       {related.length > 0 && (
-        <section aria-labelledby="relacionados-title" className="border-t border-steel-light bg-white py-16 lg:py-20">
+        <section
+          aria-labelledby="relacionados-title"
+          className="border-t border-steel-light bg-white py-16 lg:py-20"
+        >
           <div className="container-x">
             <h2 id="relacionados-title" className="text-4xl font-bold uppercase">
               Veja também

@@ -14,11 +14,19 @@ import { CATEGORY_COVERS, DIFFERENTIALS, GALLERY, SERVICES } from '@/data/conten
 import { useProducts } from '@/hooks/useProducts';
 import { track } from '@/lib/analytics';
 
-const CAPABILITIES = ['Embarcações em alumínio', 'Fabricação sob medida', 'Reparos e manutenção', 'Motores de popa'];
+const CAPABILITIES = [
+  { label: 'Embarcações em alumínio', to: '/produtos' },
+  { label: 'Fabricação sob medida', to: '/servicos#fabricacao' },
+  { label: 'Reparos e manutenção', to: '/servicos#reparos' },
+  { label: 'Motores de popa', to: '/produtos?categoria=motores-de-popa' },
+];
 
 function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate flex min-h-[calc(100svh-68px)] flex-col overflow-hidden bg-graphite-deep text-white lg:min-h-[calc(100svh-76px)]">
+    <section
+      aria-labelledby="hero-title"
+      className="relative isolate flex min-h-[calc(100svh-68px)] flex-col overflow-hidden bg-graphite-deep text-white lg:min-h-[calc(100svh-76px)]"
+    >
       <div className="absolute inset-0 -z-10">
         <SmartImage
           src="/images/hero.webp"
@@ -49,8 +57,8 @@ function Hero() {
           Qualidade e confiança em cada embarcação.
         </p>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-          Fabricamos embarcações em alumínio com projeto 100% personalizado para os rios da
-          Amazônia — e cuidamos delas com reparos, manutenção, motores de popa e estofamento.
+          Fabricamos embarcações em alumínio com projeto 100% personalizado para os rios da Amazônia
+          — e cuidamos delas com reparos, manutenção, motores de popa e estofamento.
         </p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link to="/orcamento" className="btn-primary px-7">
@@ -65,16 +73,20 @@ function Hero() {
       <div className="border-t border-white/15 bg-graphite-deep/40 backdrop-blur-[2px]">
         <ul className="container-x grid grid-cols-2 lg:grid-cols-4">
           {CAPABILITIES.map((c, i) => (
-            <li
-              key={c}
-              className={`flex min-h-16 items-center gap-3 py-4 font-display text-[0.9375rem] font-semibold tracking-[0.08em] text-white/90 uppercase sm:text-base ${
-                i % 2 === 1 ? 'pl-4 sm:pl-6' : ''
-              } ${i > 0 ? 'lg:border-l lg:border-white/15 lg:pl-6' : ''}`}
-            >
-              <span aria-hidden="true" className="font-sans text-xs text-orange">
-                0{i + 1}
-              </span>
-              {c}
+            <li key={c.label} className={i > 0 ? 'lg:border-l lg:border-white/15' : ''}>
+              <Link
+                to={c.to}
+                className={`group flex min-h-16 items-center gap-3 py-4 font-display text-[0.9375rem] font-semibold tracking-[0.08em] text-white/90 uppercase hover:text-white sm:text-base ${
+                  i % 2 === 1 ? 'pl-4 sm:pl-6' : ''
+                } ${i > 0 ? 'lg:pl-6' : ''}`}
+              >
+                <span aria-hidden="true" className="font-sans text-xs text-orange">
+                  0{i + 1}
+                </span>
+                <span className="underline-offset-4 group-hover:underline group-hover:decoration-orange">
+                  {c.label}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
@@ -85,7 +97,10 @@ function Hero() {
 
 function Intro() {
   return (
-    <section aria-labelledby="sobre-title" className="py-20 lg:py-28">
+    <section
+      aria-labelledby="sobre-title"
+      className="border-t border-steel-light py-14 sm:py-20 lg:py-28"
+    >
       <div className="container-x grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
         <Reveal>
           <SectionHeading
@@ -102,8 +117,10 @@ function Intro() {
           <div className="mt-6 space-y-4 text-[1.0625rem] leading-relaxed text-graphite">
             <p>
               A Ceará Náutica é náutica e estaleiro em Manaus. Trabalhamos com{' '}
-              <strong className="font-semibold text-graphite-deep">barcos de alumínio em Manaus</strong> —
-              lanchas, canoas, botes e semi-chatas — com projeto personalizado, pintura na cor que
+              <strong className="font-semibold text-graphite-deep">
+                barcos de alumínio em Manaus
+              </strong>{' '}
+              — lanchas, canoas, botes e semi-chatas — com projeto personalizado, pintura na cor que
               você escolher e foco em resistência, leveza, segurança, conforto e durabilidade.
             </p>
             <p>
@@ -113,10 +130,16 @@ function Intro() {
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
-            <Link to="/sobre" className="link-underline inline-flex min-h-11 items-center font-display text-lg font-semibold tracking-[0.06em] uppercase">
+            <Link
+              to="/sobre"
+              className="link-underline inline-flex min-h-11 items-center font-display text-lg font-semibold tracking-[0.06em] uppercase"
+            >
               Conheça a empresa
             </Link>
-            <Link to="/servicos" className="link-underline inline-flex min-h-11 items-center font-display text-lg font-semibold tracking-[0.06em] uppercase">
+            <Link
+              to="/servicos"
+              className="link-underline inline-flex min-h-11 items-center font-display text-lg font-semibold tracking-[0.06em] uppercase"
+            >
               Nossos serviços
             </Link>
           </div>
@@ -134,7 +157,9 @@ function Intro() {
           </div>
           <div className="absolute -bottom-6 left-6 hidden max-w-[16rem] rounded-sm bg-graphite-deep p-5 text-white sm:block">
             <p className="eyebrow text-orange">Projeto 100% personalizado</p>
-            <p className="mt-2 text-sm leading-relaxed text-white/80">Medidas, layout, motorização e cor definidos com a nossa equipe.</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/80">
+              Medidas, layout, motorização e cor definidos com a nossa equipe.
+            </p>
           </div>
         </Reveal>
       </div>
@@ -146,7 +171,10 @@ function Featured() {
   const { data, loading } = useProducts({ featured: true });
   const items = data.slice(0, 6);
   return (
-    <section aria-labelledby="destaques-title" className="border-t border-steel-light bg-white py-20 lg:py-28">
+    <section
+      aria-labelledby="destaques-title"
+      className="border-t border-steel-light bg-white py-20 lg:py-28"
+    >
       <div className="container-x">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <SectionHeading
@@ -168,7 +196,12 @@ function Featured() {
         ) : (
           <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((p, i) => (
-              <Reveal as="li" key={p.slug} delay={Math.min(i, 3) * 0.04}>
+              <Reveal
+                as="li"
+                key={p.slug}
+                delay={Math.min(i, 3) * 0.04}
+                className={i >= 3 ? 'hidden sm:block' : undefined}
+              >
                 <ProductCard product={p} />
               </Reveal>
             ))}
@@ -182,7 +215,7 @@ function Featured() {
 
 function Categories() {
   return (
-    <section aria-labelledby="categorias-title" className="py-20 lg:py-28">
+    <section aria-labelledby="categorias-title" className="py-14 sm:py-20 lg:py-28">
       <div className="container-x">
         <SectionHeading
           id="categorias-title"
@@ -190,7 +223,7 @@ function Categories() {
           title="Encontre a sua embarcação"
           intro="Lanchas em Manaus, canoas, botes e semi-chatas em alumínio — além de motores de popa e estofamentos."
         />
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-4 lg:grid-cols-3">
           {CATEGORIES.map((c, i) => {
             const cover = CATEGORY_COVERS[c.slug];
             return (
@@ -198,7 +231,7 @@ function Categories() {
                 <Link
                   to={`/produtos?categoria=${c.slug}`}
                   onClick={() => track('select_category', { category: c.slug, location: 'home' })}
-                  className="group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-md bg-graphite-deep text-white sm:aspect-[5/4]"
+                  className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-md bg-graphite-deep text-white sm:aspect-[5/4]"
                 >
                   <SmartImage
                     src={cover.src}
@@ -206,14 +239,26 @@ function Categories() {
                     className="absolute inset-0 h-full w-full object-cover opacity-70 transition-[transform,opacity] duration-300 group-hover:scale-[1.04] group-hover:opacity-55"
                     fallbackClassName="absolute inset-0 opacity-20"
                   />
-                  <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,25,28,0)_35%,rgba(23,25,28,0.92)_100%)]" />
-                  <span className="relative p-5 sm:p-6">
-                    <span className="block font-sans text-xs font-semibold text-orange">0{i + 1}</span>
-                    <span className="mt-1 flex items-center justify-between gap-3">
-                      <span className="font-display text-3xl font-bold uppercase">{c.name}</span>
-                      <ArrowRight aria-hidden="true" className="size-6 shrink-0 transition-transform duration-200 group-hover:translate-x-1" />
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,25,28,0)_35%,rgba(23,25,28,0.92)_100%)]"
+                  />
+                  <span className="relative p-3.5 sm:p-6">
+                    <span className="block font-sans text-xs font-semibold text-orange">
+                      0{i + 1}
                     </span>
-                    <span className="mt-1 block text-sm leading-snug text-white/80">{c.description}</span>
+                    <span className="mt-1 flex items-center justify-between gap-3">
+                      <span className="font-display text-xl leading-none font-bold uppercase sm:text-3xl">
+                        {c.name}
+                      </span>
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="hidden size-6 shrink-0 transition-transform duration-200 group-hover:translate-x-1 sm:block"
+                      />
+                    </span>
+                    <span className="mt-1 hidden text-sm leading-snug text-white/80 sm:block">
+                      {c.description}
+                    </span>
                   </span>
                 </Link>
               </Reveal>
@@ -227,7 +272,10 @@ function Categories() {
 
 function ServicesBlock() {
   return (
-    <section aria-labelledby="servicos-title" className="bg-graphite-deep py-20 text-white lg:py-28">
+    <section
+      aria-labelledby="servicos-title"
+      className="bg-graphite-deep py-20 text-white lg:py-28"
+    >
       <div className="container-x grid gap-12 lg:grid-cols-[0.9fr_1.4fr] lg:gap-20">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <SectionHeading
@@ -250,10 +298,17 @@ function ServicesBlock() {
               >
                 <span className="pt-1.5 font-sans text-sm font-semibold text-orange">0{i + 1}</span>
                 <span>
-                  <span className="block font-display text-2xl font-bold uppercase sm:text-3xl">{s.title}</span>
-                  <span className="mt-2 block max-w-xl text-[0.9375rem] leading-relaxed text-white/70">{s.summary}</span>
+                  <span className="block font-display text-2xl font-bold uppercase sm:text-3xl">
+                    {s.title}
+                  </span>
+                  <span className="mt-2 block max-w-xl text-[0.9375rem] leading-relaxed text-white/70">
+                    {s.summary}
+                  </span>
                 </span>
-                <ArrowRight aria-hidden="true" className="mt-1.5 size-6 text-white/50 transition-[transform,color] duration-200 group-hover:translate-x-1 group-hover:text-orange" />
+                <ArrowRight
+                  aria-hidden="true"
+                  className="mt-1.5 size-6 text-white/50 transition-[transform,color] duration-200 group-hover:translate-x-1 group-hover:text-orange"
+                />
               </Link>
             </li>
           ))}
@@ -275,7 +330,12 @@ function Differentials() {
         />
         <ul className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {DIFFERENTIALS.map((d, i) => (
-            <Reveal as="li" key={d.title} delay={(i % 4) * 0.04} className="border-t-2 border-graphite-deep pt-5">
+            <Reveal
+              as="li"
+              key={d.title}
+              delay={(i % 4) * 0.04}
+              className="border-t-2 border-graphite-deep pt-5"
+            >
               <h3 className="text-2xl font-bold uppercase">{d.title}</h3>
               <p className="mt-2 text-[0.9375rem] leading-relaxed text-steel">{d.text}</p>
             </Reveal>
@@ -290,7 +350,10 @@ function Gallery() {
   const [index, setIndex] = useState<number | null>(null);
   const spans = ['lg:col-span-2 lg:row-span-2', '', '', 'lg:row-span-2', '', '', '', ''];
   return (
-    <section aria-labelledby="galeria-title" className="border-t border-steel-light bg-white py-20 lg:py-28">
+    <section
+      aria-labelledby="galeria-title"
+      className="border-t border-steel-light bg-white py-20 lg:py-28"
+    >
       <div className="container-x">
         <SectionHeading
           id="galeria-title"
@@ -300,7 +363,10 @@ function Gallery() {
         />
         <ul className="mt-12 grid auto-rows-[160px] grid-cols-2 gap-3 sm:auto-rows-[200px] lg:grid-cols-4 lg:gap-4">
           {GALLERY.map((g, i) => (
-            <li key={g.src} className={`${spans[i] ?? ''} overflow-hidden rounded-md bg-steel-light`}>
+            <li
+              key={g.src}
+              className={`${spans[i] ?? ''} overflow-hidden rounded-md bg-steel-light`}
+            >
               <button
                 type="button"
                 onClick={() => setIndex(i)}
@@ -312,7 +378,10 @@ function Gallery() {
                   sizes="(min-width: 1024px) 40vw, 50vw"
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                 />
-                <span aria-hidden="true" className="absolute right-2 bottom-2 inline-flex size-9 items-center justify-center rounded-sm bg-graphite-deep/70 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <span
+                  aria-hidden="true"
+                  className="absolute right-2 bottom-2 inline-flex size-9 items-center justify-center rounded-sm bg-graphite-deep/70 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                >
                   <Expand className="size-4" />
                 </span>
                 <span className="sr-only">Ampliar imagem</span>
@@ -322,7 +391,13 @@ function Gallery() {
         </ul>
         <IllustrativeNote className="mt-6" />
       </div>
-      <Lightbox images={GALLERY} index={index} onClose={() => setIndex(null)} onIndexChange={setIndex} label="Galeria de fotos" />
+      <Lightbox
+        images={GALLERY}
+        index={index}
+        onClose={() => setIndex(null)}
+        onIndexChange={setIndex}
+        label="Galeria de fotos"
+      />
     </section>
   );
 }
@@ -337,13 +412,13 @@ export default function Home() {
         jsonLd={localBusinessJsonLd()}
       />
       <Hero />
+      <Categories />
       <Intro />
       <Featured />
-      <Categories />
       <ServicesBlock />
       <Differentials />
       <Gallery />
-      <CtaBand />
+      <CtaBand context="geral" />
     </>
   );
 }

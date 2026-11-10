@@ -45,7 +45,9 @@ export function SectionHeading({
   const dark = tone === 'dark';
   return (
     <div className={align === 'center' ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl'}>
-      <p className={`eyebrow flex items-center gap-3 ${dark ? 'text-orange' : 'text-orange-ink'} ${align === 'center' ? 'justify-center' : ''}`}>
+      <p
+        className={`eyebrow flex items-center gap-3 ${dark ? 'text-orange' : 'text-orange-ink'} ${align === 'center' ? 'justify-center' : ''}`}
+      >
         <span aria-hidden="true" className="h-px w-8 bg-current" />
         {eyebrow}
       </p>
@@ -56,7 +58,9 @@ export function SectionHeading({
         {title}
       </h2>
       {intro && (
-        <p className={`mt-4 text-base leading-relaxed sm:text-lg ${dark ? 'text-white/75' : 'text-steel'}`}>
+        <p
+          className={`mt-4 text-base leading-relaxed sm:text-lg ${dark ? 'text-white/75' : 'text-steel'}`}
+        >
           {intro}
         </p>
       )}

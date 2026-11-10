@@ -47,33 +47,58 @@ export function CookieBanner() {
     <section
       aria-labelledby={titleId}
       aria-describedby={descId}
-      className="fixed inset-x-0 bottom-0 z-[45] border-t border-white/10 bg-graphite-deep text-white shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+      className="fixed inset-x-0 bottom-0 z-[45] max-h-[85svh] overflow-y-auto border-t border-white/10 bg-graphite-deep text-white shadow-[0_-8px_30px_rgba(0,0,0,0.25)]"
+      data-testid="cookie-banner"
     >
-      <div className="container-x py-5 lg:py-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+      <div className="container-x pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:py-5 lg:py-6">
+        <div className="flex flex-col gap-3 sm:gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="max-w-3xl">
-            <h2 id={titleId} className="eyebrow text-orange">
+            <h2 id={titleId} className="eyebrow sr-only text-orange sm:not-sr-only">
               Privacidade e cookies
             </h2>
-            <p id={descId} className="mt-2 text-sm leading-relaxed text-white/80">
-              Usamos cookies essenciais para o site funcionar. Com a sua autorização, também usamos
-              cookies de medição e de marketing para entender o uso do site e melhorar nossas
-              campanhas. Você pode mudar a escolha a qualquer momento. Saiba mais na{' '}
-              <Link to="/politica-de-privacidade" className="text-white underline decoration-orange underline-offset-4">
+            <p
+              id={descId}
+              className="text-[0.8125rem] leading-snug text-white/80 sm:mt-2 sm:text-sm sm:leading-relaxed"
+            >
+              <span className="sm:hidden">
+                Usamos cookies de medição e marketing só com a sua autorização.{' '}
+              </span>
+              <span className="hidden sm:inline">
+                Usamos cookies essenciais para o site funcionar. Com a sua autorização, também
+                usamos cookies de medição e de marketing para entender o uso do site e melhorar
+                nossas campanhas. Você pode mudar a escolha a qualquer momento.{' '}
+              </span>
+              Saiba mais na{' '}
+              <Link
+                to="/politica-de-privacidade"
+                className="text-white underline decoration-orange underline-offset-4"
+              >
                 Política de Privacidade
               </Link>
               .
             </p>
           </div>
           {!prefsOpen && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:flex-nowrap">
-              <button type="button" className="btn-outline-light" onClick={() => setPrefsOpen(true)}>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:flex-nowrap">
+              <button
+                type="button"
+                className="btn-outline-light order-3 col-span-2 min-h-11 border-transparent text-sm text-white/80 underline decoration-white/40 underline-offset-4 sm:order-none sm:col-span-1 sm:border-white/40 sm:text-[1.0625rem] sm:no-underline"
+                onClick={() => setPrefsOpen(true)}
+              >
                 Preferências
               </button>
-              <button type="button" className="btn-outline-light" onClick={() => decide({ analytics: false, marketing: false })}>
+              <button
+                type="button"
+                className="btn-outline-light px-3"
+                onClick={() => decide({ analytics: false, marketing: false })}
+              >
                 Recusar
               </button>
-              <button type="button" className="btn-primary" onClick={() => decide({ analytics: true, marketing: true })}>
+              <button
+                type="button"
+                className="btn-primary px-3"
+                onClick={() => decide({ analytics: true, marketing: true })}
+              >
                 Aceitar todos
               </button>
             </div>
@@ -96,7 +121,8 @@ export function CookieBanner() {
                   <span>
                     <span className="block text-sm font-semibold text-white">Essenciais</span>
                     <span className="block text-xs text-white/70">
-                      Sempre ativos. Guardam sua escolha de cookies e a origem da visita para os formulários.
+                      Sempre ativos. Guardam sua escolha de cookies e a origem da visita para os
+                      formulários.
                     </span>
                   </span>
                 </label>
@@ -133,7 +159,11 @@ export function CookieBanner() {
               </div>
             </fieldset>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
-              <button type="button" className="btn-outline-light" onClick={() => decide({ analytics: false, marketing: false })}>
+              <button
+                type="button"
+                className="btn-outline-light"
+                onClick={() => decide({ analytics: false, marketing: false })}
+              >
                 Recusar todos
               </button>
               <button type="submit" className="btn-primary">

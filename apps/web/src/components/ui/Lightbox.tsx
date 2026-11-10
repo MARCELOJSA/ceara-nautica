@@ -18,7 +18,13 @@ interface Props {
 }
 
 /** Lightbox acessível: diálogo modal, foco preso, Esc fecha, setas navegam. */
-export function Lightbox({ images, index, onClose, onIndexChange, label = 'Visualização de imagem' }: Props) {
+export function Lightbox({
+  images,
+  index,
+  onClose,
+  onIndexChange,
+  label = 'Visualização de imagem',
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const open = index !== null && images.length > 0;
   useFocusTrap(ref, open, onClose);

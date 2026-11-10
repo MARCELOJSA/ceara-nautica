@@ -5,7 +5,10 @@ const ROUTES: { path: string; h1: RegExp }[] = [
   { path: '/', h1: /seu próximo destino começa aqui/i },
   { path: '/produtos', h1: /embarcações e produtos/i },
   { path: '/produtos?categoria=lanchas', h1: /lanchas/i },
-  { path: `/produtos/${DEMO_PRODUCTS[0]!.slug}`, h1: new RegExp(DEMO_PRODUCTS[0]!.name.slice(0, 12), 'i') },
+  {
+    path: `/produtos/${DEMO_PRODUCTS[0]!.slug}`,
+    h1: new RegExp(DEMO_PRODUCTS[0]!.name.slice(0, 12), 'i'),
+  },
   { path: '/sobre', h1: /náutica & estaleiro em manaus/i },
   { path: '/servicos', h1: /do estaleiro ao rio/i },
   { path: '/contato', h1: /fale com a ceará náutica/i },
@@ -40,7 +43,9 @@ for (const r of ROUTES) {
     expect(broken).toEqual([]);
 
     // sem rolagem horizontal
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
     expect(overflow).toBeLessThanOrEqual(1);
 
     expect(consoleErrors).toEqual([]);
@@ -51,7 +56,15 @@ test('nenhum link interno quebrado', async ({ page, consoleErrors }) => {
   test.setTimeout(120_000);
   await presetConsent(page);
   const seen = new Set<string>();
-  const queue = ['/', '/produtos', '/servicos', '/sobre', '/contato', '/orcamento', '/politica-de-privacidade'];
+  const queue = [
+    '/',
+    '/produtos',
+    '/servicos',
+    '/sobre',
+    '/contato',
+    '/orcamento',
+    '/politica-de-privacidade',
+  ];
   const visited = new Set<string>();
 
   while (queue.length) {

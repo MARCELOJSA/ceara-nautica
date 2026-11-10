@@ -12,7 +12,15 @@ interface SeoProps {
   jsonLd?: object | object[];
 }
 
-export function Seo({ title, description, path, image, type = 'website', noindex, jsonLd }: SeoProps) {
+export function Seo({
+  title,
+  description,
+  path,
+  image,
+  type = 'website',
+  noindex,
+  jsonLd,
+}: SeoProps) {
   const fullTitle = title.includes(site.name) ? title : `${title} | ${site.name}`;
   const url = absoluteUrl(path);
   const img = absoluteUrl(image ?? '/og-image.jpg');

@@ -7,7 +7,8 @@ export interface Crumb {
 }
 
 export function Breadcrumb({ items, tone = 'light' }: { items: Crumb[]; tone?: 'light' | 'dark' }) {
-  const muted = tone === 'dark' ? 'text-white/70 hover:text-white' : 'text-steel hover:text-graphite-deep';
+  const muted =
+    tone === 'dark' ? 'text-white/70 hover:text-white' : 'text-steel hover:text-graphite-deep';
   const current = tone === 'dark' ? 'text-white' : 'text-graphite-deep';
   return (
     <nav aria-label="Trilha de navegação">

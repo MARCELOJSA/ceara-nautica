@@ -18,14 +18,20 @@ export async function mockApi(page: Page) {
       const featured = url.searchParams.get('featured');
       return json(
         DEMO_PRODUCTS.filter(
-          (p) => (!category || p.category === category) && (featured === null || String(p.featured) === featured),
+          (p) =>
+            (!category || p.category === category) &&
+            (featured === null || String(p.featured) === featured),
         ),
       );
     }
     const related = path.match(/^\/products\/([^/]+)\/related$/);
     if (related) {
       const p = DEMO_PRODUCTS.find((x) => x.slug === related[1]);
-      return json(p ? DEMO_PRODUCTS.filter((x) => x.category === p.category && x.slug !== p.slug).slice(0, 4) : []);
+      return json(
+        p
+          ? DEMO_PRODUCTS.filter((x) => x.category === p.category && x.slug !== p.slug).slice(0, 4)
+          : [],
+      );
     }
     const one = path.match(/^\/products\/([^/]+)$/);
     if (one) {
@@ -55,7 +61,12 @@ export async function presetConsent(page: Page) {
   await page.addInitScript(() => {
     window.localStorage.setItem(
       'cn_consent_v1',
-      JSON.stringify({ analytics: false, marketing: false, decidedAt: '2026-01-01T00:00:00.000Z', version: 1 }),
+      JSON.stringify({
+        analytics: false,
+        marketing: false,
+        decidedAt: '2026-01-01T00:00:00.000Z',
+        version: 1,
+      }),
     );
   });
 }

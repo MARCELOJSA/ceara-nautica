@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
-import { breadcrumbJsonLd } from '@/components/seo/jsonld';
+import { breadcrumbJsonLd, faqJsonLd } from '@/components/seo/jsonld';
+import { Faq } from '@/components/ui/Faq';
 import { IllustrativeNote, PageHeader } from '@/components/layout/PageHeader';
 import { CtaBand } from '@/components/layout/CtaBand';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { Reveal } from '@/components/ui/Reveal';
-import { SERVICES } from '@/data/content';
+import { FAQ, SERVICES } from '@/data/content';
 
 export default function Services() {
   const crumbs = [
@@ -19,7 +20,7 @@ export default function Services() {
         title="Serviços — Fabricação, reparos e manutenção náutica em Manaus"
         description="Fabricação de embarcações em Manaus, reparos, manutenção náutica, revenda de motores de popa e estofamento náutico. Fale com a Ceará Náutica."
         path="/servicos"
-        jsonLd={breadcrumbJsonLd(crumbs)}
+        jsonLd={[breadcrumbJsonLd(crumbs), faqJsonLd(FAQ)]}
       />
       <PageHeader
         eyebrow="Serviços"
@@ -54,7 +55,9 @@ export default function Services() {
               aria-labelledby={`${s.slug}-title`}
               className="py-10 lg:py-14"
             >
-              <div className={`container-x grid items-center gap-8 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+              <div
+                className={`container-x grid items-center gap-8 lg:grid-cols-2 lg:gap-16 ${reverse ? 'lg:[&>*:first-child]:order-2' : ''}`}
+              >
                 <Reveal className="relative">
                   <div className="aspect-[4/3] overflow-hidden rounded-md bg-steel-light">
                     <SmartImage
@@ -68,8 +71,7 @@ export default function Services() {
                   </div>
                   <span
                     aria-hidden="true"
-                    className={`absolute -top-5 font-display text-[5.5rem] leading-none font-bold text-orange sm:text-[7rem] ${reverse ? 'right-4' : 'left-4'}`}
-                   
+                    className={`absolute top-3 rounded-sm bg-graphite-deep/80 px-3 py-1 font-display text-4xl leading-none font-bold text-orange sm:text-5xl ${reverse ? 'right-3' : 'left-3'}`}
                   >
                     0{i + 1}
                   </span>
@@ -79,14 +81,21 @@ export default function Services() {
                     <span aria-hidden="true" className="h-px w-8 bg-current" />
                     {s.kicker}
                   </p>
-                  <h2 id={`${s.slug}-title`} className="mt-3 text-4xl leading-[1] font-bold uppercase sm:text-5xl">
+                  <h2
+                    id={`${s.slug}-title`}
+                    className="mt-3 text-4xl leading-[1] font-bold uppercase sm:text-5xl"
+                  >
                     {s.title}
                   </h2>
                   <p className="mt-5 text-[1.0625rem] leading-relaxed text-graphite">{s.summary}</p>
                   <ul className="mt-6 space-y-2.5">
                     {s.points.map((p) => (
                       <li key={p} className="flex items-start gap-3 text-graphite">
-                        <Check aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-orange-ink" strokeWidth={2.25} />
+                        <Check
+                          aria-hidden="true"
+                          className="mt-0.5 size-5 shrink-0 text-orange-ink"
+                          strokeWidth={2.25}
+                        />
                         {p}
                       </li>
                     ))}
@@ -103,7 +112,8 @@ export default function Services() {
           <IllustrativeNote />
         </div>
       </div>
-      <CtaBand />
+      <Faq items={FAQ} />
+      <CtaBand context="servicos" />
     </>
   );
 }

@@ -36,7 +36,11 @@ export default function About() {
       <section className="py-20 lg:py-28" aria-labelledby="quem-somos">
         <div className="container-x grid gap-12 lg:grid-cols-2 lg:gap-20">
           <Reveal>
-            <SectionHeading id="quem-somos" eyebrow="Quem somos" title="Embarcações feitas sob medida para o rio" />
+            <SectionHeading
+              id="quem-somos"
+              eyebrow="Quem somos"
+              title="Embarcações feitas sob medida para o rio"
+            />
             <div className="mt-6 space-y-4 text-[1.0625rem] leading-relaxed text-graphite">
               <p>
                 A Ceará Náutica atua em Manaus – AM com barcos e embarcações em alumínio:
@@ -44,8 +48,8 @@ export default function About() {
               </p>
               <p>
                 Cada embarcação nasce de um projeto personalizado — lanchas, canoas, botes e
-                semi-chatas definidos conforme o uso de quem vai navegar, seja lazer, pesca, trabalho
-                ou transporte. A pintura também é personalizada: o cliente escolhe a cor.
+                semi-chatas definidos conforme o uso de quem vai navegar, seja lazer, pesca,
+                trabalho ou transporte. A pintura também é personalizada: o cliente escolhe a cor.
               </p>
               <p>
                 Nossa equipe de vendedores acompanha o cliente do primeiro contato à entrega — que
@@ -75,9 +79,14 @@ export default function About() {
           </h2>
           <ul className="mt-6 flex flex-wrap gap-x-10 gap-y-3">
             {VALUES.map((v) => (
-              <li key={v} className="font-display text-4xl font-bold uppercase sm:text-5xl lg:text-6xl">
+              <li
+                key={v}
+                className="font-display text-4xl font-bold uppercase sm:text-5xl lg:text-6xl"
+              >
                 {v}
-                <span aria-hidden="true" className="text-orange">.</span>
+                <span aria-hidden="true" className="text-orange">
+                  .
+                </span>
               </li>
             ))}
           </ul>
@@ -86,7 +95,11 @@ export default function About() {
 
       <section className="py-20 lg:py-28" aria-labelledby="o-que-fazemos">
         <div className="container-x">
-          <SectionHeading id="o-que-fazemos" eyebrow="O que fazemos" title="Fatos sobre o nosso trabalho" />
+          <SectionHeading
+            id="o-que-fazemos"
+            eyebrow="O que fazemos"
+            title="Fatos sobre o nosso trabalho"
+          />
           <ul className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {DIFFERENTIALS.map((d) => (
               <li key={d.title} className="border-t-2 border-graphite-deep pt-5">
@@ -111,12 +124,19 @@ export default function About() {
             </a>
           </div>
           <p className="mt-6 text-sm text-steel">
-            Veja também os nossos <Link to="/servicos" className="link-underline">serviços</Link> e as{' '}
-            <Link to="/produtos" className="link-underline">embarcações</Link>.
+            Veja também os nossos{' '}
+            <Link to="/servicos" className="link-underline">
+              serviços
+            </Link>{' '}
+            e as{' '}
+            <Link to="/produtos" className="link-underline">
+              embarcações
+            </Link>
+            .
           </p>
         </div>
       </section>
-      <CtaBand />
+      <CtaBand context="geral" />
     </>
   );
 }
