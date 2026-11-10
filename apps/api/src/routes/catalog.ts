@@ -5,6 +5,7 @@ import {
   CATEGORIES,
   CATEGORY_SLUGS,
   hasUnsafeChars,
+  searchProducts,
   type CategoryWithCount,
   type Product,
 } from '@cn/shared';
@@ -13,9 +14,6 @@ import { parseOr400 } from '../lib/validate.js';
 import { productInclude, productOrderBy, toProduct } from '../lib/products.js';
 
 const RELATED_LIMIT = 4;
-
-/** Escapa os curingas do LIKE/ILIKE (o Prisma não escapa `%`, `_` e `\` em `contains`). */
-const escapeLike = (term: string) => term.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 const emptyToUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
 
@@ -77,19 +75,17 @@ export function catalogRouter(prisma: PrismaClient): Router {
     const where: Prisma.ProductWhereInput = {};
     if (query.category) where.category = { slug: query.category };
     if (query.featured !== undefined) where.featured = query.featured;
-    if (query.q) {
-      const term = escapeLike(query.q);
-      where.OR = [
-        { name: { contains: term, mode: 'insensitive' } },
-        { shortDescription: { contains: term, mode: 'insensitive' } },
-      ];
-    }
     const rows = await prisma.product.findMany({
       where,
       include: productInclude,
       orderBy: productOrderBy,
     });
-    const body: Product[] = rows.map(toProduct);
+    // Busca textual (q) em memória com a MESMA regra do site (`searchProducts`
+    // de @cn/shared: sem acento, todas as palavras, sinônimos, 1 erro de
+    // digitação). Adequado porque o catálogo é pequeno (dezenas de itens);
+    // se crescer para milhares, migrar para busca no banco (unaccent/pg_trgm
+    // ou full-text search). Nenhum texto do usuário vai para SQL.
+    const body: Product[] = searchProducts(rows.map(toProduct), query.q ?? '');
     res.json(body);
   });
 

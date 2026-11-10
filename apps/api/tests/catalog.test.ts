@@ -1,18 +1,13 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { CATEGORIES, DEMO_PRODUCTS, type Product } from '@cn/shared';
+import { CATEGORIES, DEMO_PRODUCTS, matchesSearch, type Product } from '@cn/shared';
 import { makeApp, prisma } from './helpers.js';
 
 const app = makeApp();
 
-/** Resultado esperado de uma busca, calculado a partir do catálogo compartilhado. */
+/** Resultado esperado de uma busca, calculado com a regra compartilhada (@cn/shared). */
 const expectedSlugs = (q: string, category?: string) =>
-  DEMO_PRODUCTS.filter(
-    (p) =>
-      (!category || p.category === category) &&
-      (p.name.toLowerCase().includes(q.toLowerCase()) ||
-        p.shortDescription.toLowerCase().includes(q.toLowerCase())),
-  )
+  DEMO_PRODUCTS.filter((p) => (!category || p.category === category) && matchesSearch(p, q))
     .map((p) => p.slug)
     .sort();
 
@@ -105,7 +100,7 @@ describe('GET /api/products', () => {
     expect(res.body.details.featured).toBeDefined();
   });
 
-  it('busca q case-insensitive em nome e descrição curta', async () => {
+  it('busca q sem diferenciar maiúsculas, em nome e descrição curta', async () => {
     // termo do nome em CAIXA ALTA
     const nameTerm = first.name.split(' ')[0]!.toUpperCase();
     const byName = await request(app).get(`/api/products?q=${encodeURIComponent(nameTerm)}`);
@@ -127,12 +122,63 @@ describe('GET /api/products', () => {
     expect(slugsOf(res.body)).toEqual(expectedSlugs('alum', first.category));
   });
 
-  it('curingas do LIKE (% e _) são tratados como texto literal', async () => {
-    for (const q of ['%', '_', '\\', 'alum%nio']) {
+  it('curingas (% e _) não funcionam como curinga: busca só com símbolos não retorna tudo', async () => {
+    for (const q of ['%', '_', '\\', 'alum%nio', '%%%']) {
       const res = await request(app).get(`/api/products?q=${encodeURIComponent(q)}`);
       expect(res.status).toBe(200);
-      expect(slugsOf(res.body)).toEqual(expectedSlugs(q));
+      expect(res.body).toEqual([]);
     }
+  });
+
+  // QA-05 / UX-03: a API usa a mesma busca do site.
+  const hasAluminio = (p: Product) =>
+    /alumínio/i.test(`${p.name} ${p.shortDescription} ${p.description}`);
+  const searchCases: Array<[string, (p: Product) => boolean]> = [
+    ['aluminio', hasAluminio],
+    ['ALUMÍNIO', hasAluminio],
+    ['canoa aluminio', (p) => p.category === 'canoas'],
+    ['aluminio canoa', (p) => p.category === 'canoas'],
+    ['canoa 6', (p) => p.slug === 'canoa-aluminio-6m'],
+    ['canoa 6m', (p) => p.slug === 'canoa-aluminio-6m'],
+    ['canoa 6 metros', (p) => p.slug === 'canoa-aluminio-6m'],
+    ['estofado', (p) => p.category === 'estofamentos'],
+    ['motr', (p) => p.category === 'motores-de-popa'],
+    ['motores', (p) => p.category === 'motores-de-popa'],
+    ['lanchas', (p) => p.category === 'lanchas'],
+  ];
+
+  it.each(searchCases)('q=%s retorna os produtos esperados', async (q, expected) => {
+    const res = await request(app).get(`/api/products?q=${encodeURIComponent(q)}`);
+    expect(res.status).toBe(200);
+    const want = DEMO_PRODUCTS.filter(expected)
+      .map((p) => p.slug)
+      .sort();
+    expect(want.length).toBeGreaterThan(0);
+    expect(slugsOf(res.body)).toEqual(want);
+  });
+
+  it('"aluminio" e "alumínio" dão o mesmo resultado (QA-05)', async () => {
+    const a = await request(app).get('/api/products?q=aluminio');
+    const b = await request(app).get(`/api/products?q=${encodeURIComponent('alumínio')}`);
+    expect(a.body.length).toBeGreaterThan(0);
+    expect(slugsOf(a.body)).toEqual(slugsOf(b.body));
+  });
+
+  it('busca sem sentido não retorna tudo', async () => {
+    for (const q of ['xyzw', 'qwerty asdf', 'canoa xyzw', 'lancha submarino']) {
+      const res = await request(app).get(`/api/products?q=${encodeURIComponent(q)}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
+    }
+  });
+
+  it('busca combinada com categoria e destaque', async () => {
+    const res = await request(app).get('/api/products?category=canoas&featured=true&q=aluminio');
+    expect(res.status).toBe(200);
+    const want = DEMO_PRODUCTS.filter((p) => p.category === 'canoas' && p.featured)
+      .map((p) => p.slug)
+      .sort();
+    expect(slugsOf(res.body)).toEqual(want);
   });
 
   it('busca sem resultado → lista vazia', async () => {

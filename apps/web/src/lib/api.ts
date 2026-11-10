@@ -1,5 +1,7 @@
 import {
   DEMO_PRODUCTS,
+  matchesSearch,
+  normalizeText,
   type ApiError,
   type ContactInput,
   type FormSubmissionResponse,
@@ -65,19 +67,22 @@ export interface ProductQuery {
   featured?: boolean;
 }
 
+/**
+ * Filtro local do catálogo (página /produtos e fallback sem API). A busca usa
+ * `matchesSearch` de @cn/shared — a MESMA regra de GET /api/products?q=.
+ */
 export function filterProducts(list: Product[], query: ProductQuery = {}): Product[] {
-  const q = normalize(query.q ?? '');
+  const q = query.q?.trim() ?? '';
   return list.filter(
     (p) =>
       (!query.category || p.category === query.category) &&
       (query.featured === undefined || p.featured === query.featured) &&
-      (!q || normalize(`${p.name} ${p.shortDescription}`).includes(q)),
+      (!q || matchesSearch(p, q)),
   );
 }
 
-export function normalize(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-}
+/** Texto normalizado para busca (sem acento, minúsculo). Alias de `normalizeText`. */
+export const normalize = normalizeText;
 
 export interface Loaded<T> {
   data: T;

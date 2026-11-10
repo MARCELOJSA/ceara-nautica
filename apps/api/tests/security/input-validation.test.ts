@@ -45,7 +45,7 @@ describe('A03 — injeção na busca (GET /api/products?q=)', () => {
     const res = await request(app).get('/api/products').query({ q });
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    // curingas do LIKE são escapados → nenhuma linha do catálogo casa com '%' ou '_'
+    // a busca é feita em memória (sem SQL) e símbolos não viram curinga → nada casa
     expect(res.body).toHaveLength(0);
     expect(Date.now() - t0).toBeLessThan(3000); // sem pg_sleep
   });
