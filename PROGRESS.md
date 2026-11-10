@@ -28,6 +28,17 @@ Fluxo: desenvolvimento → QA técnico → usuário final → correções → no
 - QA técnico: teste funcional completo (fluxos, formulários, integração com a API, responsividade, console, links).
 - Usuário final: navegação como visitante leigo, no computador e no celular.
 
+## Fila de tarefas (ordem obrigatória)
+
+1. **Tarefa atual: ciclo dev → QA → UX → correções** até validar o site. Finalizar, testar e commitar tudo antes de passar à próxima.
+2. **Depois: análise da necessidade de banco de dados** (pedido de 2026-11-10). Começar automaticamente, sem pedir confirmação:
+   - Avaliar se o projeto precisa de banco e comparar PostgreSQL, MySQL, MongoDB, SQLite, Supabase e outras opções relevantes, separando o mecanismo de banco da plataforma de hospedagem.
+   - Critérios: compatibilidade com a arquitetura atual, desempenho e confiabilidade, escalabilidade, desenvolvimento e manutenção, custo-benefício, segurança, execução local e em produção (ambientes separados de desenvolvimento, testes e produção).
+   - Dar notas de 0 a 10 por critério, com justificativa. Não escolher automaticamente a maior nota geral.
+   - Escolher uma solução principal e explicar: por que é a melhor escolha, vantagens, limitações, custo inicial, como cresce com o projeto e como funciona localmente e em produção.
+   - Escolher, instalar, configurar e integrar, se necessário. Depois, testes finais e documentação dos resultados.
+   - Ponto de partida: o projeto já usa PostgreSQL 16 (Docker, porta 5433) com Prisma 6, com 3 migrações e testes de integração. A análise precisa considerar o custo de trocar essa base.
+
 ## Pendências
 
 - [ ] Rodada 1 de testes
