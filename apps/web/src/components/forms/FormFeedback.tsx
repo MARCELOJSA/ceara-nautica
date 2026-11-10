@@ -36,13 +36,21 @@ export function FormSuccess({
 export function FormError({ status }: { status: SubmitStatus }) {
   if (status.kind !== 'error') return null;
   return (
-    <div role="alert" className="flex gap-3 rounded-sm border border-red-700/30 bg-red-50 p-4 text-sm text-red-900">
+    <div
+      role="alert"
+      className="flex gap-3 rounded-sm border border-red-700/30 bg-red-50 p-4 text-sm text-red-900"
+    >
       <AlertTriangle aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
       <div>
         <p className="font-semibold">{status.message}</p>
         <p className="mt-1">
           Se preferir, envie uma mensagem direta no Instagram:{' '}
-          <a href={site.instagramUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
+          <a
+            href={site.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-2"
+          >
             {site.instagramHandle}
             <Instagram aria-hidden="true" className="ml-1 inline size-3.5" />
             <span className="sr-only"> (abre em nova aba)</span>

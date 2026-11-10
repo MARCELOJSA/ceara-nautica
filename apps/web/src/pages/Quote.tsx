@@ -7,14 +7,23 @@ import { PageFallback } from '@/components/layout/Layout';
 import { QuoteForm } from '@/components/forms/QuoteForm';
 import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
 import { useProducts } from '@/hooks/useProducts';
-import { SERVICES } from '@/data/content';
+import { SERVICE_TO_REQUEST_TYPE, SERVICES } from '@/data/content';
 import { site } from '@/config/site';
 import { whatsappUrl } from '@/lib/whatsapp';
 
 const STEPS = [
-  { title: 'Você conta o que precisa', text: 'Tipo de embarcação, uso, tamanho, motorização e cor.' },
-  { title: 'Um vendedor retorna', text: 'Nossa equipe entra em contato para entender o projeto.' },
-  { title: 'Projeto sob medida', text: 'Definimos juntos a embarcação ideal para o seu uso.' },
+  {
+    title: 'Você conta o que precisa',
+    text: 'Tipo de embarcação, uso, tamanho, motorização e cor.',
+  },
+  {
+    title: 'Um vendedor retorna',
+    text: 'Retornamos pelo telefone informado (ligação ou WhatsApp).',
+  },
+  {
+    title: 'Orçamento completo',
+    text: 'Prazo, pagamento e demais condições são informados no orçamento.',
+  },
 ];
 
 export default function Quote() {
@@ -24,6 +33,7 @@ export default function Quote() {
   const categoria = params.get('categoria') ?? undefined;
   const servico = SERVICES.find((s) => s.slug === params.get('servico'));
   const initialMessage = servico ? `Tenho interesse no serviço: ${servico.title}.\n\n` : '';
+  const initialRequestType = servico ? SERVICE_TO_REQUEST_TYPE[servico.slug] : undefined;
   const crumbs = [
     { name: 'Início', path: '/' },
     { name: 'Orçamento', path: '/orcamento' },
@@ -54,6 +64,7 @@ export default function Quote() {
                 initialProductSlug={produto}
                 initialCategory={categoria}
                 initialMessage={initialMessage}
+                initialRequestType={initialRequestType}
               />
             )}
           </div>
@@ -64,9 +75,13 @@ export default function Quote() {
             <ol className="mt-4 space-y-5">
               {STEPS.map((s, i) => (
                 <li key={s.title} className="grid grid-cols-[2.5rem_1fr] gap-3">
-                  <span className="font-display text-3xl leading-none font-bold text-orange-ink">0{i + 1}</span>
+                  <span className="font-display text-3xl leading-none font-bold text-orange-ink">
+                    0{i + 1}
+                  </span>
                   <span>
-                    <span className="block font-display text-xl font-semibold uppercase">{s.title}</span>
+                    <span className="block font-display text-xl font-semibold uppercase">
+                      {s.title}
+                    </span>
                     <span className="block text-sm leading-relaxed text-steel">{s.text}</span>
                   </span>
                 </li>

@@ -41,7 +41,10 @@ describe('Formulário de contato', () => {
   });
 
   it('faz POST real em /api/contact com UTM e mostra sucesso', async () => {
-    sessionStorage.setItem('cn_utm', JSON.stringify({ utm_source: 'instagram', landing_page: '/' }));
+    sessionStorage.setItem(
+      'cn_utm',
+      JSON.stringify({ utm_source: 'instagram', landing_page: '/' }),
+    );
     vi.mocked(fetch).mockResolvedValue(jsonResponse({ ok: true, id: 'abc' }, 201));
     const user = userEvent.setup();
     renderAt(<ContactForm />);
@@ -61,7 +64,10 @@ describe('Formulário de contato', () => {
 
   it('exibe as mensagens de `details` vindas do back (400)', async () => {
     vi.mocked(fetch).mockResolvedValue(
-      jsonResponse({ error: 'Dados inválidos', details: { phone: ['Telefone recusado pelo servidor.'] } }, 400),
+      jsonResponse(
+        { error: 'Dados inválidos', details: { phone: ['Telefone recusado pelo servidor.'] } },
+        400,
+      ),
     );
     const user = userEvent.setup();
     renderAt(<ContactForm />);
@@ -82,8 +88,37 @@ describe('Formulário de contato', () => {
 });
 
 describe('Formulário de orçamento', () => {
+  it('pré-seleciona o tipo de solicitação (?servico=) e envia requestType', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ ok: true, id: 'q2' }, 201));
+    const user = userEvent.setup();
+    renderAt(<QuoteForm products={DEMO_PRODUCTS} initialRequestType="manutencao" />);
+    expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('manutencao');
+    expect(screen.getByTestId('response-note')).toHaveTextContent(
+      'Retornamos pelo telefone informado (ligação ou WhatsApp).',
+    );
+    await user.type(screen.getByLabelText(/^nome/i), 'Ana');
+    await user.type(screen.getByLabelText(/telefone/i), '92999990000');
+    await user.type(
+      screen.getByLabelText(/conte o que você precisa/i),
+      'Manutenção do casco de alumínio.',
+    );
+    await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
+    await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+    const body = JSON.parse(String(fetchSpy.mock.calls[0]![1]?.body));
+    expect(body.requestType).toBe('manutencao');
+    expect(body).not.toHaveProperty('category');
+    expect(
+      await screen.findByText(/retornar pelo telefone informado \(ligação ou WhatsApp\)/),
+    ).toBeInTheDocument();
+  });
+
   it('pré-seleciona o produto (?produto=slug) e envia productSlug/category', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q1' }, 201));
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ ok: true, id: 'q1' }, 201));
     const product = DEMO_PRODUCTS.find((p) => p.slug === 'canoa-aluminio-7m')!;
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} initialProductSlug={product.slug} />);
@@ -92,7 +127,10 @@ describe('Formulário de orçamento', () => {
 
     await user.type(screen.getByLabelText(/^nome/i), 'João');
     await user.type(screen.getByLabelText(/telefone/i), '92999990000');
-    await user.type(screen.getByLabelText(/conte o que você precisa/i), 'Quero uma canoa para pesca.');
+    await user.type(
+      screen.getByLabelText(/conte o que você precisa/i),
+      'Quero uma canoa para pesca.',
+    );
     await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
     await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
 
@@ -102,9 +140,12 @@ describe('Formulário de orçamento', () => {
     expect(JSON.parse(String(init?.body))).toMatchObject({
       productSlug: 'canoa-aluminio-7m',
       category: 'canoas',
+      requestType: 'nova-embarcacao',
       consent: true,
     });
-    expect(await screen.findByRole('heading', { name: /pedido de orçamento enviado/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /pedido de orçamento enviado/i }),
+    ).toBeInTheDocument();
   });
 
   it('não envia sem mensagem mínima', async () => {

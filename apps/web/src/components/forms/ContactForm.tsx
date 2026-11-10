@@ -32,7 +32,15 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
   } = useForm<ContactFormValues>({
     resolver,
     mode: 'onTouched',
-    defaultValues: { name: '', phone: '', email: '', subject: defaultSubject, message: '', consent: false, website: '' },
+    defaultValues: {
+      name: '',
+      phone: '',
+      email: '',
+      subject: defaultSubject,
+      message: '',
+      consent: false,
+      website: '',
+    },
   });
   const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
 
@@ -55,7 +63,7 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
           setStatus({ kind: 'idle' });
         }}
       >
-        <p>Obrigado pelo contato! Nossa equipe vai responder pelo telefone ou e-mail informado.</p>
+        <p>Obrigado pelo contato! Retornamos pelo telefone informado (ligação ou WhatsApp).</p>
       </FormSuccess>
     );
   }
@@ -63,9 +71,20 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
   const loading = status.kind === 'loading';
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={loading} className="relative space-y-5" aria-label="Formulário de contato">
+    <form
+      noValidate
+      onSubmit={onSubmit}
+      aria-busy={loading}
+      className="relative space-y-5"
+      aria-label="Formulário de contato"
+    >
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Nome" autoComplete="name" error={errors.name?.message} {...register('name')} />
+        <TextField
+          label="Nome"
+          autoComplete="name"
+          error={errors.name?.message}
+          {...register('name')}
+        />
         <TextField
           label="Telefone / WhatsApp"
           type="tel"
@@ -76,23 +95,35 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
           {...register('phone')}
         />
       </div>
-      <TextField label="E-mail" type="email" autoComplete="email" optional error={errors.email?.message} {...register('email')} />
+      <TextField
+        label="E-mail"
+        type="email"
+        autoComplete="email"
+        optional
+        error={errors.email?.message}
+        {...register('email')}
+      />
       <TextField label="Assunto" error={errors.subject?.message} {...register('subject')} />
       <TextAreaField label="Mensagem" error={errors.message?.message} {...register('message')} />
       <HoneypotField {...register('website')} />
       <ConsentField error={errors.consent?.message} {...register('consent')} />
       <FormError status={status} />
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={loading}>
-        {loading ? (
-          <>
-            <Loader2 aria-hidden="true" className="size-5 animate-spin" /> Enviando…
-          </>
-        ) : (
-          <>
-            <Send aria-hidden="true" className="size-5" /> Enviar mensagem
-          </>
-        )}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+        <button type="submit" className="btn-primary w-full shrink-0 sm:w-auto" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 aria-hidden="true" className="size-5 animate-spin" /> Enviando…
+            </>
+          ) : (
+            <>
+              <Send aria-hidden="true" className="size-5" /> Enviar mensagem
+            </>
+          )}
+        </button>
+        <p className="text-sm text-steel" data-testid="response-note">
+          Retornamos pelo telefone informado (ligação ou WhatsApp).
+        </p>
+      </div>
     </form>
   );
 }

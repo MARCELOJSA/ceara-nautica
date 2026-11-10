@@ -3,11 +3,19 @@ import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router-dom';
 import { Loader2, Send, X } from 'lucide-react';
-import { CATEGORIES, getCategory, quoteSchema, type Product, type QuoteData } from '@cn/shared';
+import {
+  CATEGORIES,
+  getCategory,
+  quoteSchema,
+  REQUEST_TYPES,
+  type Product,
+  type QuoteData,
+} from '@cn/shared';
 import { sendQuote } from '@/lib/api';
 import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { SmartImage } from '@/components/ui/SmartImage';
+import { productImages } from '@/lib/images';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
 import { FormError, FormSuccess } from './FormFeedback';
@@ -17,6 +25,7 @@ export interface QuoteFormValues {
   phone: string;
   email: string;
   city: string;
+  requestType: string;
   category: string;
   productSlug: string;
   message: string;
@@ -24,7 +33,17 @@ export interface QuoteFormValues {
   website: string;
 }
 
-const FIELDS = ['name', 'phone', 'email', 'city', 'category', 'productSlug', 'message', 'consent'] as const;
+const FIELDS = [
+  'name',
+  'phone',
+  'email',
+  'city',
+  'requestType',
+  'category',
+  'productSlug',
+  'message',
+  'consent',
+] as const;
 const baseResolver = zodResolver(quoteSchema);
 
 /** Campos opcionais vazios viram undefined antes do Zod (enum/regex não aceitam ""). */
@@ -32,11 +51,16 @@ const resolver: Resolver<QuoteFormValues> = (values, ctx, opts) => {
   const v = values as QuoteFormValues;
   const prepared = {
     ...v,
+    requestType: v.requestType || undefined,
     category: v.category || undefined,
     productSlug: v.productSlug || undefined,
     city: v.city || undefined,
   };
-  return (baseResolver as unknown as Resolver<QuoteFormValues>)(prepared as unknown as QuoteFormValues, ctx, opts);
+  return (baseResolver as unknown as Resolver<QuoteFormValues>)(
+    prepared as unknown as QuoteFormValues,
+    ctx,
+    opts,
+  );
 };
 
 interface Props {
@@ -44,12 +68,30 @@ interface Props {
   initialProductSlug?: string;
   initialCategory?: string;
   initialMessage?: string;
+  initialRequestType?: string;
 }
 
-export function QuoteForm({ products, initialProductSlug, initialCategory, initialMessage = '' }: Props) {
+/** Sugere o tipo de solicitação a partir da categoria escolhida. */
+function requestTypeForCategory(category?: string): string {
+  if (!category) return '';
+  if (category === 'motores-de-popa') return 'motor';
+  if (category === 'estofamentos') return 'estofamento';
+  return 'nova-embarcacao';
+}
+
+const RESPONSE_NOTE = 'Retornamos pelo telefone informado (ligação ou WhatsApp).';
+
+export function QuoteForm({
+  products,
+  initialProductSlug,
+  initialCategory,
+  initialMessage = '',
+  initialRequestType,
+}: Props) {
   const initialProduct = products.find((p) => p.slug === initialProductSlug);
   const startCategory =
-    initialProduct?.category ?? (initialCategory && getCategory(initialCategory) ? initialCategory : '');
+    initialProduct?.category ??
+    (initialCategory && getCategory(initialCategory) ? initialCategory : '');
 
   const {
     register,
@@ -67,6 +109,10 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
       phone: '',
       email: '',
       city: '',
+      requestType:
+        initialRequestType && REQUEST_TYPES.some((r) => r.value === initialRequestType)
+          ? initialRequestType
+          : requestTypeForCategory(startCategory),
       category: startCategory,
       productSlug: initialProduct?.slug ?? '',
       message: initialMessage,
@@ -80,8 +126,10 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
     if (initialProduct) {
       setValue('productSlug', initialProduct.slug);
       setValue('category', initialProduct.category);
+      if (!initialRequestType)
+        setValue('requestType', requestTypeForCategory(initialProduct.category));
     }
-  }, [initialProduct, setValue]);
+  }, [initialProduct, initialRequestType, setValue]);
 
   const category = watch('category');
   const productSlug = watch('productSlug');
@@ -101,6 +149,7 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
         track('generate_lead', {
           form: 'quote',
           category: data.category,
+          request_type: data.requestType,
           product_slug: data.productSlug,
         }),
     );
@@ -117,6 +166,7 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
             phone: '',
             email: '',
             city: '',
+            requestType: '',
             category: '',
             productSlug: '',
             message: '',
@@ -127,8 +177,8 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
         }}
       >
         <p>
-          Recebemos o seu pedido. Um vendedor da Ceará Náutica vai entrar em contato pelo telefone
-          informado para entender o seu projeto.
+          Recebemos o seu pedido. Um vendedor da Ceará Náutica vai retornar pelo telefone informado
+          (ligação ou WhatsApp) para entender o que você precisa.
         </p>
         <p>
           Enquanto isso, veja mais{' '}
@@ -144,11 +194,22 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
   const loading = status.kind === 'loading';
 
   return (
-    <form noValidate onSubmit={onSubmit} aria-busy={loading} className="relative space-y-5" aria-label="Formulário de orçamento">
+    <form
+      noValidate
+      onSubmit={onSubmit}
+      aria-busy={loading}
+      className="relative space-y-5"
+      aria-label="Formulário de orçamento"
+    >
       {selected && (
         <div className="flex items-center gap-4 rounded-md border border-graphite/15 bg-white p-3">
           <div className="h-16 w-20 shrink-0 overflow-hidden rounded-sm bg-steel-light">
-            <SmartImage src={selected.images[0]?.src ?? ''} alt="" className="h-full w-full object-cover" sizes="80px" />
+            <SmartImage
+              src={productImages(selected)[0]?.src ?? ''}
+              alt=""
+              className="h-full w-full object-cover"
+              sizes="80px"
+            />
           </div>
           <div className="min-w-0 flex-1">
             <p className="eyebrow text-orange-ink">Produto selecionado</p>
@@ -166,7 +227,12 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
       )}
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField label="Nome" autoComplete="name" error={errors.name?.message} {...register('name')} />
+        <TextField
+          label="Nome"
+          autoComplete="name"
+          error={errors.name?.message}
+          {...register('name')}
+        />
         <TextField
           label="Telefone / WhatsApp"
           type="tel"
@@ -176,16 +242,45 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
           error={errors.phone?.message}
           {...register('phone')}
         />
-        <TextField label="E-mail" type="email" autoComplete="email" optional error={errors.email?.message} {...register('email')} />
-        <TextField label="Cidade" autoComplete="address-level2" optional placeholder="Ex.: Manaus" error={errors.city?.message} {...register('city')} />
+        <SelectField
+          label="Tipo de solicitação"
+          optional
+          error={errors.requestType?.message}
+          {...register('requestType')}
+        >
+          <option value="">Selecione (opcional)</option>
+          {REQUEST_TYPES.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </SelectField>
+        <TextField
+          label="E-mail"
+          type="email"
+          autoComplete="email"
+          optional
+          error={errors.email?.message}
+          {...register('email')}
+        />
+        <TextField
+          label="Cidade"
+          autoComplete="address-level2"
+          optional
+          placeholder="Ex.: Manaus"
+          error={errors.city?.message}
+          {...register('city')}
+        />
         <SelectField
           label="Categoria"
           optional
           error={errors.category?.message}
           {...register('category', {
-            onChange: () => {
+            onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
               const current = products.find((p) => p.slug === productSlug);
               if (current) setValue('productSlug', '');
+              if (!watch('requestType'))
+                setValue('requestType', requestTypeForCategory(e.target.value));
             },
           })}
         >
@@ -196,7 +291,12 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
             </option>
           ))}
         </SelectField>
-        <SelectField label="Modelo de referência" optional error={errors.productSlug?.message} {...register('productSlug')}>
+        <SelectField
+          label="Modelo de referência"
+          optional
+          error={errors.productSlug?.message}
+          {...register('productSlug')}
+        >
           <option value="">Nenhum / projeto sob medida</option>
           {options.map((p) => (
             <option key={p.slug} value={p.slug}>
@@ -214,17 +314,22 @@ export function QuoteForm({ products, initialProductSlug, initialCategory, initi
       <HoneypotField {...register('website')} />
       <ConsentField error={errors.consent?.message} {...register('consent')} />
       <FormError status={status} />
-      <button type="submit" className="btn-primary w-full sm:w-auto" disabled={loading}>
-        {loading ? (
-          <>
-            <Loader2 aria-hidden="true" className="size-5 animate-spin" /> Enviando…
-          </>
-        ) : (
-          <>
-            <Send aria-hidden="true" className="size-5" /> Solicitar orçamento
-          </>
-        )}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+        <button type="submit" className="btn-primary w-full shrink-0 sm:w-auto" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 aria-hidden="true" className="size-5 animate-spin" /> Enviando…
+            </>
+          ) : (
+            <>
+              <Send aria-hidden="true" className="size-5" /> Solicitar orçamento
+            </>
+          )}
+        </button>
+        <p className="text-sm text-steel" data-testid="response-note">
+          {RESPONSE_NOTE}
+        </p>
+      </div>
     </form>
   );
 }

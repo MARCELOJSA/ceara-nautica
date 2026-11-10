@@ -13,15 +13,22 @@ export function messageForError(e: unknown): string {
     if (e.status === 0) {
       return 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.';
     }
-    if (e.status === 429) return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
-    if (e.status === 400) return e.message && e.message !== 'Erro 400' ? `Revise os campos destacados: ${e.message}` : 'Revise os campos destacados.';
+    if (e.status === 429)
+      return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.';
+    if (e.status === 400)
+      return e.message && e.message !== 'Erro 400'
+        ? `Revise os campos destacados: ${e.message}`
+        : 'Revise os campos destacados.';
     return 'Não foi possível enviar agora. Tente novamente em instantes.';
   }
   return 'Não foi possível enviar agora. Tente novamente em instantes.';
 }
 
 /** Executa o POST, mapeia `details` do back para os campos e controla o estado. */
-export function useLeadSubmit<T extends FieldValues>(setError: UseFormSetError<T>, fields: readonly string[]) {
+export function useLeadSubmit<T extends FieldValues>(
+  setError: UseFormSetError<T>,
+  fields: readonly string[],
+) {
   const [status, setStatus] = useState<SubmitStatus>({ kind: 'idle' });
 
   async function run(send: () => Promise<{ id: string }>, onSuccess?: (id: string) => void) {
@@ -34,7 +41,8 @@ export function useLeadSubmit<T extends FieldValues>(setError: UseFormSetError<T
       if (e instanceof ApiRequestError && e.details) {
         for (const [key, msgs] of Object.entries(e.details)) {
           const msg = msgs?.[0];
-          if (msg && fields.includes(key)) setError(key as Path<T>, { type: 'server', message: msg });
+          if (msg && fields.includes(key))
+            setError(key as Path<T>, { type: 'server', message: msg });
         }
       }
       setStatus({ kind: 'error', message: messageForError(e) });

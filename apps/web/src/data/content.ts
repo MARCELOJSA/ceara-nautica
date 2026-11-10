@@ -1,4 +1,4 @@
-import type { CategorySlug } from '@cn/shared';
+import type { CategorySlug, RequestType } from '@cn/shared';
 
 /**
  * Conteúdo editorial do site. SOMENTE fatos confirmados pela empresa
@@ -39,7 +39,11 @@ export const SERVICES: Service[] = [
     kicker: 'Reparos',
     summary:
       'Reparos em embarcações de alumínio para recolocar o seu barco na água com segurança. Avaliamos o problema e indicamos a solução adequada.',
-    points: ['Avaliação da embarcação', 'Reparos em embarcações de alumínio', 'Indicação da solução adequada'],
+    points: [
+      'Avaliação da embarcação',
+      'Reparos em embarcações de alumínio',
+      'Indicação da solução adequada',
+    ],
     image: '/images/servicos/reparos.webp',
     imageAlt: 'Casco de alumínio desgastado aguardando reparo',
     cta: { label: 'Solicitar avaliação', to: '/orcamento?servico=reparos' },
@@ -50,10 +54,14 @@ export const SERVICES: Service[] = [
     kicker: 'Manutenção',
     summary:
       'Manutenção náutica em Manaus para manter a sua embarcação pronta para navegar e prolongar a vida útil do casco, dos equipamentos e do acabamento.',
-    points: ['Manutenção preventiva e corretiva', 'Cuidado com casco e acabamento', 'Atendimento local em Manaus'],
+    points: [
+      'Manutenção preventiva e corretiva',
+      'Cuidado com casco e acabamento',
+      'Atendimento local em Manaus',
+    ],
     image: '/images/servicos/manutencao.webp',
-    imageAlt: 'Profissional realizando solda em oficina',
-    cta: { label: 'Agendar manutenção', to: '/orcamento?servico=manutencao' },
+    imageAlt: 'Profissional fazendo manutenção na hélice de uma embarcação',
+    cta: { label: 'Solicitar manutenção', to: '/orcamento?servico=manutencao' },
   },
   {
     slug: 'motores',
@@ -61,10 +69,14 @@ export const SERVICES: Service[] = [
     kicker: 'Motores de popa',
     summary:
       'Revenda de motores de popa em Manaus, com orientação para escolher a motorização certa para o seu tipo de embarcação e de uso.',
-    points: ['Orientação na escolha da potência', 'Motor e embarcação pensados em conjunto', 'Marcas e modelos sob consulta'],
+    points: [
+      'Orientação na escolha da potência',
+      'Motor e embarcação pensados em conjunto',
+      'Marcas e modelos sob consulta',
+    ],
     image: '/images/servicos/motores.webp',
-    imageAlt: 'Pequena embarcação com motor de popa em águas calmas',
-    cta: { label: 'Consultar motores', to: '/orcamento?categoria=motores-de-popa' },
+    imageAlt: 'Motor de popa instalado na popa de uma embarcação',
+    cta: { label: 'Consultar motores', to: '/orcamento?servico=motores&categoria=motores-de-popa' },
   },
   {
     slug: 'estofamento',
@@ -72,10 +84,17 @@ export const SERVICES: Service[] = [
     kicker: 'Estofamento',
     summary:
       'Estofamentos para embarcações: assentos, poltronas almofadadas e reforma de estofados, para mais conforto a bordo.',
-    points: ['Assentos e poltronas sob medida', 'Reforma de estofados', 'Materiais e cores sob consulta'],
+    points: [
+      'Assentos e poltronas sob medida',
+      'Reforma de estofados',
+      'Materiais e cores sob consulta',
+    ],
     image: '/images/servicos/estofamento.webp',
-    imageAlt: 'Interior de embarcação com assentos estofados',
-    cta: { label: 'Orçar estofamento', to: '/orcamento?categoria=estofamentos' },
+    imageAlt: 'Assentos e almofadas estofados a bordo de uma embarcação',
+    cta: {
+      label: 'Orçar estofamento',
+      to: '/orcamento?servico=estofamento&categoria=estofamentos',
+    },
   },
 ];
 
@@ -85,27 +104,51 @@ export interface GalleryImage {
 }
 
 export const GALLERY: GalleryImage[] = [
-  { src: '/images/galeria/rio-floresta.webp', alt: 'Rio largo margeado por floresta amazônica sob céu carregado' },
-  { src: '/images/galeria/aluminio-atracado.webp', alt: 'Barcos de alumínio atracados lado a lado em um píer' },
+  {
+    src: '/images/galeria/rio-floresta.webp',
+    alt: 'Rio largo margeado por floresta amazônica sob céu carregado',
+  },
+  {
+    src: '/images/galeria/aluminio-atracado.webp',
+    alt: 'Barcos de alumínio atracados lado a lado em um píer',
+  },
   { src: '/images/galeria/porto.webp', alt: 'Embarcação regional atracada em porto fluvial' },
-  { src: '/images/galeria/pesca.webp', alt: 'Pequena embarcação com pescadores em rio de águas barrentas' },
-  { src: '/images/galeria/oficina.webp', alt: 'Faíscas de esmerilhadeira em trabalho com metal na oficina' },
+  {
+    src: '/images/galeria/pesca.webp',
+    alt: 'Pequena embarcação com pescadores em rio de águas barrentas',
+  },
+  {
+    src: '/images/galeria/oficina.webp',
+    alt: 'Faíscas de esmerilhadeira em trabalho com metal na oficina',
+  },
   { src: '/images/galeria/passeio.webp', alt: 'Passeio de barco por rio cercado de vegetação' },
-  { src: '/images/galeria/barco-regional.webp', alt: 'Barco de passageiros navegando em rio largo' },
+  {
+    src: '/images/galeria/barco-regional.webp',
+    alt: 'Barco de passageiros navegando em rio largo',
+  },
   { src: '/images/galeria/igarape.webp', alt: 'Canoa navegando em igarapé cercado de árvores' },
 ];
 
 /** Imagem de capa por categoria (usa fotos do catálogo). */
 export const CATEGORY_COVERS: Record<CategorySlug, { src: string; alt: string }> = {
-  lanchas: { src: '/images/products/lancha-aluminio-7m-1.webp', alt: 'Lancha de alumínio navegando' },
+  lanchas: {
+    src: '/images/products/lancha-aluminio-7m-1.webp',
+    alt: 'Lancha de alumínio navegando',
+  },
   canoas: { src: '/images/products/canoa-aluminio-7m-1.webp', alt: 'Canoas na margem do rio' },
   botes: { src: '/images/products/bote-aluminio-7m-1.webp', alt: 'Bote de alumínio na margem' },
   'semi-chatas': {
     src: '/images/products/semi-chata-aluminio-sob-medida-1.webp',
     alt: 'Embarcação semi-chata com cobertura no rio',
   },
-  'motores-de-popa': { src: '/images/products/motores-de-popa-1.webp', alt: 'Motor de popa em embarcação' },
-  estofamentos: { src: '/images/products/estofamento-nautico-1.webp', alt: 'Assentos estofados de embarcação' },
+  'motores-de-popa': {
+    src: '/images/products/motores-de-popa-1.webp',
+    alt: 'Hélices de motores de popa',
+  },
+  estofamentos: {
+    src: '/images/products/estofamento-nautico-1.webp',
+    alt: 'Assentos estofados de embarcação',
+  },
 };
 
 export const DIFFERENTIALS = [
@@ -140,6 +183,47 @@ export const DIFFERENTIALS = [
   {
     title: 'Entrega para outras regiões',
     text: 'Já entregamos embarcações em Belém e no Suriname.',
+  },
+];
+
+/** Serviço (?servico=) → tipo de solicitação do quoteSchema. */
+export const SERVICE_TO_REQUEST_TYPE: Record<string, RequestType> = {
+  fabricacao: 'nova-embarcacao',
+  reparos: 'reparo',
+  manutencao: 'manutencao',
+  motores: 'motor',
+  estofamento: 'estofamento',
+};
+
+/** Perguntas frequentes — respostas só com fatos confirmados; o resto, "no orçamento". */
+export const FAQ = [
+  {
+    q: 'Vocês fazem a embarcação do jeito que eu quiser?',
+    a: 'Sim. Fabricamos embarcações em alumínio com projeto 100% personalizado: medidas, layout e configuração são definidos com a nossa equipe conforme o uso — lazer, pesca, trabalho ou transporte.',
+  },
+  {
+    q: 'Posso escolher a cor da embarcação?',
+    a: 'Pode. A pintura é personalizada: você escolhe a cor e o acabamento.',
+  },
+  {
+    q: 'Vocês entregam fora de Manaus?',
+    a: 'Sim. Já entregamos embarcações para outras regiões, como Belém e o Suriname. As condições de entrega para o seu destino são informadas no orçamento.',
+  },
+  {
+    q: 'Qual é o prazo de fabricação, as formas de pagamento e a garantia?',
+    a: 'Esses itens dependem do projeto e são informados no orçamento. Envie o seu pedido e a equipe retorna pelo telefone informado.',
+  },
+  {
+    q: 'Que tipos de reparo e manutenção vocês fazem?',
+    a: 'Fazemos reparos e manutenção em embarcações de alumínio. Para saber se atendemos o seu caso, descreva o problema no pedido de orçamento ou consulte a equipe pelo Instagram.',
+  },
+  {
+    q: 'Vocês vendem motores de popa?',
+    a: 'Sim, trabalhamos com revenda de motores de popa. Marcas, modelos e potências disponíveis são informados no orçamento.',
+  },
+  {
+    q: 'Como recebo o retorno do meu pedido?',
+    a: 'Retornamos pelo telefone informado no formulário, por ligação ou WhatsApp.',
   },
 ];
 

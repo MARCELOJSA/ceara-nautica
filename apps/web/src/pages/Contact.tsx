@@ -57,7 +57,10 @@ export default function Contact() {
           <aside aria-label="Canais de atendimento">
             <ul>
               {wa && (
-                <ChannelCard icon={<MessageCircle aria-hidden="true" className="size-5" />} title="WhatsApp">
+                <ChannelCard
+                  icon={<MessageCircle aria-hidden="true" className="size-5" />}
+                  title="WhatsApp"
+                >
                   <a
                     href={wa}
                     target="_blank"
@@ -70,7 +73,10 @@ export default function Contact() {
                   </a>
                 </ChannelCard>
               )}
-              <ChannelCard icon={<Instagram aria-hidden="true" className="size-5" />} title="Instagram">
+              <ChannelCard
+                icon={<Instagram aria-hidden="true" className="size-5" />}
+                title="Instagram"
+              >
                 <a
                   href={site.instagramUrl}
                   target="_blank"
@@ -81,7 +87,9 @@ export default function Contact() {
                   {site.instagramHandle}
                   <span className="sr-only"> (abre em nova aba)</span>
                 </a>
-                <p className="mt-1 text-sm text-steel">Envie uma mensagem direta e veja os projetos publicados.</p>
+                <p className="mt-1 text-sm text-steel">
+                  Envie uma mensagem direta e veja os projetos publicados.
+                </p>
               </ChannelCard>
               {site.email && (
                 <ChannelCard icon={<Mail aria-hidden="true" className="size-5" />} title="E-mail">
@@ -90,11 +98,19 @@ export default function Contact() {
                   </a>
                 </ChannelCard>
               )}
-              <ChannelCard icon={<MapPin aria-hidden="true" className="size-5" />} title="Localização">
+              <ChannelCard
+                icon={<MapPin aria-hidden="true" className="size-5" />}
+                title="Localização"
+              >
                 {site.address ? (
                   <>
                     <p>{site.address}</p>
-                    <a href={mapUrlFor(site.address)} target="_blank" rel="noopener noreferrer" className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium">
+                    <a
+                      href={mapUrlFor(site.address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium"
+                    >
                       Ver no mapa <ExternalLink aria-hidden="true" className="size-3.5" />
                       <span className="sr-only"> (abre em nova aba)</span>
                     </a>
@@ -103,10 +119,15 @@ export default function Contact() {
                   <>
                     <p className="font-medium text-graphite-deep">{site.locationLabel}</p>
                     <p className="mt-1 text-sm text-steel">
-                      Atendemos em Manaus e entregamos para outras regiões. Para visitar, combine com a
-                      equipe pelo formulário ou pelo Instagram.
+                      Atendemos em Manaus e entregamos para outras regiões. Para visitar, combine
+                      com a equipe pelo formulário ou pelo Instagram.
                     </p>
-                    <a href={site.cityMapUrl} target="_blank" rel="noopener noreferrer" className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium">
+                    <a
+                      href={site.cityMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-underline mt-1 inline-flex items-center gap-1 text-sm font-medium"
+                    >
                       Manaus no mapa <ExternalLink aria-hidden="true" className="size-3.5" />
                       <span className="sr-only"> (abre em nova aba)</span>
                     </a>
