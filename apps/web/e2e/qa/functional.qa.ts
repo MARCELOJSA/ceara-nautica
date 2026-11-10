@@ -330,7 +330,7 @@ test.describe('detalhe do produto: galeria e lightbox', () => {
     expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
   });
 
-  test('[QA-01] Enter repetido no botão "Próxima imagem" navega e não fecha o lightbox', async ({
+  test('[QA-01 corrigido] Enter repetido no botão "Próxima imagem" navega e não fecha o lightbox', async ({
     page,
   }) => {
     await page.goto(`/produtos/${SLUG}`, { waitUntil: 'networkidle' });
@@ -445,12 +445,35 @@ test.describe('orçamento com parâmetros de URL', () => {
     await expect(page.getByLabel(/tipo de solicitação/i)).toHaveValue('motor');
   });
 
-  test('[QA-02] trocar a categoria atualiza o tipo de solicitação sugerido', async ({ page }) => {
+  test('[QA-02 corrigido] trocar a categoria atualiza o tipo sugerido (sem produto)', async ({
+    page,
+  }) => {
+    await page.goto('/orcamento', { waitUntil: 'networkidle' });
+    const cat = page.getByLabel(/^categoria/i);
+    const type = page.getByLabel(/tipo de solicitação/i);
+    await cat.selectOption('lanchas');
+    await expect(type).toHaveValue('nova-embarcacao');
+    await cat.selectOption('motores-de-popa');
+    await expect(type).toHaveValue('motor');
+    await cat.selectOption('estofamentos');
+    await expect(type).toHaveValue('estofamento');
+    // escolha manual do tipo não é sobrescrita ("outro" não é serviço, então a
+    // Categoria continua visível; tipos de serviço a escondem — UX-24)
+    await type.selectOption('outro');
+    await cat.selectOption('lanchas');
+    await expect(type).toHaveValue('outro');
+  });
+
+  test('[QA-02 corrigido] com ?produto=: "Trocar" mostra Categoria e o tipo acompanha', async ({
+    page,
+  }) => {
     await page.goto('/orcamento?produto=bote-aluminio-6m', { waitUntil: 'networkidle' });
-    await page.getByLabel(/^categoria/i).selectOption('motores-de-popa');
+    const cat = page.getByLabel(/^categoria/i);
+    await expect(cat).toBeHidden();
+    await page.getByRole('button', { name: /trocar/i }).click();
+    await expect(cat).toBeVisible();
+    await cat.selectOption('motores-de-popa');
     await expect(page.getByLabel(/modelo de referência/i)).toHaveValue('');
-    // o tipo foi sugerido automaticamente a partir do produto; ao trocar para motores
-    // o tipo deveria acompanhar (ou pelo menos não ficar "Nova embarcação")
     await expect(page.getByLabel(/tipo de solicitação/i)).toHaveValue('motor');
   });
 });
@@ -472,7 +495,7 @@ test.describe('integração front × API', () => {
     );
   });
 
-  test('[QA-05] busca da API ignora acentos e maiúsculas como a busca do site', async ({
+  test('[QA-05 corrigido] busca da API ignora acentos e maiúsculas como a busca do site', async ({
     page,
   }) => {
     const withAccent = (await (
@@ -485,7 +508,7 @@ test.describe('integração front × API', () => {
     expect(without.length).toBe(withAccent.length);
   });
 
-  test('[QA-08] toda imagem declarada pela API existe no site', async ({ page }) => {
+  test('[QA-08 corrigido] toda imagem declarada pela API existe no site', async ({ page }) => {
     const missing: string[] = [];
     for (const p of await apiProducts(page)) {
       for (const img of p.images) {

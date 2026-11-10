@@ -44,7 +44,7 @@ test.describe('validação no cliente', () => {
     const errors = await page.locator('.field-error').allInnerTexts();
     expect(errors).toEqual([
       'Informe seu nome.',
-      'Telefone inválido. Ex.: (92) 99999-9999',
+      'Informe seu telefone/WhatsApp.',
       'Informe o assunto.',
       'A mensagem deve ter pelo menos 10 caracteres.',
       'É necessário autorizar o contato para enviar.',
@@ -60,7 +60,9 @@ test.describe('validação no cliente', () => {
     await expect(page.getByText('Informe seu nome.')).toBeHidden();
   });
 
-  test('[QA-03] todas as mensagens de validação aparecem em português', async ({ page }) => {
+  test('[QA-03 corrigido] todas as mensagens de validação aparecem em português', async ({
+    page,
+  }) => {
     await page.goto('/contato', { waitUntil: 'networkidle' });
     await fillContact(page);
     await page.getByLabel(/^e-mail/i).fill(`${'a'.repeat(160)}@exemplo.com`);
@@ -78,7 +80,7 @@ test.describe('validação no cliente', () => {
     await expect(cityErr).not.toHaveText(/too big|expected|string/i);
   });
 
-  test('[QA-04] telefone em formatos brasileiros comuns é aceito', async ({ page }) => {
+  test('[QA-04 corrigido] telefone em formatos brasileiros comuns é aceito', async ({ page }) => {
     await page.goto('/contato', { waitUntil: 'networkidle' });
     const tel = page.getByLabel(/telefone/i);
     const rejected: string[] = [];
@@ -96,6 +98,32 @@ test.describe('validação no cliente', () => {
       if ((await tel.getAttribute('aria-invalid')) === 'true') rejected.push(v);
     }
     expect(rejected, `recusados: ${rejected.join(' | ')}`).toEqual([]);
+  });
+
+  test('mensagens específicas do telefone e do assunto (rodada 2)', async ({ page }) => {
+    await page.goto('/contato', { waitUntil: 'networkidle' });
+    await fillContact(page);
+    const tel = page.getByLabel(/telefone/i);
+    const err = page.locator('.field-error');
+    const cases: [string, string][] = [
+      ['', 'Informe seu telefone/WhatsApp.'],
+      ['(92) 9999', 'Número incompleto. Ex.: (92) 99999-9999'],
+      ['99999-9999', 'Inclua o DDD. Ex.: (92) 99999-9999'],
+      ['(00) 99999-9999', 'Telefone inválido. Ex.: (92) 99999-9999'],
+      ['(92) 99999-99999', 'Telefone inválido. Ex.: (92) 99999-9999'],
+    ];
+    for (const [value, msg] of cases) {
+      await tel.fill(value);
+      await submitContact(page).click();
+      await expect(err.filter({ hasText: msg }), value || '(vazio)').toBeVisible();
+    }
+    await tel.fill('(92) 99999-9999');
+    await page.getByLabel(/^assunto/i).fill('a');
+    await submitContact(page).click();
+    await expect(page.getByText('Assunto muito curto (mín. 2 caracteres).')).toBeVisible();
+    await page.getByLabel(/^assunto/i).fill('');
+    await submitContact(page).click();
+    await expect(page.getByText('Informe o assunto.')).toBeVisible();
   });
 
   test('limites: nome > 120 e mensagem > 2000 mostram o máximo', async ({ page }) => {

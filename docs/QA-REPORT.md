@@ -1,6 +1,10 @@
-# QA-REPORT — Site Ceará Náutica (Rodada 1, teste técnico funcional)
+# QA-REPORT — Site Ceará Náutica (teste técnico funcional)
 
-_Data: 2026-11-10 · Agente: AGENT 03 (QA técnico) · Escopo: `apps/web`, `apps/api`, integração e ambiente de desenvolvimento._
+_Atualizado: 2026-11-10 · Agente: AGENT 03 (QA técnico) · Escopo: `apps/web`, `apps/api`, `packages/shared`, integração e ambiente de desenvolvimento._
+
+A [Rodada 2](#rodada-2--revalidação-após-as-correções) está no fim do documento. A Rodada 1 vem a seguir, sem alterações.
+
+# Rodada 1
 
 ## Resumo
 
@@ -122,3 +126,86 @@ Depois de rodar, apagar os leads de teste:
 ```
 docker exec ceara-nautica-db sh -c 'psql -U "$POSTGRES_USER" -d cearanautica -c "delete from contact_messages where name like '"'"'%QA-TEST%'"'"'; delete from quote_requests where name like '"'"'%QA-TEST%'"'"';"'
 ```
+
+---
+
+# Rodada 2 — revalidação após as correções
+
+_Data: 2026-11-10 · Commits revalidados: c31db77, 152373b, 139f01b, dcabc99, 9b84314, 5596f8f, effd2a0, 4f0eae1, a98e18e, 8fe033e, 74301ae, d5fb787, cebd515 e df1c451._
+
+## Ambiente da rodada 2
+
+| Item | Valor |
+|---|---|
+| Build principal testado | `http://localhost:4190`: `vite preview` do `apps/web/dist`, preparado pelo orquestrador. É anterior ao commit df1c451. |
+| Build do código atual | `http://localhost:4180`: build do código em disco feito pelo QA numa pasta temporária, sem tocar no `dist` da 4190. Inclui df1c451 e as mudanças **não commitadas** em andamento no front (UX-24 e outras da rodada 3). Já foi encerrado. |
+| API | `http://localhost:3333/api`, com a busca nova e o banco semeado de novo (fichas das canoas do df1c451). |
+| Dev `:5173` | Não usado: o cache antigo continua (QA-09). |
+
+**Concorrência:** durante a rodada, outro processo rodou `npx playwright test` na mesma pasta. Essa execução limpou `apps/web/test-results` no meio da suíte QA e gerou falhas `ENOENT` nos traces. Esses testes foram rodados de novo, isolados, e passaram. Os números abaixo descontam essas falhas, que não vêm do site.
+
+## Status dos apontamentos da rodada 1
+
+| ID | Gravidade | Status | Como foi verificado |
+|---|---|---|---|
+| QA-01 | Média | **Corrigido** | Enter repetido em "Próxima imagem" e em "Imagem anterior" navega e o foco fica no botão usado. Esc devolve o foco a "Ampliar". `functional.qa.ts` `[QA-01 corrigido]` e `regression-r2.qa.ts` "foco fica no botão usado". |
+| QA-02 | Baixa | **Corrigido** | Sem produto: Lanchas → "Nova embarcação", Motores → "Comprar motor de popa" (`motor`), Estofamentos → "Estofamento". Uma escolha manual ("Outro") não é sobrescrita. Com `?produto=`, "Trocar" mostra a Categoria e o tipo acompanha. `functional.qa.ts` `[QA-02 corrigido]` (2 testes). |
+| QA-03 | Baixa | **Corrigido** | E-mail acima de 160 e cidade acima de 120 caracteres mostram a mensagem em português no front e na API. `forms-functional.qa.ts` `[QA-03 corrigido]`. |
+| QA-04 | Média | **Corrigido** | Aceitos: `(92) 9 9999-9999`, `92 9 9999-9999`, `+55 (92) 9 9999-9999`, `(92) 3234-5678` e outros. Mensagens específicas: vazio → "Informe seu telefone/WhatsApp.", curto → "Número incompleto…", sem DDD → "Inclua o DDD…", DDD 00 ou dígitos demais → "Telefone inválido…". `forms-functional.qa.ts` `[QA-04 corrigido]` e "mensagens específicas do telefone e do assunto". |
+| QA-05 | Baixa | **Corrigido** | `GET /api/products?q=` usa a mesma regra do site. Em 14 buscas, a API e o site retornam exatamente os mesmos produtos, incluindo acentos e maiúsculas. `functional.qa.ts` `[QA-05 corrigido]` e `regression-r2.qa.ts` (busca). |
+| QA-06 | Média | **Corrigido** | CLS máximo de **0,030** (era 0,364). Desktop 1280: `/` 0,002 · `/produtos` 0,029 · produto 0,001 · `/servicos` 0,001 · `/sobre` 0,001 · `/contato` 0,001–0,030 · `/orcamento` 0,029. Desktop 1920: no máximo 0,023. Celular 390: 0,000 em todas. `responsive-functional.qa.ts` `[QA-06 corrigido]` e `regression-r2.qa.ts` (CLS desktop e mobile). |
+| QA-07 | Baixa | **Corrigido** | Nenhum botão, link-botão ou campo abaixo de 44 px em 360, 390 e 768 px, nas 9 rotas. `responsive-functional.qa.ts` `[QA-07 corrigido]`. |
+| QA-08 | Baixa | **Corrigido** | Todas as imagens declaradas por `GET /api/products` existem (HTTP 200, `image/*`). `functional.qa.ts` `[QA-08 corrigido]`. |
+| QA-09 | Média (ambiente) | **Pendente (ambiente)** | Não revalidado, por orientação do orquestrador. O dev `:5173` continua com o cache antigo do Vite. Ação: reiniciar `npm run dev:web` com `npx vite --force` ou apagar `apps/web/node_modules/.vite`. |
+
+## Regressão das áreas alteradas (`regression-r2.qa.ts`, novo)
+
+- [x] **Busca**: sem acento e em caixa alta; várias palavras em qualquer ordem ("canoa aluminio" = "aluminio canoa"); "canoa 6", "canoa 6 metros" e "bote 90"; erro de digitação ("motr", "lacnha"); sinônimo ("estofado"). Buscas sem sentido (`xyzw`, `asdf qwer`, `%`, `_`) retornam 0 com estado vazio. "concerto", "reparo" e "solda" mostram a dica de serviços. Em todos os casos a API e o site retornam os mesmos produtos. **Exceção: QA-10.**
+- [x] **Orçamento**:
+  - `?produto=` mostra o cartão com "Trocar", esconde Categoria e Modelo, e o envio leva `productSlug`, `category` e `requestType` corretos.
+  - `?servico=motores` define "Comprar motor de popa" e a categoria Motores. A lista tem "Problema ou revisão no motor".
+  - A API aceita `requestType: "motor-revisao"` (201) e recusa um tipo inexistente (400).
+  - A tela de sucesso mostra o telefone formatado. "Corrigir o telefone" volta ao formulário com o foco no telefone e preserva nome, cidade, mensagem e produto. O reenvio mostra o novo número.
+  - Contato: o mesmo fluxo de confirmação do telefone.
+- [x] **Lightbox**: o foco fica no botão usado. No celular, arrastar para a esquerda ou para a direita troca a foto, e arrastar na vertical não troca nem fecha.
+- [x] **Página de produto (11 produtos)**: todos têm "Preço e prazo: sob consulta" e "Dúvidas comuns" (FAQ abre) e JSON-LD `Product`. Todas as embarcações com medidas publicadas têm "Entenda a ficha". A semi-chata não tem o bloco porque não tem medidas publicadas, o que é coerente.
+- [x] **/sobre**: a lista "projetos publicados" aponta só para produtos existentes na API.
+- [x] **/contato**: um `h1`, link do Instagram, nota de localização e formulário.
+- [x] **Botão flutuante**: ausente no desktop (1280 e 1920 px) em `/`, `/produtos` e `/contato`. A barra inferior fica oculta no desktop.
+- [x] **Barra inferior a 360 px**: "Orçamento" e "Instagram" cabem na tela, cada um com 48 px de altura e uma linha só (conferido também por captura de tela).
+- [x] **CLS < 0,1** no desktop e no celular, em todas as rotas e no 404.
+- [x] **Console e rede**: zero erros, zero avisos, zero requisições falhas e zero imagens quebradas nas 7 páginas estáticas e nos 11 produtos, em 1280 e 360 px.
+- [x] **Rolagem horizontal**: nenhuma em 360, 390, 768, 1024, 1280 e 1920 (`responsive-functional.qa.ts` e `responsive.qa.ts`).
+
+## Problemas novos
+
+| ID | Gravidade | Página / componente | Passos para reproduzir | Esperado × obtido | Evidência | Sugestão de correção | Arquivo provável |
+|---|---|---|---|---|---|---|---|
+| QA-10 | Baixa | Busca (site e API) | Buscar `chata` ou `semichata` em `/produtos` ou em `GET /api/products?q=`. | **Esperado:** só a "Semi-chata de Alumínio Sob Medida". **Obtido:** também a "Lancha Cargueira tipo Iguaraçu 9 m" e a "Canoa de Alumínio 6 m". A tolerância a 1 erro de digitação considera "chata" igual a "chapa", palavra que aparece nesses dois produtos ("chapa de 3 mm", "chapa de 2 mm"). `semichata` vira o sinônimo `chata` e cai no mesmo caso. Pelo mesmo motivo, buscar `chapa` traz a semi-chata. | `regression-r2.qa.ts` › `[QA-10]`. `GET /api/products?q=chata` → `lancha-cargueira-iguaracu-9m, canoa-aluminio-6m, semi-chata-aluminio-sob-medida` | Não aplicar a tolerância a erro quando a palavra buscada existe exatamente no índice de algum produto do catálogo. Alternativa: lista de pares proibidos (`chata`/`chapa`), ou exigir 5 letras ou mais para a tolerância. | `packages/shared/src/search.ts` (`termMatches` / `withinOneEdit`) (SHARED, orquestrador) |
+
+Nenhum problema novo de gravidade Média, Alta ou Crítica.
+
+## Testes atualizados nesta rodada
+
+- `forms.qa.ts` (suíte de segurança): telefone `123<script>` agora aceita "Número incompleto", "Telefone inválido" ou "Use apenas números" (mudança intencional c31db77/df1c451).
+- `forms-functional.qa.ts`:
+  - "contato vazio" espera "Informe seu telefone/WhatsApp.";
+  - novo teste com as mensagens específicas do telefone e do assunto ("Assunto muito curto (mín. 2 caracteres).");
+  - QA-03 e QA-04 viraram `[QA-0x corrigido]`.
+- `functional.qa.ts`:
+  - QA-02 reescrito em 2 testes: sem produto, e com `?produto=` usando "Trocar" (UX-10). Na escolha manual usa "Outro", porque tipos de serviço agora escondem a Categoria (UX-24, em andamento);
+  - QA-01, QA-05 e QA-08 viraram `[QA-0x corrigido]`.
+- `responsive-functional.qa.ts`: menu "Catálogo" no lugar de "Embarcações"; QA-06 e QA-07 viraram `[QA-0x corrigido]`.
+- `regression-r2.qa.ts` (novo): 34 testes de regressão da rodada 2, incluindo `[QA-10]`.
+
+## Resultado das suítes (rodada 2)
+
+| Suíte | Alvo | Resultado |
+|---|---|---|
+| `npm test` (raiz) | código atual | **API 203/203 · site 71/71** (OK) |
+| `npx playwright test` (apps/web, API simulada) | build do código atual (4180, reaproveitado pelo `webServer`) | **59 passaram, 9 pulados, 0 falhas** (OK) |
+| Suíte QA completa (`-c e2e/qa/playwright.qa.config.ts`, 125 testes) | **4190** (build do orquestrador) | **119 passaram, 1 falhou (`[QA-10]`), 5 pulados** (headers sem `QA_HEADERS_URL`). Os 2 testes com `ENOENT` por concorrência passaram quando rodados de novo. |
+| Suíte QA completa | 4180 (código atual com mudanças em andamento) | **119 passaram, 1 falhou (`[QA-10]`), 4 pulados**. O teste do QA-02 foi ajustado à UX-24 e passou nos dois builds. |
+| Lint e tipos dos testes | `npx eslint e2e/qa/` · `tsc -p tsconfig.node.json` | OK |
+
+Leads QA-TEST apagados ao final: 8 em `contact_messages` e 12 em `quote_requests`. A contagem depois da limpeza é 0.

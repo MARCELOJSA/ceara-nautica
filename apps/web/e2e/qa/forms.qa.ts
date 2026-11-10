@@ -29,7 +29,10 @@ test.describe('validação no cliente (nenhum POST com dados inválidos)', () =>
     await page.getByLabel(/assunto/i).fill('Teste');
     await page.getByLabel(/mensagem/i).fill('x'.repeat(2001));
     await send.click();
-    await expect(page.getByText(/telefone inválido/i)).toBeVisible();
+    // mensagens do telefone mudaram na rodada 2 (QA-04): '123<script>' é incompleto
+    await expect(
+      page.getByText(/número incompleto|telefone inválido|apenas números/i),
+    ).toBeVisible();
     await expect(page.getByText(/e-mail inválido/i)).toBeVisible();
     await expect(page.getByText(/máximo de 2000/i)).toBeVisible();
     await expect(page.getByText(/autorizar o contato/i)).toBeVisible();

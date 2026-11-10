@@ -53,7 +53,7 @@ for (const width of WIDTHS) {
 }
 
 for (const width of [360, 390, 768]) {
-  test(`[QA-07] ${width}px: alvos de toque ≥ 44px (botões, links-botão, campos)`, async ({
+  test(`[QA-07 corrigido] ${width}px: alvos de toque ≥ 44px (botões, links-botão, campos)`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 800 });
@@ -123,7 +123,7 @@ test.describe('menu móvel (360px)', () => {
 
   test('cada link do menu navega e fecha o menu; fundo escuro fecha', async ({ page }) => {
     for (const [label, path] of [
-      ['Embarcações', '/produtos'],
+      ['Catálogo', '/produtos'],
       ['Serviços', '/servicos'],
       ['Sobre', '/sobre'],
       ['Contato', '/contato'],
@@ -214,7 +214,7 @@ test.describe('desktop', () => {
     expect(ring).toBe(true);
   });
 
-  test('[QA-06] CLS da página inicial, do catálogo e do produto abaixo de 0.1', async ({
+  test('[QA-06 corrigido] CLS desktop da página inicial, do catálogo e do produto abaixo de 0.1', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 });

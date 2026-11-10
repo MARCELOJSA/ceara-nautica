@@ -167,12 +167,10 @@ test.describe('consentimento de cookies (LGPD)', () => {
     await page.getByRole('button', { name: /aceitar todos/i }).click();
     await page.goto('/sobre', { waitUntil: 'networkidle' });
     const hosts = [...new Set(thirdParty.map((u) => new URL(u).hostname))];
-    test
-      .info()
-      .annotations.push({
-        type: 'terceiros após aceite',
-        description: hosts.join(', ') || 'nenhum',
-      });
+    test.info().annotations.push({
+      type: 'terceiros após aceite',
+      description: hosts.join(', ') || 'nenhum',
+    });
     // Sem VITE_GTM_ID / VITE_GA4_ID / VITE_META_PIXEL_ID nada externo deve carregar
     expect(hosts.every((h) => /googletagmanager|google-analytics|facebook|fbcdn/.test(h))).toBe(
       true,
