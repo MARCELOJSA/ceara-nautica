@@ -1,17 +1,22 @@
 # STATUS — Site Ceará Náutica
 
-_Atualizado: 2026-11-09_
+_Atualizado: 2026-11-10_
 
 ## Estado atual
 - [x] Monorepo criado (npm workspaces), Docker Compose do Postgres (porta 5433)
-- [x] `packages/shared`: categorias, tipos, schemas Zod, catálogo demonstrativo
+- [x] `packages/shared`: categorias, tipos, schemas Zod (inclui `requestType`), catálogo
 - [x] Skill `ceara-nautica` e agentes `cn-frontend`, `cn-backend`, `cn-security-qa`, `cn-ux-evaluator` (em `~/.claude`)
-- [ ] API (`apps/api`) — em desenvolvimento pelo cn-backend
-- [ ] Site (`apps/web`) — em desenvolvimento pelo cn-frontend
-- [ ] Integração
-- [ ] QA de segurança
-- [ ] Avaliação UX
-- [ ] Correções e revalidação
+- [x] API (`apps/api`) — rotas, Prisma (3 migrações), seed, testes + testes de segurança
+- [x] Site (`apps/web`) — todas as páginas, formulários, SEO, consentimento LGPD
+- [x] Integração (formulários fazem POST real na API)
+- [x] QA de segurança — testes em `apps/api/tests/security` e `apps/web/e2e/qa` (falta `docs/SECURITY-REPORT.md`)
+- [x] Avaliação UX — `docs/UX-REPORT.md` (nota 7,0)
+- [x] Correções do UX-REPORT aplicadas e conferidas no código: A1, A2, A3, A4, M1–M8, B1–B3, B5, B6, B8 (B4 fotos repetidas: a revisar na nova rodada de UX)
+- [ ] B7 (manchete do hero) — aguardando decisão do cliente
+- [x] SEC-01 corrigido (byte nulo `U+0000` em texto/UTM/busca → 400 em vez de 500); testes `it.fails` viraram regressão
+- [x] Revalidação técnica com Docker ligado (09/11/2026): `typecheck` ok, `lint` ok, API 160/160, web 30/30, Playwright 50/50 (+6 pulados por viewport), QA Playwright contra API real 31/31 (+4 pulados: headers dependem da hospedagem)
+- [ ] `docs/SECURITY-REPORT.md` (AGENT 03) — ainda não escrito
+- [ ] Nova rodada de UX (AGENT 04) após as correções
 
 ## Pendências que dependem da empresa (não inventar)
 | Item | Onde configurar |
