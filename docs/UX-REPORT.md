@@ -1,4 +1,135 @@
-# UX-REPORT — Site Ceará Náutica · Rodada 2
+# UX-REPORT — Site Ceará Náutica
+
+> **Rodada 3** (mais recente) logo abaixo. A **Rodada 2** vem em seguida, sem alterações. A Rodada 1 (nota 7,0) está no histórico do git.
+> Notas: R1 7,0 → R2 7,8 → **R3 8,6**.
+
+# Rodada 3 — 10/11/2026
+
+_AGENT 04 (cn-ux-evaluator) · versão nova e limpa em http://localhost:4190 com API real (3333)_
+
+## Método
+- Refiz as oito situações da Rodada 2 como visitante leigo de Manaus, em **PC 1366×768 e 1920×1080** e **celular 390×844 e 360×740** (isMobile, hasTouch). Olhei todas as capturas.
+- Roteiros: os mesmos `apps/web/e2e/ux/r2-*.mjs` (agora com `BASE_URL=http://localhost:4190`) e um novo, `apps/web/e2e/ux/r3-quote-flow.mjs`, que testa o "Trocar" do produto, os tipos de solicitação e o "Corrigir o telefone" depois do envio.
+- Envios reais: 2 orçamentos ("João QA-TEST", canoa 6 m; "Carlos UX QA-TEST", motor falhando) e 1 contato ("Maria QA-TEST"). Todos deram **201**. No fim, apaguei **só os meus 3 leads**. Os leads do QA técnico, criados em paralelo, ficaram no banco para não atrapalhar o teste dele.
+- Console do navegador: **0 erros** em todas as páginas e viewports. Nenhuma rolagem horizontal.
+- Capturas: `docs/ux-screenshots/r3/` (19 PNG, ~1,8 MB).
+
+## Resumo
+A equipe corrigiu **o que mais atrapalhava**, e conferi na prática que funciona:
+- O formulário fala português claro em todos os erros.
+- O telefone "(92) 9 9999-0000" é aceito.
+- A busca entende como um leigo escreve: "canoa 6", "canoa aluminio", "motr", "estofado", "lancha familia" e "bote 6m" trazem o produto certo, e "concerto" e "repraro" levam a Serviços.
+- A tela de sucesso mostra o número digitado, e "Corrigir o telefone" volta ao formulário com tudo preenchido e o cursor no telefone.
+- O produto agora tem "Preço e prazo: sob consulta", "Entenda a ficha" e "Dúvidas comuns".
+- A página Sobre ganhou etapas e uma linha do tempo com os projetos publicados, cada um levando ao produto.
+- As fotos ficaram coerentes, a galeria aceita arrastar no celular e o botão flutuante saiu do PC.
+
+O que sobrou é pequeno, com uma exceção média: **quem tem o motor falhando ainda precisa adivinhar o caminho**. Os botões levam a "Comprar motor de popa" ou "Manutenção", e o novo tipo "Problema ou revisão no motor" só aparece se a pessoa abrir o menu e escolher sozinha (UX-22). O resto são detalhes de texto e consistência.
+
+**Nota geral: 8,6 / 10** (R2: 7,8).
+
+## Situações refeitas (o que mudou para quem usa)
+1. **Canoa ~6 m (celular):**
+   - **Encontrar:** a busca "canoa 6" acha a canoa direto. Pelo chip Canoas também funciona.
+   - **Página do produto:** a foto agora é um barco na água, sem lago de outono. Logo abaixo do botão aparece "Preço e prazo: sob consulta" com a explicação. "Entenda a ficha" explica boca, pontal e chapa (`02-m390-canoa6-preco-ficha.png`). "Dúvidas comuns" responde preço, capacidade, mudanças e entrega (`03-m390-canoa6-duvidas.png`).
+   - **Comparar:** ainda é difícil, porque as fichas das duas canoas têm linhas diferentes (UX-12).
+2. **Lancha para a família (PC e celular):**
+   - **Escolher:** os cards mostram "Indicado para" e a capacidade quando existe, por exemplo "7 m · 11 passageiros · Passeio · Pesca · Trabalho" (`13-d1366-catalogo.png`). A busca "lancha familia" ou "lancha passeio" leva à lancha de 7 m.
+   - **Fotos:** a lancha de 10 m agora aparece como uma lancha de alumínio de verdade.
+   - **Orçamento:** a partir do produto, o formulário mostra só o cartão do produto com "Trocar". "Trocar" remove o produto e mantém a categoria. Funciona e é fácil de entender.
+   - **Falha:** alguns cards não têm "Indicado para" (UX-23).
+3. **Motor falhando:**
+   - **Informação:** Serviços e FAQ agora dizem honestamente "descreva o problema e a equipe confirma se atende" (`17-m390-servicos-motores.png`).
+   - **Caminho:** o botão da seção de motores é "Consultar motores", que abre o formulário como **"Comprar motor de popa"**. A página do produto Motores de popa só tem dúvidas sobre preço, marcas e potência (`16-m390-motores-duvidas.png`). O tipo certo, "Problema ou revisão no motor", existe, mas a pessoa precisa achar sozinha no menu do formulário (UX-22).
+   - **Pedido:** escolhendo esse tipo, o pedido foi enviado sem problema.
+4. **Estofamento:**
+   - **Caminho:** a trilha agora diz "Início › Catálogo › Estofamentos", o que faz sentido. Pelo Serviços, "Orçar estofamento" preenche o tipo e a mensagem.
+   - **Falta:** continua sem dizer se é preciso levar o barco ou só as almofadas (resíduo de UX-17).
+5. **Pessoa desconfiada:**
+   - **Sobre:** a página está bem mais convincente. Mostra "Do pedido à entrega" em quatro etapas e "O que já saiu do estaleiro", uma linha do tempo de 2022 a 2026 com data, categoria e link para cada projeto (`09-m390-sobre-projetos.png`). A lista repetida da Home saiu.
+   - **Contato:** diz "Endereço a confirmar com a equipe", e o link do mapa avisa "Ver a cidade de Manaus no mapa (não indica o endereço)" (`10-m390-contato.png`). Honesto.
+   - **Estranhamento novo:** os botões "Destaques do perfil" têm o nome dos destaques do Instagram, mas levam ao catálogo do site (UX-26).
+6. **Busca com erros, filtros e voltar (celular):**
+   - **Catálogo compacto:** chips e busca aparecem na primeira tela (`01-m390-catalogo-compacto.png`).
+   - **Busca:** "repraro" e "concerto" mostram a caixa "Procura reparo, manutenção ou outro serviço? Veja nossos serviços" **acima** do "Nenhum produto encontrado", visível sem rolar (`04-m390-busca-repraro.png`). "motr" acha os motores (`05-m390-busca-motr.png`).
+   - **Voltar:** o botão voltar mantém o filtro e a rolagem.
+   - **Detalhe:** a descrição do catálogo aparece cortada no meio da palavra, "além d…" (UX-20).
+7. **Formulários com erros:**
+   - **Mensagens:** todas em português: "Informe seu telefone/WhatsApp.", "Número incompleto. Ex.: (92) 99999-9999", "E-mail inválido. Ex.: nome@provedor.com.br", "Assunto muito curto (mín. 2 caracteres).", "É necessário autorizar o contato para enviar." (`06-m390-orcamento-erros-pt.png`).
+   - **Telefone:** "(92) 9 9999-0000", "92 9 9999 0000" e "+55 92 99999-0000" são aceitos.
+   - **Sucesso:** a tela mostra "Vamos retornar no (92) 99999-0000" e "O que acontece agora" em três passos (`07-m390-sucesso-corrigir.png`). "Corrigir o telefone" volta ao formulário preenchido com o telefone selecionado (`08-m390-corrigir-telefone.png`).
+   - **Detalhes:** a frase "Número errado? Corrigir o telefone e envie de novo." soa truncada (UX-21). Um número sem DDD é aceito sem aviso (UX-25). Pedidos de conserto ainda mostram "Categoria" e "Modelo de referência" (UX-24, `14-d1920-orcamento-manutencao.png`).
+8. **Menu, cookies, barra, FAQ e galeria:**
+   - **Menu:** diz "Catálogo" e funciona bem.
+   - **Cookies:** igual à R2 (bom).
+   - **Barra inferior a 360 px:** "Orçamento" cabe em uma linha (`12-m360-barra-inferior.png`).
+   - **Galeria:** aceita arrastar no celular, com a dica "Arraste para o lado para ver as outras fotos" (`11-m390-lightbox-arrastar.png`). As oito fotos agora combinam com "A vida no rio".
+   - **FAQ:** também aparece no produto.
+   - **PC:** sem o botão flutuante, os cards ficaram limpos (`18-d1366-produto-lancha7.png`).
+
+## Status dos problemas da Rodada 2
+
+| ID | Status | Do ponto de vista de quem usa |
+|---|---|---|
+| UX-01 Erro de autorização em inglês | **Resolvido** | "É necessário autorizar o contato para enviar." |
+| UX-02 Telefone "(92) 9 9999-0000" recusado | **Resolvido** | Os formatos comuns são aceitos e as mensagens explicam o que falta. Sobrou o caso sem DDD (UX-25). |
+| UX-03 Busca rígida | **Resolvido** | Funciona sem acento, com várias palavras, "canoa 6", "bote 6m", erros de digitação e sinônimos. "concerto" e "repraro" levam a Serviços. |
+| UX-04 Não diz se conserta motor | **Parcial** | O texto agora é honesto ("descreva e a equipe confirma"), mas o caminho até o pedido certo não é óbvio → UX-22 |
+| UX-05 Sem preço e prazo no produto | **Resolvido** | Quadro "Preço e prazo: sob consulta" logo abaixo dos botões, mais "Dúvidas comuns". |
+| UX-06 Escolher lancha para a família | **Resolvido** | Os cards têm uso indicado e capacidade, e a busca "lancha familia" funciona. Ver a inconsistência em UX-23. |
+| UX-07 Fotos contraditórias | **Resolvido** | Lancha 10 m, canoa 6 m e galeria coerentes. Continuam ilustrativas e sinalizadas. |
+| UX-08 Sobre fraco e "Manaus no mapa" | **Resolvido** | Etapas e projetos publicados com datas. O mapa avisa que não mostra o endereço. |
+| UX-09 Catálogo ocupa a 1ª tela | **Resolvido** | Cabeçalho compacto e dica de serviço acima do "Nenhum produto". |
+| UX-10 Campos repetidos no orçamento | **Parcial** | Com produto, fica só o cartão com "Trocar". Sem produto (conserto, motor) ainda aparecem Categoria e Modelo → UX-24 |
+| UX-11 Termos técnicos | **Resolvido** | "Entenda a ficha" explica boca, pontal, chapa e hp. |
+| UX-12 Fichas diferentes entre canoas | **Persiste** (baixa) | 6 m: Dimensões, Chapa, Capota. 7 m: Comprimento, Material, Boca / Pontal. |
+| UX-13 Galeria sem arrastar | **Resolvido** | Arrastar funciona e há uma dica escrita. |
+| UX-14 Botão flutuante no PC | **Resolvido** | Removido. O botão do cabeçalho basta. |
+| UX-15 Barra quebrando a 360 px | **Resolvido** | "Orçamento" em uma linha. |
+| UX-16 "Informe o assunto" para assunto curto | **Resolvido** | "Assunto muito curto (mín. 2 caracteres)." |
+| UX-17 Estofamento como "Embarcações" | **Parcial** | A trilha e o menu dizem "Catálogo". Ainda não explica se é preciso levar o barco ou só as almofadas. |
+| UX-18 Fotos repetidas | **Parcial** | Na Home, as fotos da lancha 7 m e da semi-chata aparecem duas vezes (capa da categoria e destaque). |
+| UX-19 Sucesso sem o telefone | **Resolvido** | Mostra o número e o botão "Corrigir o telefone", que funciona bem. |
+
+## Problemas novos (Rodada 3)
+
+| ID | Prioridade | Onde (página + elemento) | O que eu tentava | Problema | Como melhorar | Arquivo provável |
+|---|---|---|---|---|---|---|
+| UX-20 | Baixa | /produtos no celular, texto do cabeçalho | Ler do que se trata o catálogo | O texto é cortado no meio da palavra: "…além d…". Parece erro. | No celular, usar uma frase curta completa ("Lanchas, canoas, botes e semi-chatas em alumínio, além de motores e estofamentos.") em vez de cortar com reticências. | `apps/web/src/pages/Products.tsx`, `apps/web/src/components/layout/PageHeader.tsx` |
+| UX-21 | Baixa | Tela de sucesso (orçamento e contato) | Corrigir o número | "Número errado? **Corrigir o telefone** e envie de novo." mistura dois tempos verbais, e no celular o "e envie de novo." cai sozinho em outra linha com espaço estranho (`07-m390-sucesso-corrigir.png`). | "Número errado? **Corrija o telefone** e envie de novo." ou só o botão "Corrigir o telefone" em linha própria. | `apps/web/src/components/forms/QuoteForm.tsx`, `ContactForm.tsx` (FormSuccess) |
+| UX-22 | Média | /servicos (Motores e Manutenção), /produtos/motores-de-popa | Pedir ajuda para o motor falhando | O texto manda "descrever o problema", mas os botões levam a "Comprar motor de popa" (Consultar motores) ou "Manutenção". O tipo "Problema ou revisão no motor" só aparece se a pessoa abrir o menu e escolher sozinha. As "Dúvidas comuns" do produto não falam de defeito. | Botão próprio "Problema no motor? Descreva aqui" → `/orcamento?servico=motor-revisao`, com o tipo e a mensagem já preenchidos ("Modelo do motor e o que está acontecendo:"). Na página do produto, acrescentar a dúvida "Vocês fazem revisão de motor?". | `apps/web/src/data/content.ts` (SERVICES, SERVICE_TO_REQUEST_TYPE, FAQ), `apps/web/src/pages/ProductDetail.tsx` |
+| UX-23 | Baixa | /produtos, cards | Comparar o uso das embarcações | "Indicado para" aparece em alguns cards e falta em outros (lancha 10 m, canoa 6 m, bote 6 m, bote 6 m – 90 hp). Também mistura "Passeio" e "Lazer" (`15-m390-cards-indicado-para.png`). | Preencher em todos, com "Uso: sob consulta" quando o dado não estiver confirmado, e padronizar os termos. | `packages/shared/src/catalog.ts` (orquestrador), `apps/web/src/components/product/ProductCard.tsx` |
+| UX-24 | Baixa | /orcamento sem produto (manutenção, reparo, motor) | Pedir conserto | Aparecem "Categoria" e "Modelo de referência: Nenhum / projeto sob medida", que não fazem sentido para quem quer consertar. No PC, o campo Cidade fica sozinho com um buraco ao lado (`14-d1920-orcamento-manutencao.png`). | Mostrar Categoria e Modelo só para "Nova embarcação" ou "Comprar motor". Para conserto, trocar por "Que embarcação ou motor você tem? (opcional)". Reorganizar a grade. | `apps/web/src/components/forms/QuoteForm.tsx` |
+| UX-25 | Baixa | Campo Telefone | Digitar sem DDD ou com letras | "99999-0000" (sem DDD) é aceito sem aviso, e o vendedor pode não conseguir ligar. "abc" mostra "Número incompleto", mensagem estranha para letras. | Sem DDD, assumir 92 e mostrar "(92) 99999-0000" para a pessoa confirmar, ou pedir "Inclua o DDD". Com letras, dizer "Use apenas números". | `packages/shared/src/schemas.ts`, `apps/web/src/components/forms/fields.tsx` |
+| UX-26 | Baixa | /sobre, botões "Destaques do perfil" | Ver os destaques do Instagram | O nome promete os destaques do Instagram, mas os botões abrem o catálogo do site. | Renomear para "Veja no catálogo" ou levar cada botão ao Instagram, indicando que abre em nova aba. | `apps/web/src/pages/About.tsx` |
+
+_Nota de consistência (sem ID):_ no topo da Home o botão diz "Ver embarcações", enquanto o menu e a trilha dizem "Catálogo". Não atrapalha, mas "Ver catálogo" ficaria uniforme. A manchete (B7) continua aguardando o cliente.
+
+## Pontos fortes (novos)
+- O formulário ficou **à prova de leigo**: erros claros em português, telefone flexível, número repetido na confirmação e correção sem redigitar nada.
+- A busca agora é **tolerante**, como as pessoas realmente digitam.
+- A página do produto responde às três primeiras perguntas (quanto custa, quanto demora, quantas pessoas leva) sem prometer nada que não esteja confirmado.
+- A página Sobre ganhou **provas verificáveis**: datas e links de projetos publicados.
+- O PC ficou mais limpo sem o botão flutuante. No celular, a barra inferior não quebra mais.
+
+## Nota — Rodada 3
+
+| Critério | R2 | R3 |
+|---|---|---|
+| Navegação no PC | 8,5 | 9,0 |
+| Navegação no celular | 8,0 | 8,8 |
+| Clareza / conteúdo | 7,5 | 8,5 |
+| Encontrar produto ou serviço | 7,5 | 8,7 (motor com defeito ainda pede adivinhar) |
+| Qualidade visual | 8,0 | 8,5 |
+| Formulários / contato | 7,0 | 8,8 |
+| Confiança (visitante desconfiado) | 6,5 | 7,5 (falta o que depende da empresa) |
+| **Geral** | **7,8** | **8,6 / 10** |
+
+Com UX-22 resolvido e os itens Baixa ajustados, a nota fica em ≈ 8,8. Chegar a 9+ depende da empresa: fotos reais, endereço, horário, manchete (B7) e, quando quiser, o WhatsApp.
+
+---
+
+# Rodada 2 — 10/11/2026 (mantida)
 
 > A rodada anterior (09/11/2026) deu **nota 7,0** e está no histórico do git (versão anterior deste arquivo, com as capturas em `docs/ux-screenshots/`). Esta rodada confere as correções na prática e procura novos problemas.
 
