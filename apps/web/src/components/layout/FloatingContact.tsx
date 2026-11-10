@@ -8,7 +8,9 @@ import { track } from '@/lib/analytics';
  * Atalhos de contato sempre à mão.
  * - Celular/tablet: barra fixa inferior compacta (respeita a safe-area) com
  *   "Pedir orçamento" + "Instagram" (ou "WhatsApp", se houver número).
- * - Desktop: botão flutuante discreto "Orçamento" (ou "WhatsApp").
+ * - Desktop: só o botão flutuante "WhatsApp", quando houver número. Sem número,
+ *   não há flutuante: o cabeçalho fixo já mostra "Solicitar orçamento" o tempo
+ *   todo, e a pílula repetida cobria cards e a ficha técnica (UX-14).
  * Sem número de WhatsApp, nada usa ícone de balão de conversa.
  */
 export function FloatingContact({ number = site.whatsappNumber }: { number?: string }) {
@@ -16,8 +18,16 @@ export function FloatingContact({ number = site.whatsappNumber }: { number?: str
   const wa = buildWhatsAppUrl(number, DEFAULT_WHATSAPP_MESSAGE);
   const onQuote = pathname.startsWith('/orcamento');
   const primary = onQuote
-    ? { to: '/contato', label: 'Contato' }
-    : { to: '/orcamento', label: 'Pedir orçamento' };
+    ? { to: '/contato', label: <>Contato</> }
+    : {
+        to: '/orcamento',
+        // < 390px "Pedir orçamento" quebrava em 2 linhas (UX-15): fica só "Orçamento"
+        label: (
+          <>
+            <span className="max-[389px]:hidden">Pedir </span>orçamento
+          </>
+        ),
+      };
 
   const desktopBase =
     'fixed right-6 bottom-6 z-30 hidden min-h-12 items-center gap-2 rounded-full bg-graphite-deep px-5 font-display text-base font-semibold tracking-[0.06em] text-white uppercase shadow-[0_6px_20px_rgba(23,25,28,0.22)] transition-colors hover:bg-graphite lg:inline-flex';
@@ -32,7 +42,7 @@ export function FloatingContact({ number = site.whatsappNumber }: { number?: str
         <div className="mx-auto flex max-w-xl gap-2">
           <Link
             to={primary.to}
-            className="btn-primary min-h-12 flex-1 px-3"
+            className="btn-primary min-h-12 flex-1 px-3 whitespace-nowrap"
             data-testid="floating-contact"
           >
             <ClipboardList aria-hidden="true" className="size-5" /> {primary.label}
@@ -55,7 +65,7 @@ export function FloatingContact({ number = site.whatsappNumber }: { number?: str
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => track('instagram_click', { location: 'barra_mobile' })}
-              className="btn-outline-light min-h-12 flex-1 px-3"
+              className="btn-outline-light min-h-12 flex-1 px-3 whitespace-nowrap"
               data-testid="mobile-bar-secondary"
             >
               <Instagram aria-hidden="true" className="size-5" /> Instagram
@@ -77,13 +87,7 @@ export function FloatingContact({ number = site.whatsappNumber }: { number?: str
           <MessageCircle aria-hidden="true" className="size-5" /> WhatsApp
           <span className="sr-only"> (abre em nova aba)</span>
         </a>
-      ) : (
-        !onQuote && (
-          <Link to="/orcamento" className={desktopBase} data-testid="floating-desktop">
-            <ClipboardList aria-hidden="true" className="size-5 text-orange" /> Orçamento
-          </Link>
-        )
-      )}
+      ) : null}
     </>
   );
 }

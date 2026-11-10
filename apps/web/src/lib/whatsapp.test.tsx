@@ -92,7 +92,8 @@ describe('<FloatingContact />', () => {
       'href',
       'https://www.instagram.com/cearanautica/',
     );
-    expect(screen.getByTestId('floating-desktop')).toHaveTextContent('Orçamento');
+    // UX-14: sem número não há flutuante no desktop (o cabeçalho fixo já tem o CTA)
+    expect(screen.queryByTestId('floating-desktop')).not.toBeInTheDocument();
     expect(screen.queryByText(/whatsapp/i)).not.toBeInTheDocument();
   });
 

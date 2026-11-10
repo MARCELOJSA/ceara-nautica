@@ -69,6 +69,14 @@ test.describe('fluxos principais', () => {
     await expect(dialog).toBeVisible();
     await page.keyboard.press('ArrowRight');
     await expect(dialog.getByText(`2 / ${count}`)).toBeVisible();
+    // QA-01: Enter em "Próxima imagem" troca a foto e o foco continua no botão
+    const next = dialog.getByRole('button', { name: 'Próxima imagem' });
+    await next.focus();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await expect(next).toBeFocused();
+    await expect(dialog.getByText(`${((1 + 2) % count) + 1} / ${count}`)).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
 
@@ -169,14 +177,20 @@ test.describe('fluxos principais', () => {
     await expect(ig).toHaveAttribute('href', 'https://www.instagram.com/cearanautica/');
   });
 
-  test('desktop: botão flutuante discreto "Orçamento"', async ({ page, isMobile }) => {
+  test('desktop: sem flutuante repetido; o cabeçalho fixo mantém o CTA de orçamento', async ({
+    page,
+    isMobile,
+  }) => {
     test.skip(isMobile, 'apenas no projeto desktop');
     await presetConsent(page);
-    await page.goto('/');
-    const btn = page.getByTestId('floating-desktop');
-    await expect(btn).toBeVisible();
-    await expect(btn).toHaveText(/orçamento/i);
+    await page.goto('/produtos');
+    await expect(page.getByTestId('product-grid')).toBeVisible();
+    // UX-14: a pílula "Orçamento" cobria cards e repetia o CTA do cabeçalho
+    await expect(page.getByTestId('floating-desktop')).toHaveCount(0);
     await expect(page.getByTestId('mobile-contact-bar')).toBeHidden();
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    const cta = page.locator('header').getByRole('link', { name: /solicitar orçamento/i });
+    await expect(cta).toBeInViewport();
   });
 });
 
@@ -283,6 +297,40 @@ test.describe('mobile', () => {
     await page.locator('#destaques-title').scrollIntoViewIfNeeded();
     const featured = page.locator('section[aria-labelledby="destaques-title"] ul > li');
     await expect(featured.filter({ visible: true })).toHaveCount(3);
+  });
+
+  test('catálogo: resultados e dica de serviço aparecem na primeira tela', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(!isMobile, 'apenas no projeto mobile');
+    await presetConsent(page);
+    await page.goto('/produtos');
+    await expect(page.getByRole('searchbox', { name: /buscar por nome/i })).toBeInViewport();
+    await expect(page.getByTestId('product-grid').locator('li').first()).toBeInViewport();
+    await page.goto('/produtos?q=reparo');
+    await expect(page.getByTestId('service-hint')).toBeInViewport();
+    const hint = (await page.getByTestId('service-hint').boundingBox())!;
+    const bar = (await page.getByTestId('mobile-contact-bar').boundingBox())!;
+    expect(hint.y + hint.height).toBeLessThanOrEqual(bar.y);
+  });
+
+  test('barra inferior a 360px: rótulos em uma linha', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'apenas no projeto mobile');
+    await presetConsent(page);
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto('/');
+    for (const loc of [
+      page.getByTestId('floating-contact'),
+      page.getByTestId('mobile-bar-secondary'),
+    ]) {
+      const box = (await loc.boundingBox())!;
+      expect(box.height).toBeLessThanOrEqual(52);
+      expect(await loc.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+    }
+    await expect(page.getByTestId('floating-contact')).toHaveText(/^\s*orçamento\s*$/i, {
+      useInnerText: true,
+    });
   });
 
   test('alvos de toque principais têm pelo menos 44px', async ({ page, isMobile }) => {
