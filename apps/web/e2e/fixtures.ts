@@ -42,16 +42,27 @@ export async function mockApi(page: Page) {
   });
 }
 
-type Fixtures = { consoleErrors: string[] };
+type Fixtures = { consoleErrors: string[]; apiMock: void };
 
 export const test = base.extend<Fixtures>({
+  /**
+   * Automático: TODO teste desta suíte usa a API simulada. Sem isto, testes que não
+   * pediam `consoleErrors` batiam na API real pelo proxy do preview e o resultado
+   * dependia do que estivesse rodando na máquina (API fora, lenta ou com outros dados).
+   */
+  apiMock: [
+    async ({ page }, use) => {
+      await mockApi(page);
+      await use();
+    },
+    { auto: true },
+  ],
   consoleErrors: async ({ page }, use) => {
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
     page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
-    await mockApi(page);
     await use(errors);
   },
 });

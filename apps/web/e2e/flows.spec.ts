@@ -225,6 +225,8 @@ test.describe('mobile', () => {
   }) => {
     test.skip(!isMobile, 'apenas no projeto mobile');
     await page.goto('/');
+    // O banner aparece antes da Home (lazy) montar: mede só depois do hero existir.
+    await expect(page.locator('#hero-title')).toBeVisible();
     const viewport = page.viewportSize()!;
     const banner = page.getByTestId('cookie-banner');
     await expect(banner).toBeVisible();
@@ -242,7 +244,17 @@ test.describe('mobile', () => {
     await expect(bar).toBeVisible();
     await expect(bar.getByRole('link', { name: /pedir orçamento/i })).toBeVisible();
     await expect(bar.getByRole('link', { name: /instagram/i })).toBeVisible();
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    // A página cresce enquanto rola (seções reveladas, imagens): rola até o fim estabilizar.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          window.scrollTo(0, document.documentElement.scrollHeight);
+          return (
+            Math.ceil(window.scrollY + window.innerHeight) >= document.documentElement.scrollHeight
+          );
+        }),
+      )
+      .toBe(true);
     const footerBtn = page.getByRole('button', { name: /preferências de cookies/i });
     const fb = (await footerBtn.boundingBox())!;
     const barBox = (await bar.boundingBox())!;
@@ -262,6 +274,8 @@ test.describe('mobile', () => {
     test.skip(!isMobile, 'apenas no projeto mobile');
     await presetConsent(page);
     await page.goto('/');
+    // A Home é carregada sob demanda (lazy): espera sair do placeholder antes de ler as seções.
+    await expect(page.locator('#categorias-title')).toBeAttached();
     const sections = await page.$$eval('main > section', (els) =>
       els.map((e) => e.getAttribute('aria-labelledby')),
     );
