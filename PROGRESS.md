@@ -54,9 +54,21 @@ Fluxo: desenvolvimento → QA técnico → usuário final → correções → no
 
 **Verificação após as correções:** typecheck e lint limpos; API 203/203; site 71/71; Playwright 52/52 (+8 pulados por viewport). Cada commit foi conferido compilando sozinho.
 
-### Rodada 2 — revalidação (em andamento)
+### Rodada 2 — revalidação
 
-Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a API. QA técnico revalida QA-01 a QA-08 e faz regressão; usuário final revalida UX-01 a UX-19 e procura problemas novos.
+Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a API.
+
+- **Usuário final, rodada 3** (`c0632cf`): nota **8,6** (antes 7,8). Dos UX-01 a UX-19: 14 resolvidos, 4 parciais (UX-04, UX-10, UX-17, UX-18) e 1 persistente de baixa prioridade (UX-12). Novos: UX-20 a UX-26, com só o UX-22 de prioridade média (quem tem motor com defeito não acha o caminho certo).
+- **QA técnico:** interrompido pelo limite de uso da conta (reinicia às 4h50 de Manaus) e retomado depois. As alterações de teste em `apps/web/e2e/qa/` ainda não foram commitadas.
+
+### Rodada 2 — correções (em andamento)
+
+**Orquestrador**
+- `df1c451`: UX-12 (as duas canoas com as mesmas linhas na ficha; banco re-semeado) e UX-25 ("Use apenas números" para telefone com letras). A outra metade do UX-25, número sem DDD aceito sem aviso, **não se confirmou**: no build, o formulário mostra "Inclua o DDD".
+
+**Desenvolvedor 1:** UX-22 (botão "Problema no motor?" em Serviços e suporte a `/orcamento?servico=motor-revisao`), UX-21 (texto da tela de sucesso), UX-24 (sem Categoria e Modelo em pedidos de serviço), UX-18 (fotos repetidas na Home).
+
+**Desenvolvedor 2:** UX-22 (link e pergunta frequente na página do produto Motores de popa), UX-20 (texto cortado no catálogo), UX-23 ("Indicado para" padronizado), UX-26 ("Destaques do perfil" em /sobre).
 
 ## Fila de tarefas (ordem obrigatória)
 
@@ -73,7 +85,10 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 
 - [x] Rodada 1 de testes
 - [x] Rodada 1 de correções (desenvolvedores 1 e 2)
-- [ ] Rodada 2: revalidação do QA e do usuário final
+- [x] Rodada 2: revalidação do usuário final (8,6)
+- [ ] Rodada 2: revalidação do QA técnico (retomada)
+- [ ] Rodada 2 de correções (UX-18, UX-20 a UX-24, UX-26)
+- [ ] Rodada 3: revalidação final (QA + usuário final) e revisão geral do site
 - [ ] SEC-04: headers de segurança na hospedagem (depende da escolha da hospedagem)
 - [ ] B7: manchete da página inicial (decisão do cliente)
 - [ ] Migração para Prisma 7 (SEC-13). Bloqueada enquanto a API em execução trava a DLL do Prisma
