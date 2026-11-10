@@ -50,9 +50,26 @@ export const contactSchema = z.object({
   message: trimmed(10, 2000, 'A mensagem deve ter pelo menos 10 caracteres.'),
 });
 
+/** Tipo de solicitação do orçamento (campo opcional do formulário) */
+export const REQUEST_TYPES = [
+  { value: 'nova-embarcacao', label: 'Nova embarcação' },
+  { value: 'reparo', label: 'Reparo' },
+  { value: 'manutencao', label: 'Manutenção' },
+  { value: 'motor', label: 'Motor de popa' },
+  { value: 'estofamento', label: 'Estofamento' },
+  { value: 'outro', label: 'Outro' },
+] as const;
+export type RequestType = (typeof REQUEST_TYPES)[number]['value'];
+const REQUEST_TYPE_VALUES = REQUEST_TYPES.map((r) => r.value) as [RequestType, ...RequestType[]];
+
 export const quoteSchema = z.object({
   ...baseLead,
-  category: z.enum(CATEGORY_SLUGS).optional(),
+  requestType: z
+    .enum(REQUEST_TYPE_VALUES, { errorMap: () => ({ message: 'Tipo de solicitação inválido.' }) })
+    .optional(),
+  category: z
+    .enum(CATEGORY_SLUGS, { errorMap: () => ({ message: 'Categoria inválida.' }) })
+    .optional(),
   productSlug: z
     .string()
     .trim()

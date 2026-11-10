@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { CATEGORIES, CATEGORY_SLUGS, type Product } from '@cn/shared';
+import { CATEGORIES, CATEGORY_SLUGS, type CategoryWithCount, type Product } from '@cn/shared';
 import { notFound } from '../lib/http-error.js';
 import { parseOr400 } from '../lib/validate.js';
 import { productInclude, productOrderBy, toProduct } from '../lib/products.js';
@@ -42,13 +42,6 @@ const slugSchema = z
   .string()
   .max(160)
   .regex(/^[a-z0-9-]+$/);
-
-export type CategoryWithCount = {
-  slug: string;
-  name: string;
-  description: string;
-  productCount: number;
-};
 
 export function catalogRouter(prisma: PrismaClient): Router {
   const router = Router();

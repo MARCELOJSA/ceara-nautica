@@ -62,6 +62,7 @@ export function leadsRouter({ prisma, ipHashSalt, notify }: LeadDeps): Router {
         name: data.name,
         phone: data.phone,
         email: data.email ?? null,
+        requestType: data.requestType ?? null,
         category: data.category ?? null,
         productSlug: data.productSlug ?? null,
         city: data.city || null,
@@ -77,6 +78,7 @@ export function leadsRouter({ prisma, ipHashSalt, notify }: LeadDeps): Router {
       id: created.id,
       createdAt: created.createdAt.toISOString(),
       summary: {
+        requestType: data.requestType,
         category: data.category,
         productSlug: data.productSlug,
         city: data.city,

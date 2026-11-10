@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { createHash } from 'node:crypto';
+import { REQUEST_TYPES } from '@cn/shared';
 import { makeApp, prisma, validContact, validQuote } from './helpers.js';
 import type { LeadNotification } from '../src/lib/notify.js';
 
@@ -160,7 +161,31 @@ describe('POST /api/quotes', () => {
       consent: true,
     });
     expect(res.status).toBe(201);
-    expect(await prisma.quoteRequest.count()).toBe(1);
+    const row = await prisma.quoteRequest.findUniqueOrThrow({ where: { id: res.body.id } });
+    expect(row.requestType).toBeNull();
+  });
+
+  it('grava requestType válido e o envia no webhook', async () => {
+    for (const { value } of REQUEST_TYPES) {
+      const res = await request(app).post('/api/quotes').send({ ...validQuote, requestType: value });
+      expect(res.status).toBe(201);
+      const row = await prisma.quoteRequest.findUniqueOrThrow({ where: { id: res.body.id } });
+      expect(row.requestType).toBe(value);
+      expect(notifications.at(-1)).toMatchObject({
+        type: 'quote',
+        id: res.body.id,
+        summary: { requestType: value },
+      });
+    }
+  });
+
+  it('requestType inválido → 400 em requestType e nada gravado', async () => {
+    const res = await request(app)
+      .post('/api/quotes')
+      .send({ ...validQuote, requestType: 'compra-de-iate' });
+    expect(res.status).toBe(400);
+    expect(res.body.details.requestType).toBeDefined();
+    expect(await prisma.quoteRequest.count()).toBe(0);
   });
 
   it('categoria inválida → 400 em category', async () => {

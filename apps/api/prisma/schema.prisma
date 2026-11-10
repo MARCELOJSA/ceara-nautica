@@ -106,6 +106,8 @@ model QuoteRequest {
   name         String   @db.VarChar(120)
   phone        String   @db.VarChar(40)
   email        String?  @db.VarChar(160)
+  /// Tipo de solicitação (REQUEST_TYPES de @cn/shared)
+  requestType  String?  @map("request_type") @db.VarChar(40)
   category     String?  @db.VarChar(80)
   productSlug  String?  @map("product_slug") @db.VarChar(160)
   city         String?  @db.VarChar(120)
