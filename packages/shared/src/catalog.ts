@@ -203,7 +203,7 @@ export const DEMO_PRODUCTS: Product[] = [
     shortDescription: 'Canoa de 6 m em chapa de 2 mm, com capota conversível em vinil.',
     description:
       'Canoa de alumínio de 6 metros construída em chapa de 2 mm de espessura, com opção de capota conversível em vinil, conforme o projeto publicado.',
-    images: [img('canoa-aluminio-6m', 1, 'Canoa de alumínio com capota conversível')],
+    images: [img('canoa-aluminio-6m', 1, 'Canoa de alumínio no rio (foto ilustrativa)')],
     specs: [
       { label: 'Dimensões', value: '6 m x 1,30 m x 0,45 m' },
       { label: 'Chapa', value: 'Alumínio 2 mm' },

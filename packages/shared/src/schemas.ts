@@ -118,7 +118,8 @@ export const REQUEST_TYPES = [
   { value: 'nova-embarcacao', label: 'Nova embarcação' },
   { value: 'reparo', label: 'Reparo' },
   { value: 'manutencao', label: 'Manutenção' },
-  { value: 'motor', label: 'Motor de popa' },
+  { value: 'motor', label: 'Comprar motor de popa' },
+  { value: 'motor-revisao', label: 'Problema ou revisão no motor' },
   { value: 'estofamento', label: 'Estofamento' },
   { value: 'outro', label: 'Outro' },
 ] as const;
