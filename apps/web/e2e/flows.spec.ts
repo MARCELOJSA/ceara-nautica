@@ -216,7 +216,7 @@ test.describe('mobile', () => {
     const viewport = page.viewportSize()!;
     expect(Math.round(box.y)).toBe(0);
     expect(Math.abs(box.height - viewport.height)).toBeLessThanOrEqual(2);
-    for (const name of ['Início', 'Embarcações', 'Serviços', 'Sobre', 'Contato']) {
+    for (const name of ['Início', 'Catálogo', 'Serviços', 'Sobre', 'Contato']) {
       const link = drawer.getByRole('link', { name, exact: true });
       await expect(link).toBeVisible();
       await expect(link).toBeInViewport();

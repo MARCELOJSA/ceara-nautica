@@ -94,8 +94,8 @@ export default function About() {
           <Reveal delay={0.05}>
             <div className="aspect-[4/3] overflow-hidden rounded-md bg-steel-light">
               <SmartImage
-                src="/images/galeria/aluminio-atracado.webp"
-                alt="Barcos de alumínio atracados em um píer"
+                src="/images/sobre.webp"
+                alt="Embarcação regional navegando no rio, ao lado de um píer de madeira"
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 className="h-full w-full object-cover"
               />

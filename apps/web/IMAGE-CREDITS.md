@@ -25,7 +25,6 @@ substituídas pelas fotos reais da empresa assim que disponíveis.
 | `public/images/galeria/passeio.webp` | Azzedine Rouichi | [photo-1742648601638-c3062e720d29](https://images.unsplash.com/photo-1742648601638-c3062e720d29) | Unsplash License |
 | `public/images/galeria/barco-regional.webp` | Italo Guimas | [photo-1774453262743-451850856acf](https://images.unsplash.com/photo-1774453262743-451850856acf) | Unsplash License |
 | `public/images/galeria/igarape.webp` | Juan Orestes | [photo-1691098343433-05584b38e1bc](https://images.unsplash.com/photo-1691098343433-05584b38e1bc) | Unsplash License |
-| `public/images/galeria/aluminio-atracado.webp` | Jeff McLain | [photo-1773967671015-0f78d6c092d5](https://images.unsplash.com/photo-1773967671015-0f78d6c092d5) | Unsplash License |
 | `public/images/galeria/pesca.webp` | Anthony Bringas | [photo-1788225247365-ffa243a47619](https://images.unsplash.com/photo-1788225247365-ffa243a47619) | Unsplash License |
 | `public/images/galeria/canoa-anoitecer.webp` | Amal Rajeev | [photo-1685003361221-e4fc3ad79dd9](https://images.unsplash.com/photo-1685003361221-e4fc3ad79dd9) | Unsplash License |
 | `public/images/galeria/aguapes.webp` | Dawn McDonald | [photo-1628517273913-8d3da3700c10](https://images.unsplash.com/photo-1628517273913-8d3da3700c10) | Unsplash License |

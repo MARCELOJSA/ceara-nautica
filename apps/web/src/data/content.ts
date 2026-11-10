@@ -240,7 +240,7 @@ export const FAQ = [
 
 export const NAV_LINKS = [
   { to: '/', label: 'Início' },
-  { to: '/produtos', label: 'Embarcações' },
+  { to: '/produtos', label: 'Catálogo' },
   { to: '/servicos', label: 'Serviços' },
   { to: '/sobre', label: 'Sobre' },
   { to: '/contato', label: 'Contato' },

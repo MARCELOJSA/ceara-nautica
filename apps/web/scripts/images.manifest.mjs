@@ -38,7 +38,6 @@ export const IMAGES = [
   { id: '1774453262743-451850856acf', out: 'images/galeria/barco-regional', author: 'Italo Guimas', ...SECTION },
   { id: '1691098343433-05584b38e1bc', out: 'images/galeria/igarape', author: 'Juan Orestes', ...SECTION },
   // usada na página Sobre (não entra na galeria da Home: UX-18)
-  { id: '1773967671015-0f78d6c092d5', out: 'images/galeria/aluminio-atracado', author: 'Jeff McLain', ...SECTION },
   { id: '1788225247365-ffa243a47619', out: 'images/galeria/pesca', author: 'Anthony Bringas', ...SECTION },
   // UX-07/UX-18: substituem "oficina" (faíscas) e "aluminio-atracado" na galeria "A vida no rio"
   { id: '1685003361221-e4fc3ad79dd9', out: 'images/galeria/canoa-anoitecer', author: 'Amal Rajeev', ...SECTION, extract: { left: 0.1, top: 0.2, width: 0.6, height: 0.8 } },
