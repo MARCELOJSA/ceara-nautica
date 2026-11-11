@@ -119,7 +119,10 @@ test.describe('fluxos principais', () => {
     await expect(issue).toHaveText(/problema no motor\? descreva aqui/i);
     await expect(issue).toHaveAttribute('href', '/orcamento?servico=motor-revisao');
     // o CTA de compra (orçamento do produto) continua sendo o primeiro e principal
-    const buy = page.locator('main').getByRole('link', { name: /solicitar orçamento/i }).first();
+    const buy = page
+      .locator('main')
+      .getByRole('link', { name: /solicitar orçamento/i })
+      .first();
     await expect(buy).toHaveAttribute('href', '/orcamento?produto=motores-de-popa');
     expect((await buy.boundingBox())!.y).toBeLessThan((await issue.boundingBox())!.y);
     await expect(page.getByText(/revisão ou conserto de motor\?/i)).toBeVisible();
@@ -160,6 +163,28 @@ test.describe('fluxos principais', () => {
     }
     await cats.filter({ hasText: 'Canoas' }).click();
     await expect(page).toHaveURL(/\/produtos\?categoria=canoas$/);
+  });
+
+  test('[UX-29] /sobre: projetos da linha do tempo parecem e funcionam como links', async ({
+    page,
+  }) => {
+    await presetConsent(page);
+    await page.goto('/sobre');
+    const links = page.getByTestId('published-projects').getByTestId('project-link');
+    await expect(links.first()).toBeVisible();
+    const first = links.first();
+    await expect(first).toContainText(/ver projeto/i);
+    const box = await first.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+    const deco = await first
+      .locator('span')
+      .first()
+      .evaluate((el) => getComputedStyle(el).textDecorationLine);
+    expect(deco).toContain('underline');
+    const href = await first.getAttribute('href');
+    expect(href).toMatch(/^\/produtos\/[a-z0-9-]+$/);
+    await first.click();
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
   });
 
   test('orçamento: envio com sucesso (POST /api/quotes) e aviso de retorno', async ({

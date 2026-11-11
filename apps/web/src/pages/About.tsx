@@ -225,11 +225,22 @@ export default function About() {
                     <p className="text-sm text-steel">
                       <time dateTime={p.iso}>{p.date}</time> · {getCategory(p.category)?.name}
                     </p>
+                    {/* UX-29: nome sublinhado + "Ver projeto →" deixam claro que é link */}
                     <Link
                       to={`/produtos/${p.slug}`}
-                      className="inline-flex min-h-11 items-center font-display text-xl font-semibold text-graphite-deep uppercase hover:text-orange-ink"
+                      className="group -mx-2 mt-0.5 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 rounded-sm px-2 py-1.5 transition-colors hover:bg-steel-light/40"
+                      data-testid="project-link"
                     >
-                      {p.name}
+                      <span className="font-display text-xl font-semibold text-graphite-deep uppercase underline decoration-steel/50 decoration-2 underline-offset-4 transition-colors group-hover:text-orange-ink group-hover:decoration-orange-ink">
+                        {p.name}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold whitespace-nowrap text-orange-ink">
+                        Ver projeto
+                        <ArrowRight
+                          aria-hidden="true"
+                          className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                        />
+                      </span>
                     </Link>
                   </li>
                 ))}
