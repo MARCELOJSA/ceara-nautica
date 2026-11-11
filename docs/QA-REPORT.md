@@ -299,3 +299,70 @@ Não há problema novo de BACK (apps/api) nem de SHARED (packages/shared).
 - `apps/web/e2e/qa/final.qa.ts` (novo, 17 testes): UX-22 ponta a ponta com conferência no banco, UX-24, UX-25, UX-18, UX-23, UX-26, UX-12, UX-20, teclado no orçamento, sitemap/canonical/títulos, links externos e `[QA-11]`, `[QA-12]`, `[QA-13]`.
 
 Leads QA-TEST apagados ao final: 6 em `contact_messages` e 15 em `quote_requests`, dos quais 6 do fluxo motor-revisao, todos com `request_type=motor-revisao`. A contagem depois da limpeza é 0.
+
+---
+
+# Simulação de produção (Render)
+
+_Data: 2026-11-11 · Código: commit 933dad9 (`render.yaml`), com b0ca31c (wakeApi e espera de 90 s) e 807a0bd (zod sem eval). Objetivo: validar a publicação antes do deploy real, com site e API em origens diferentes e os headers do `render.yaml`._
+
+## Veredito para publicar
+
+**APROVADO PARA PUBLICAR, com uma correção recomendada antes (QA-14, Média).**
+
+- Os headers e a CSP do `render.yaml` funcionam: zero violações de CSP em todas as rotas, nos 11 produtos e nas interações.
+- O CORS entre as origens funciona, e a API "dormindo" não perde o pedido.
+- O QA-14 não quebra nada para o visitante, mas deixa uma requisição pendurada em `/contato`, `/orcamento` e em todas as páginas de produto. Isso pode atrapalhar a renderização pelo Google (veja a tabela). A correção é uma linha.
+
+## Ambiente montado (tudo fora do repositório, encerrado ao final)
+
+| Peça | Como |
+|---|---|
+| API "de produção" | `npx tsup` em `apps/api`, depois `node apps/api/dist/server.js` com **Node 22.23.4**, `NODE_ENV=production`, porta **3399**, `DATABASE_URL` do banco de dev local, `IP_HASH_SALT` aleatório (32 bytes), `WEB_ORIGIN=http://localhost:4196`, `TRUST_PROXY=0`, rate limit padrão (5/min), `LOG_LEVEL=info`. A API subiu passando pelas validações de produção (SEC-07). |
+| "Sono" do Render | Proxy HTTP próprio na **3398** → 3399. Sob comando, segura as requisições por N segundos, como o Render faz enquanto acorda o serviço (a conexão não é recusada). Conta os POST recebidos. |
+| Site | `vite build --outDir <temp>` com `VITE_API_URL=http://localhost:3398/api` e `VITE_SITE_URL=http://localhost:4196`. Sitemap e robots gerados com `SITEMAP_OUT_DIR` (24 URLs). |
+| Hospedagem estática | Servidor próprio na **4196**, que aplica as regras do `render.yaml`. Arquivo existente é servido; o resto vai para `/index.html` com 200. Os headers `/*` valem em todas as respostas. Cache: `/assets/*` com `public, max-age=31536000, immutable` e as rotas listadas com `no-cache`. |
+
+**Trocas em relação ao `render.yaml`, por ser http local:**
+- `connect-src 'self' https://ceara-nautica-api.onrender.com` virou `connect-src 'self' http://localhost:3398`;
+- sem `upgrade-insecure-requests`;
+- sem `Strict-Transport-Security`.
+
+**Conveniência só para os testes:** o servidor da 4196 repassa `/api/*` à API, porque várias suítes chamam `/api/...` relativo à origem. O Render não faz isso e o site não usa esse caminho. A varredura de rede confirmou que **o site chama a API só pela URL absoluta** (`sameOriginApi: []`).
+
+## Resultados
+
+| Verificação | Resultado |
+|---|---|
+| (a) Headers do site (`headers.qa.ts` com `QA_HEADERS_URL=http://localhost:4196` e `QA_API_ORIGIN=http://localhost:3398`) | **5/5**. CSP sem `unsafe-eval` nem `unsafe-inline` em `script-src`, `object-src 'none'`, `frame-ancestors 'none'`, `connect-src` com a origem da API, `X-Frame-Options: DENY`, `COOP: same-origin`, nosniff, Referrer-Policy e Permissions-Policy; sem `X-Powered-By`. HSTS só é exigido em https e não foi testado (depende do Render). |
+| (b) Violações de CSP (`production.qa.ts`) | **Zero** (evento `securitypolicyviolation` e console) em 7 rotas, 404, catálogo com filtro e busca, 11 produtos com lightbox (abrir, seta, Esc) e FAQ, FAQ de `/servicos`, formulários com erro, envio real de contato e de orçamento, menu móvel e lightbox por toque a 360 px, banner de cookies (recusar e depois salvar preferências). O zod roda sem `eval` (807a0bd): nenhuma violação nos formulários. |
+| (c) CORS real | Envio pela 4196 para a 3398: **201**, com `Access-Control-Allow-Origin: http://localhost:4196`. Contato e orçamento `motor-revisao` gravados no banco (1 linha cada). A mesma página servida por `http://127.0.0.1:4196`, uma origem fora do `WEB_ORIGIN`, teve o `fetch` **bloqueado** e **nada foi gravado**. O preflight de `https://evil.example` volta sem `Access-Control-Allow-Origin`. |
+| (d) API "dormindo" (25 s retidos) | O formulário apareceu (o catálogo usou o fallback local após 8 s). Após 4 s veio o aviso **"Conectando ao servidor… isso pode levar alguns segundos na primeira vez. Não feche a página."**, com o botão desabilitado. O sucesso veio aos **25 s**. O proxy reteve 3 requisições e recebeu **exatamente 1 POST** `/api/quotes`, mesmo com clique extra durante a espera, e **1 lead** foi gravado. |
+| (e) Cache | `/assets/*.js`: `public, max-age=31536000, immutable`. `/`, `/produtos`, `/produtos/<slug>`, `/sobre`, `/servicos`, `/contato`, `/orcamento` e `/politica-de-privacidade`: `no-cache`. Arquivos sensíveis (`.env`, `.git/config`, `package.json`, `src/main.tsx`, `vite.config.ts`) não são servidos e não há sourcemaps. |
+| (f) Rewrite SPA | `/produtos/canoa-aluminio-7m`, `/produtos?categoria=botes`, `/orcamento?servico=motor-revisao`, as demais rotas e `/rota-que-nao-existe` respondem 200 com o `index.html`, CSP e `no-cache` (na rota inexistente, o 404 é mostrado pelo próprio site). |
+| Suíte QA completa contra a 4196 (146 testes, com `QA_DRAIN_WAKE=1`) | **141 passaram, 2 falharam, 3 pulados.** As 2 falhas (`responsive.qa.ts` "banner de cookies a 360px" e `xss-consent.qa.ts` "antes do aceite") são testes de primeira visita, sem o contorno, que travam em `networkidle` em `/orcamento` e `/contato`: são o QA-14. Os 3 pulados são o `production.qa.ts`, rodado à parte. |
+| `production.qa.ts` (rodado sozinho por causa do rate limit) | **3/3** passaram. |
+| Sem o contorno do QA-14 | A suíte trava: todo teste que abre `/contato`, `/orcamento` ou um produto espera `networkidle` até o tempo limite de 90 s. A execução foi interrompida no teste 10 de 146, com 5 falhas por esse motivo. |
+
+## Problemas
+
+| ID | Gravidade | Área | Página / componente | Passos | Esperado × obtido | Evidência | Sugestão | Arquivo |
+|---|---|---|---|---|---|---|---|---|
+| QA-14 | Média | FRONT | `wakeApi()`, chamado em `/contato`, `/orcamento` e nas páginas de produto | Abrir `/contato` no Chromium e esperar a rede ficar ociosa (`page.goto(..., { waitUntil: 'networkidle' })`). | **Esperado:** o `GET /api/health` do despertar termina e a página fica ociosa em menos de 1 s. **Obtido:** os headers chegam em cerca de 150 ms, mas o corpo nunca é lido. O `fetch(...).catch()` descarta a resposta sem consumir nem cancelar o corpo, e a requisição fica "em andamento" indefinidamente. Isso acontece com a API direta (3399) e com a de dev (3333), então não é efeito do proxy. A página **nunca** chega a `networkidle`: tempo limite de 15 s em `/contato`, `/orcamento` e `/produtos/<slug>`, enquanto `/sobre` fica ociosa em 650 ms. **Impacto:** o Googlebot renderiza com Chromium e espera a rede assentar; páginas de produto podem demorar ou ser cortadas na indexação. Monitores e o Lighthouse sofrem o mesmo efeito, e cada aba mantém uma conexão presa. O visitante não percebe nada. | Script de diagnóstico (`networkidle` em 15 s: TIMEOUT nas 3 páginas; com o corpo cancelado: 657 a 663 ms). Falhas da suíte sem `QA_DRAIN_WAKE`. | Consumir ou cancelar o corpo: `fetch(...).then((r) => r.body?.cancel()).catch(() => undefined)` (ou `r.text()`). Teste sugerido: depois de `wakeApi()`, a requisição termina (`requestfinished`). | `apps/web/src/lib/api.ts` (`wakeApi`) |
+
+**Observações (sem defeito):**
+- **Caminhos sem regra de `Cache-Control` no `render.yaml`:** `/rota-inexistente`, `/images/*`, `/favicon*`, `/sitemap.xml`, `/robots.txt` e `/site.webmanifest`. Eles ficam com o padrão do Render. As imagens não têm hash no nome; um cache curto é aceitável. Para cache longo, renomear com hash quando chegarem as fotos reais.
+- **`TRUST_PROXY=3`:** a cadeia de proxies do Render não pode ser reproduzida localmente. Conferir no primeiro deploy (por exemplo, 6 envios seguidos de dois celulares diferentes não devem se bloquear entre si).
+- **Rotas inexistentes:** respondem HTTP 200, por causa do rewrite SPA do Render. O `noindex` evita indexação.
+
+## Testes alterados ou criados nesta rodada
+
+- `apps/web/e2e/qa/headers.qa.ts`:
+  - deixa de marcar `localhost` como falha esperada;
+  - exige HSTS só em https;
+  - confere `script-src 'self'`, `object-src`, `X-Frame-Options`, COOP e, com `QA_API_ORIGIN`, o `connect-src`;
+  - teste novo do rewrite SPA (rotas profundas e 404).
+- `apps/web/e2e/qa/production.qa.ts` (novo; roda só com `QA_API_URL`): varredura de CSP com envio real, CORS entre origens e API "dormindo" (exige `QA_PROXY_CONTROL`).
+- `apps/web/e2e/qa/qa-helpers.ts`: contorno opcional do QA-14 (`QA_DRAIN_WAKE=1`), que cancela o corpo da resposta do `/health`. Remover quando o QA-14 for corrigido.
+
+Leads QA-TEST apagados ao final: 4 em `contact_messages` e 10 em `quote_requests`. A contagem depois da limpeza é 0, e o envio da origem não autorizada não gravou nada.
