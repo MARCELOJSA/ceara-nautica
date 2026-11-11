@@ -306,16 +306,24 @@ describe('Página /orcamento?servico=motor-revisao (UX-22)', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
   });
 
-  it('abre com "Problema ou revisão no motor", roteiro na mensagem e sem Categoria/Modelo', async () => {
+  it('abre com "Problema ou revisão no motor", roteiro como exemplo e sem Categoria/Modelo', async () => {
     renderAt(<Quote />, { route: '/orcamento?servico=motor-revisao' });
     const type = await screen.findByLabelText<HTMLSelectElement>(/tipo de solicitação/i);
     expect(type).toHaveValue('motor-revisao');
     expect(type.selectedOptions[0]!.textContent).toBe('Problema ou revisão no motor');
-    expect(screen.getByLabelText(/conte o que você precisa/i)).toHaveValue(
-      'Modelo/potência do motor e o que está acontecendo: ',
+    // UX-28: o roteiro é texto de exemplo (placeholder), não conteúdo do campo
+    const msg = screen.getByLabelText(/conte o que você precisa/i);
+    expect(msg).toHaveValue('');
+    expect(msg).toHaveAttribute(
+      'placeholder',
+      'Modelo/potência do motor e o que está acontecendo…',
     );
     expect(screen.getByTestId('product-fields')).not.toBeVisible();
-    expect(screen.getByText(/marca, modelo e potência do motor/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /marca, modelo e potência do motor, o que está acontecendo e desde quando. A equipe/i,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('envia requestType motor-revisao e a categoria de motores', async () => {
@@ -337,8 +345,7 @@ describe('Página /orcamento?servico=motor-revisao (UX-22)', () => {
     expect(body).toMatchObject({
       requestType: 'motor-revisao',
       category: 'motores-de-popa',
-      message:
-        'Modelo/potência do motor e o que está acontecendo: Yamaha 40 hp, falha ao acelerar.',
+      message: 'Yamaha 40 hp, falha ao acelerar.',
     });
     expect(body).not.toHaveProperty('productSlug');
   });
@@ -353,6 +360,120 @@ describe('Página /orcamento?servico=motor-revisao (UX-22)', () => {
     renderAt(<Quote />, { route: '/orcamento?servico=motores&categoria=motores-de-popa' });
     expect(await screen.findByLabelText(/tipo de solicitação/i)).toHaveValue('motor');
     expect(screen.getByTestId('product-fields')).toBeVisible();
+  });
+});
+
+describe('[UX-28] pedido de serviço exige descrição escrita pela pessoa', () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+  });
+
+  async function submitWith(route: string, message?: string) {
+    const user = userEvent.setup();
+    renderAt(<Quote />, { route });
+    const msg = await screen.findByLabelText(/conte o que você precisa/i);
+    if (message) await user.type(msg, message);
+    await user.type(screen.getByLabelText(/^nome/i), 'Carlos');
+    await user.type(screen.getByLabelText(/telefone/i), '92988887777');
+    await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
+    await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
+    return msg;
+  }
+  const quotePosts = () =>
+    vi.mocked(fetch).mock.calls.filter((c) => String(c[0]).includes('/api/quotes'));
+
+  it('motor: enviar sem escrever nada mostra "Conte o que está acontecendo com o motor." e não envia', async () => {
+    const msg = await submitWith('/orcamento?servico=motor-revisao');
+    expect(await screen.findByText('Conte o que está acontecendo com o motor.')).toBeVisible();
+    expect(msg).toHaveAttribute('aria-invalid', 'true');
+    expect(msg).toHaveFocus();
+    expect(quotePosts()).toHaveLength(0);
+  });
+
+  it('motor: texto curto pede mais detalhes', async () => {
+    await submitWith('/orcamento?servico=motor-revisao', 'falha');
+    expect(
+      await screen.findByText(
+        'Conte o que está acontecendo com o motor. Escreva pelo menos 10 caracteres.',
+      ),
+    ).toBeVisible();
+    expect(quotePosts()).toHaveLength(0);
+  });
+
+  it.each([
+    ['reparos', 'Conte o que aconteceu com a embarcação.'],
+    ['manutencao', 'Conte o que precisa ser feito na embarcação.'],
+    ['estofamento', 'Conte o que precisa no estofamento.'],
+  ])('?servico=%s abre com a mensagem vazia e pede a descrição', async (servico, error) => {
+    const msg = await submitWith(`/orcamento?servico=${servico}`);
+    expect(msg).toHaveValue('');
+    expect(msg.getAttribute('placeholder')).toBeTruthy();
+    expect(await screen.findByText(error)).toBeVisible();
+    expect(quotePosts()).toHaveLength(0);
+  });
+
+  it('sem tipo de serviço, mantém a mensagem genérica do schema', async () => {
+    await submitWith('/orcamento');
+    expect(
+      await screen.findByText('Descreva o que você precisa (mín. 10 caracteres).'),
+    ).toBeVisible();
+  });
+});
+
+describe('[UX-30] topo e "Como funciona" conforme o tipo de pedido', () => {
+  beforeEach(() => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+  });
+  const h1 = () => screen.getByRole('heading', { level: 1 });
+  const steps = () => screen.getByTestId('quote-steps');
+
+  it('sem tipo: embarcação sob medida (como antes)', async () => {
+    renderAt(<Quote />, { route: '/orcamento' });
+    await screen.findByLabelText(/tipo de solicitação/i);
+    expect(h1()).toHaveTextContent('Solicite seu orçamento');
+    expect(screen.getByText(/cada embarcação é feita sob medida/i)).toBeInTheDocument();
+    expect(steps()).toHaveTextContent(/tipo de embarcação, uso, tamanho, motorização e cor/i);
+  });
+
+  it.each(['reparos', 'manutencao', 'estofamento'])(
+    '?servico=%s: textos de serviço, sem "sob medida"',
+    async (servico) => {
+      renderAt(<Quote />, { route: `/orcamento?servico=${servico}` });
+      await screen.findByLabelText(/tipo de solicitação/i);
+      expect(h1()).toHaveTextContent('Peça o orçamento do serviço');
+      expect(screen.queryByText(/cada embarcação é feita sob medida/i)).not.toBeInTheDocument();
+      expect(steps()).toHaveTextContent(/o que precisa ser feito e onde ela está/i);
+      expect(steps()).toHaveTextContent(/a equipe confirma se atende o seu caso/i);
+      expect(steps()).not.toHaveTextContent(/motorização e cor/i);
+    },
+  );
+
+  it('?servico=motor-revisao: problema no motor, sem prometer conserto', async () => {
+    renderAt(<Quote />, { route: '/orcamento?servico=motor-revisao' });
+    await screen.findByLabelText(/tipo de solicitação/i);
+    expect(h1()).toHaveTextContent('Problema ou revisão no motor');
+    expect(screen.queryByText(/cada embarcação é feita sob medida/i)).not.toBeInTheDocument();
+    expect(steps()).toHaveTextContent(/marca, modelo e potência do motor/i);
+    expect(steps()).toHaveTextContent(/a equipe confirma se atende o seu caso/i);
+  });
+
+  it('?servico=motores: compra de motor', async () => {
+    renderAt(<Quote />, { route: '/orcamento?servico=motores&categoria=motores-de-popa' });
+    await screen.findByLabelText(/tipo de solicitação/i);
+    expect(h1()).toHaveTextContent('Orçamento de motor de popa');
+    expect(steps()).toHaveTextContent(/potência que você procura/i);
+  });
+
+  it('acompanha o tipo escolhido no formulário', async () => {
+    const user = userEvent.setup();
+    renderAt(<Quote />, { route: '/orcamento' });
+    const type = await screen.findByLabelText(/tipo de solicitação/i);
+    await user.selectOptions(type, 'reparo');
+    expect(h1()).toHaveTextContent('Peça o orçamento do serviço');
+    await user.selectOptions(type, 'motor-revisao');
+    expect(h1()).toHaveTextContent('Problema ou revisão no motor');
+    await user.selectOptions(type, 'nova-embarcacao');
+    expect(h1()).toHaveTextContent('Solicite seu orçamento');
   });
 });
 

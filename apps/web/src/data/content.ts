@@ -145,8 +145,8 @@ export const GALLERY: GalleryImage[] = [
  */
 export const CATEGORY_COVERS: Record<CategorySlug, { src: string; alt: string }> = {
   lanchas: {
-    src: '/images/products/lancha-aluminio-7m-1.webp',
-    alt: 'Lancha de alumínio navegando',
+    src: '/images/products/lancha-aluminio-10m-1.webp',
+    alt: 'Lancha de alumínio com capota navegando',
   },
   canoas: { src: '/images/products/canoa-aluminio-6m-1.webp', alt: 'Canoa de alumínio no rio' },
   botes: {
@@ -214,29 +214,22 @@ export const SERVICE_TO_REQUEST_TYPE: Record<string, RequestType> = {
   estofamento: 'estofamento',
 };
 
-/** Pré-preenchimento do orçamento por ?servico= (tipo, mensagem e categoria). */
+/**
+ * Pré-preenchimento do orçamento por ?servico= (tipo e categoria).
+ * UX-28: a mensagem NÃO vem mais escrita — o roteiro virou texto de exemplo
+ * (placeholder) e dica abaixo do campo, para não contar como descrição.
+ */
 export interface QuotePreset {
   requestType: RequestType;
-  message: string;
   category?: CategorySlug;
 }
 
 export const QUOTE_PRESETS: Record<string, QuotePreset> = {
   ...Object.fromEntries(
-    SERVICES.map((s) => [
-      s.slug,
-      {
-        requestType: SERVICE_TO_REQUEST_TYPE[s.slug]!,
-        message: `Tenho interesse no serviço: ${s.title}.\n\n`,
-      },
-    ]),
+    SERVICES.map((s) => [s.slug, { requestType: SERVICE_TO_REQUEST_TYPE[s.slug]! }]),
   ),
   // UX-22: motor falhando tem caminho próprio (não é "comprar motor")
-  'motor-revisao': {
-    requestType: 'motor-revisao',
-    message: 'Modelo/potência do motor e o que está acontecendo: ',
-    category: 'motores-de-popa',
-  },
+  'motor-revisao': { requestType: 'motor-revisao', category: 'motores-de-popa' },
 };
 
 /** Preset do ?servico= (ignora chaves herdadas como "constructor"). */
@@ -268,6 +261,134 @@ export const QUOTE_MESSAGE_HINTS: Partial<Record<RequestType, string>> & { defau
   estofamento: 'Ex.: quais assentos ou almofadas, quantidade, cor desejada e tipo de embarcação.',
   motor: 'Ex.: tipo e tamanho da embarcação, uso e potência que você procura.',
 };
+
+/**
+ * Texto de exemplo (placeholder) do campo de mensagem conforme o tipo (UX-28).
+ * Some ao digitar; a dica abaixo do campo continua visível.
+ */
+export const QUOTE_MESSAGE_PLACEHOLDERS: Partial<Record<RequestType, string>> & {
+  default: string;
+} = {
+  default: 'Escreva com suas palavras o que você precisa.',
+  'nova-embarcacao': 'Ex.: canoa de uns 6 m para pesca, com motor de 15 hp.',
+  reparo: 'Ex.: lancha de 7 m com o casco amassado na proa. Está em Manaus.',
+  manutencao: 'Ex.: canoa de 6 m; o casco e o acabamento precisam de cuidado.',
+  'motor-revisao': 'Modelo/potência do motor e o que está acontecendo…',
+  estofamento: 'Ex.: 4 assentos de lancha para reformar.',
+  motor: 'Ex.: bote de 6 m para pesca; procuro motor de uns 25 hp.',
+};
+
+/**
+ * Erro do campo de mensagem vazia/curta em pedidos de serviço (UX-28): diz
+ * com clareza o que falta escrever, em vez do genérico "Descreva o que você precisa".
+ */
+export const QUOTE_MESSAGE_REQUIRED: Partial<Record<RequestType, string>> = {
+  'motor-revisao': 'Conte o que está acontecendo com o motor.',
+  reparo: 'Conte o que aconteceu com a embarcação.',
+  manutencao: 'Conte o que precisa ser feito na embarcação.',
+  estofamento: 'Conte o que precisa no estofamento.',
+};
+
+export interface QuotePageCopy {
+  title: string;
+  intro: string;
+  steps: { title: string; text: string }[];
+}
+
+const STEP_CALLBACK = {
+  title: 'A equipe retorna',
+  text: 'Retornamos pelo telefone informado (ligação ou WhatsApp).',
+};
+
+/**
+ * Topo e "Como funciona" do /orcamento conforme o tipo do pedido (UX-30).
+ * Conserto não é compra de barco novo; e em motor com problema a equipe
+ * confirma se atende (nada prometido).
+ */
+export const QUOTE_PAGE_COPY: Record<
+  'embarcacao' | 'servico' | 'motor-revisao' | 'motor',
+  QuotePageCopy
+> = {
+  embarcacao: {
+    title: 'Solicite seu orçamento',
+    intro:
+      'Cada embarcação é feita sob medida. Quanto mais detalhes você enviar, mais preciso será o retorno da nossa equipe.',
+    steps: [
+      {
+        title: 'Você conta o que precisa',
+        text: 'Tipo de embarcação, uso, tamanho, motorização e cor.',
+      },
+      {
+        title: 'Um vendedor retorna',
+        text: 'Retornamos pelo telefone informado (ligação ou WhatsApp).',
+      },
+      {
+        title: 'Orçamento completo',
+        text: 'Prazo, pagamento e demais condições são informados no orçamento.',
+      },
+    ],
+  },
+  servico: {
+    title: 'Peça o orçamento do serviço',
+    intro:
+      'Conte com suas palavras o que precisa ser feito e onde a embarcação está. A equipe analisa o pedido e retorna.',
+    steps: [
+      {
+        title: 'Você conta o que precisa',
+        text: 'Tipo e tamanho da embarcação, o que precisa ser feito e onde ela está.',
+      },
+      STEP_CALLBACK,
+      {
+        title: 'Avaliação e orçamento',
+        text: 'A equipe confirma se atende o seu caso. Preço e prazo são informados no orçamento.',
+      },
+    ],
+  },
+  'motor-revisao': {
+    title: 'Problema ou revisão no motor',
+    intro:
+      'Conte qual é o motor e o que está acontecendo. A equipe analisa o pedido e confirma se atende o seu caso.',
+    steps: [
+      {
+        title: 'Você descreve o problema',
+        text: 'Marca, modelo e potência do motor, o que está acontecendo e desde quando.',
+      },
+      STEP_CALLBACK,
+      {
+        title: 'Resposta da equipe',
+        text: 'A equipe confirma se atende o seu caso. Se atender, preço e prazo são informados no orçamento.',
+      },
+    ],
+  },
+  motor: {
+    title: 'Orçamento de motor de popa',
+    intro:
+      'Conte qual é a sua embarcação e como você vai usá-la. Marcas, modelos e potências disponíveis são informados no orçamento.',
+    steps: [
+      {
+        title: 'Você conta o que precisa',
+        text: 'Tipo e tamanho da embarcação, uso e potência que você procura.',
+      },
+      {
+        title: 'Um vendedor retorna',
+        text: 'Retornamos pelo telefone informado (ligação ou WhatsApp).',
+      },
+      {
+        title: 'Orçamento completo',
+        text: 'Modelos disponíveis, preço e condições são informados no orçamento.',
+      },
+    ],
+  },
+};
+
+/** Textos do /orcamento para o tipo de pedido atual (vazio/outro = embarcação). */
+export function quotePageCopy(requestType: string | undefined): QuotePageCopy {
+  if (requestType === 'motor-revisao') return QUOTE_PAGE_COPY['motor-revisao'];
+  if (requestType === 'motor') return QUOTE_PAGE_COPY.motor;
+  if (requestType && (SERVICE_REQUEST_TYPES as readonly string[]).includes(requestType))
+    return QUOTE_PAGE_COPY.servico;
+  return QUOTE_PAGE_COPY.embarcacao;
+}
 
 /** Perguntas frequentes — respostas só com fatos confirmados; o resto, "no orçamento". */
 export const FAQ = [

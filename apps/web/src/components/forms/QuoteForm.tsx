@@ -16,7 +16,12 @@ import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { productImages } from '@/lib/images';
-import { QUOTE_MESSAGE_HINTS, SERVICE_REQUEST_TYPES } from '@/data/content';
+import {
+  QUOTE_MESSAGE_HINTS,
+  QUOTE_MESSAGE_PLACEHOLDERS,
+  QUOTE_MESSAGE_REQUIRED,
+  SERVICE_REQUEST_TYPES,
+} from '@/data/content';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
 import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
@@ -48,7 +53,9 @@ const FIELDS = [
 const baseResolver = zodResolver(quoteSchema);
 
 /** Campos opcionais vazios viram undefined antes do Zod (enum/regex não aceitam ""). */
-const resolver: Resolver<QuoteFormValues> = (values, ctx, opts) => {
+const MESSAGE_MIN = 10;
+
+const resolver: Resolver<QuoteFormValues> = async (values, ctx, opts) => {
   const v = values as QuoteFormValues;
   const prepared = {
     ...v,
@@ -57,11 +64,21 @@ const resolver: Resolver<QuoteFormValues> = (values, ctx, opts) => {
     productSlug: v.productSlug || undefined,
     city: v.city || undefined,
   };
-  return (baseResolver as unknown as Resolver<QuoteFormValues>)(
+  const result = await (baseResolver as unknown as Resolver<QuoteFormValues>)(
     prepared as unknown as QuoteFormValues,
     ctx,
     opts,
   );
+  // UX-28: em pedido de serviço, mensagem vazia/curta diz o que falta contar
+  const required = QUOTE_MESSAGE_REQUIRED[v.requestType as keyof typeof QUOTE_MESSAGE_REQUIRED];
+  const msgError = result.errors.message;
+  const text = (v.message ?? '').trim();
+  if (required && msgError && text.length < MESSAGE_MIN) {
+    msgError.message = text
+      ? `${required} Escreva pelo menos ${MESSAGE_MIN} caracteres.`
+      : required;
+  }
+  return result;
 };
 
 interface Props {
@@ -70,6 +87,8 @@ interface Props {
   initialCategory?: string;
   initialMessage?: string;
   initialRequestType?: string;
+  /** Avisa a página do tipo de pedido atual (topo e "Como funciona", UX-30). */
+  onRequestTypeChange?: (requestType: string) => void;
 }
 
 /** Sugere o tipo de solicitação a partir da categoria escolhida. */
@@ -88,6 +107,7 @@ export function QuoteForm({
   initialCategory,
   initialMessage = '',
   initialRequestType,
+  onRequestTypeChange,
 }: Props) {
   const initialProduct = products.find((p) => p.slug === initialProductSlug);
   const validInitialType =
@@ -171,6 +191,14 @@ export function QuoteForm({
   const serviceType =
     !typeIsAuto.current && (SERVICE_REQUEST_TYPES as readonly string[]).includes(requestType);
   const hideProductFields = compact || serviceType;
+  const messagePlaceholder =
+    QUOTE_MESSAGE_PLACEHOLDERS[requestType as keyof typeof QUOTE_MESSAGE_PLACEHOLDERS] ??
+    QUOTE_MESSAGE_PLACEHOLDERS.default;
+
+  useEffect(() => {
+    onRequestTypeChange?.(requestType);
+  }, [requestType, onRequestTypeChange]);
+
   const messageHint =
     QUOTE_MESSAGE_HINTS[requestType as keyof typeof QUOTE_MESSAGE_HINTS] ??
     QUOTE_MESSAGE_HINTS.default;
@@ -404,6 +432,7 @@ export function QuoteForm({
       <TextAreaField
         label="Conte o que você precisa"
         hint={messageHint}
+        placeholder={messagePlaceholder}
         error={errors.message?.message}
         {...register('message')}
       />

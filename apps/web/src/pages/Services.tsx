@@ -17,8 +17,8 @@ export default function Services() {
   return (
     <>
       <Seo
-        title="Serviços — Fabricação, reparos e manutenção náutica em Manaus"
-        description="Fabricação de embarcações em Manaus, reparos, manutenção náutica, revenda de motores de popa e estofamento náutico. Fale com a Ceará Náutica."
+        title="Serviços náuticos e reparos em Manaus"
+        description="Fabricação de embarcações em alumínio em Manaus, reparos, manutenção náutica, revenda de motores de popa e estofamento náutico. Fale com a Ceará Náutica."
         path="/servicos"
         jsonLd={[breadcrumbJsonLd(crumbs), faqJsonLd(FAQ)]}
       />
