@@ -2,7 +2,7 @@
 
 _Atualizado: 2026-11-10 · Agente: AGENT 03 (QA técnico) · Escopo: `apps/web`, `apps/api`, `packages/shared`, integração e ambiente de desenvolvimento._
 
-A [Rodada 2](#rodada-2--revalidação-após-as-correções) está no fim do documento. A Rodada 1 vem a seguir, sem alterações.
+A [Rodada 2](#rodada-2--revalidação-após-as-correções) e a [Rodada final](#rodada-final--regressão-e-revisão-geral) (com o veredito) estão no fim do documento. A Rodada 1 vem a seguir, sem alterações.
 
 # Rodada 1
 
@@ -209,3 +209,93 @@ Nenhum problema novo de gravidade Média, Alta ou Crítica.
 | Lint e tipos dos testes | `npx eslint e2e/qa/` · `tsc -p tsconfig.node.json` | OK |
 
 Leads QA-TEST apagados ao final: 8 em `contact_messages` e 12 em `quote_requests`. A contagem depois da limpeza é 0.
+
+---
+
+# Rodada final — regressão e revisão geral
+
+_Data: 2026-11-10 · Build testado: `http://localhost:4190`, gerado do HEAD **2b149ae**, que tem o mesmo código de f5d9000 (depois dele só mudou documentação). API em `:3333`, iniciada de novo pelo orquestrador, e banco de dev semeado._
+
+**Ambiente:**
+- O build da 4190 foi gerado sem o passo do sitemap. A suíte principal (`npm run build`) regenerou o mesmo `dist` com `sitemap.xml` e `robots.txt`, a partir do mesmo commit.
+- Durante a suíte QA, a API em `tsx watch` reiniciou várias vezes porque outro processo, fora do QA, rodou `prisma generate` e apagou `node_modules/.prisma/client`. Um `GET /api/products` respondeu 500 (proxy sem API) no meio de `responsive.qa.ts` (1280 px). O teste rodado de novo passou, e 60 requisições simultâneas a `/api/products` responderam 200. Não é defeito do produto.
+
+## Veredito
+
+**APROVADO TECNICAMENTE, com pendências de gravidade Baixa e Média sem bloqueio.**
+
+- Não há problema Crítico ou Alto. Todos os apontamentos anteriores (QA-01 a QA-08 e QA-10) estão corrigidos e cobertos por testes de regressão.
+- As suítes passam, exceto os 3 testes `[QA-11]`, `[QA-12]` e `[QA-13]`, que reproduzem as pendências novas abaixo.
+
+**Pendências**
+
+| ID | Gravidade | Bloqueia publicação? |
+|---|---|---|
+| QA-12 | Média | Não. É falha de acessibilidade WCAG 2.2 AA (2.4.11) em casos de navegação por teclado; recomendada antes de publicar, porque a correção é uma linha de CSS. |
+| QA-11 | Baixa | Não |
+| QA-13 | Baixa | Não |
+| QA-09 | Média (ambiente) | Não. O dev `:5173` não está no ar e o cache `apps/web/node_modules/.vite/deps` em disco **ainda é o antigo** (09/11, React Router 6.30.6). Por isso não foi possível confirmar a resolução. O Vite deve invalidar o cache ao iniciar, porque o lockfile mudou; por segurança, subir o dev com `npx vite --force`. |
+| SEC-04 | Média | Headers de segurança na hospedagem; condição para publicar, já registrada no SECURITY-REPORT. |
+
+## Regressão das mudanças desde a rodada 2 (`final.qa.ts`, novo)
+
+- [x] **QA-10 corrigido**: "chata" e "semichata" trazem só a semi-chata (`regression-r2.qa.ts` `[QA-10 corrigido]`, renomeado pelo orquestrador).
+- [x] **UX-22, motor com defeito, ponta a ponta com envio real**:
+  - "Problema no motor? Descreva aqui" aparece em `/servicos` e em `/produtos/motores-de-popa`, sempre com `href=/orcamento?servico=motor-revisao`.
+  - No formulário, o tipo vem como "Problema ou revisão no motor", Categoria e Modelo ficam ocultos, e a mensagem e a dica são específicas de motor.
+  - O POST leva `requestType: "motor-revisao"` e não leva `productSlug`. A API responde 201 e a tela de sucesso mostra o telefone.
+  - **No banco** (`quote_requests`, via `docker exec`) ficou gravado `request_type=motor-revisao`, `category=motores-de-popa` e `product_slug` vazio.
+- [x] **UX-24, campos por tipo**:
+  - Reparo, Manutenção, Problema no motor e Estofamento escondem Categoria e Modelo. Nova embarcação, Comprar motor, Outro e vazio mostram os dois campos.
+  - Um modelo escolhido antes de trocar para um tipo de serviço não vai no envio.
+  - Escolher a categoria Estofamentos sugere o tipo sem esconder os campos sob o dedo.
+- [x] **UX-21**: a tela de sucesso mostra "Número errado?" e "Corrigir o telefone" (`regression-r2.qa.ts`). Os dados ficam preservados e o foco vai para o telefone.
+- [x] **UX-18**: em 1280 e 390 px, nenhuma foto dos destaques repete uma capa de categoria da Home (comparando o nome-base da foto, sem o sufixo de tamanho). Não há destaques repetidos e a Lancha 7 m saiu.
+- [x] **UX-23**: os 9 cards de embarcação no catálogo, na Home e nos relacionados têm "Indicado para:", sem termos repetidos.
+- [x] **UX-20**: no celular, a introdução de `/produtos` é curta (menos de 220 caracteres) e termina em frase completa.
+- [x] **UX-26**: `/sobre` tem "Categorias em destaque", com links para `/produtos?categoria=`, e "Ver no Instagram" com `target=_blank` e `rel=noopener`.
+- [x] **UX-12 e UX-25**: as duas canoas têm a mesma ficha (Comprimento, Boca / Pontal, Material do casco, Capota, Motorização). Telefone com letras mostra "Use apenas números".
+
+## Revisão geral
+
+- [x] **Rotas e produtos**: 7 páginas, 6 categorias, 11 produtos, 404 e produto inexistente abrem sem erro. O sitemap tem 24 URLs e todas abrem, sem 404, com título único e canonical igual à URL.
+- [x] **Console, rede e imagens**: zero erros, avisos, requisições falhas e imagens quebradas em todas as páginas e produtos, em 1280 e 360 px (`regression-r2.qa.ts`). A suíte de segurança confere que todas as imagens existem e têm `alt`.
+- [x] **Links**: nenhum link interno quebrado (crawl). Todo link externo abre em nova aba com `rel="noopener noreferrer"`.
+- [x] **Teclado**: o orçamento pode ser preenchido e enviado só com Tab, digitação, Espaço e Enter. Menu móvel com foco preso e Esc, lightbox, FAQ e skip link funcionam. **Exceções: QA-11 e QA-12.**
+- [x] **Acessibilidade estática**, nas 11 rotas em 1280 e 360 px:
+  - nenhum `id` duplicado;
+  - nenhum link ou botão sem nome acessível;
+  - nenhuma imagem sem `alt`;
+  - `lang="pt-BR"`;
+  - um `h1` por página e headings sem saltos.
+- [x] **Responsividade**: sem rolagem horizontal e sem texto ou botão cortado em 360, 390, 768, 1024, 1280 e 1920 px. Alvos de toque de pelo menos 44 px. Barra inferior em uma linha a 360 px. Sem botão flutuante no desktop.
+- [x] **SEO**:
+  - título e description únicos, canonical, JSON-LD válido (`Product`, `BreadcrumbList`, `FAQPage`, `LocalBusiness`);
+  - `noindex` no 404;
+  - `robots.txt` com `Sitemap:`, que só existe com `npm run build`; a 4190 tinha sido gerada só com `vite build`, e a suíte principal regenerou o `dist` com sitemap.
+  - **Exceção: QA-13.** O domínio do sitemap vem de `VITE_SITE_URL`, que deve ser trocado pelo domínio final.
+- [x] **CLS**: menor que 0,1 em todas as páginas, no desktop e no celular (máximo de 0,030 na rodada 2; mantido).
+
+## Problemas novos
+
+| ID | Gravidade | Área | Página / componente | Passos para reproduzir | Esperado × obtido | Evidência | Sugestão de correção | Arquivo provável |
+|---|---|---|---|---|---|---|---|---|
+| QA-11 | Baixa | FRONT | Todos os campos de formulário (`.field-input`): contato, orçamento, busca do catálogo | Focar um campo com Tab. | **Esperado:** o contorno laranja de 2 px definido em `focus-visible:outline-2 focus-visible:outline-orange`. **Obtido:** `outline-style: none`. Só a borda de 1 px escurece, de cinza claro para grafite. O foco ainda é perceptível, mas fraco e diferente do resto do site. Causa: no Tailwind v4, `focus:outline-none` define `--tw-outline-style: none`, e o `focus-visible:outline-2` herda esse valor. | `final.qa.ts` › `[QA-11]` (13 campos em `/contato` e `/orcamento`, mais a busca); estilo calculado `outline: none 2px` com `:focus-visible` ativo | Trocar `focus:outline-none` por `focus:outline-hidden` (equivalente do Tailwind v4) ou removê-lo da classe `.field-input`. | `apps/web/src/styles/index.css` (`.field-input`) |
+| QA-12 | Média | FRONT | Layout: cabeçalho fixo (desktop) e barra inferior fixa (celular) | (a) 1280 px, `/servicos`: focar o 1º link do rodapé e voltar com Shift+Tab pelo FAQ. (b) 360 px, `/`: avançar com Tab pelos destaques. | **Esperado:** o elemento focado fica ao menos parcialmente visível (WCAG 2.2, 2.4.11). **Obtido:** (a) as perguntas "Vocês fazem a embarcação…" e "Posso escolher a cor…" ficam 100% sob o cabeçalho fixo (76 px); "Ver todas" na Home também. (b) o card "Lancha Cargueira tipo Iguaraçu" fica 100% sob a barra inferior. O navegador rola apenas o mínimo e não desconta as barras fixas. | `final.qa.ts` › `[QA-12]`; medição de 0 px visíveis entre a borda do cabeçalho e a da barra | `html { scroll-padding-top: <altura do cabeçalho + folga, ~88px>; }` e, abaixo de `lg`, `scroll-padding-bottom: <altura da barra + folga, ~5.5rem>`. | `apps/web/src/styles/index.css` (`@layer base html`) |
+| QA-13 | Baixa | FRONT | SEO de `/`, `/servicos`, `/orcamento` e do produto semi-chata | Ver `<meta name="description">` e `<title>`. | **Esperado:** description de até ~160 caracteres e título de até ~70, para não serem cortados nos resultados de busca. **Obtido:** description da Home com 177. Títulos: `/servicos` 77, `/orcamento` 73, `/produtos/semi-chata-aluminio-sob-medida` 73. | `final.qa.ts` › `[QA-13]` | Encurtar os textos. Ex.: "Serviços náuticos em Manaus" e "Orçamento de embarcação em Manaus". No produto, evitar repetir a categoria quando o nome já a contém ("Semi-chata… — Semi-chatas em Manaus"). | `apps/web/src/pages/Home.tsx` (Seo `description`), `apps/web/src/pages/Services.tsx`, `apps/web/src/pages/Quote.tsx`, `apps/web/src/pages/ProductDetail.tsx` (template do título) |
+
+Não há problema novo de BACK (apps/api) nem de SHARED (packages/shared).
+
+## Resultado das suítes (rodada final)
+
+| Suíte | Comando | Resultado |
+|---|---|---|
+| Unitários | `npm test` (raiz) | **API 203/203 · site 92/92** (OK) |
+| Playwright principal (API simulada) | `E2E_PORT=4195 npx playwright test --output <pasta temporária fora do repo>` | **59 passaram, 9 pulados, 0 falhas** (OK) |
+| QA completa contra 4190 (142 testes) | `QA_BASE_URL=http://localhost:4190 npx playwright test -c e2e/qa/playwright.qa.config.ts` | **135 passaram, 3 falharam, 4 pulados**. As falhas são `[QA-11]`, `[QA-12]` e `[QA-13]`, as pendências novas. Os 4 pulados são os headers, que dependem de `QA_HEADERS_URL`. Um teste de `responsive.qa.ts` falhou pelo reinício da API descrito acima e passou na nova execução. |
+
+## Arquivos de teste
+
+- `apps/web/e2e/qa/final.qa.ts` (novo, 17 testes): UX-22 ponta a ponta com conferência no banco, UX-24, UX-25, UX-18, UX-23, UX-26, UX-12, UX-20, teclado no orçamento, sitemap/canonical/títulos, links externos e `[QA-11]`, `[QA-12]`, `[QA-13]`.
+
+Leads QA-TEST apagados ao final: 6 em `contact_messages` e 15 em `quote_requests`, dos quais 6 do fluxo motor-revisao, todos com `request_type=motor-revisao`. A contagem depois da limpeza é 0.

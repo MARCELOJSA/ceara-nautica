@@ -85,7 +85,9 @@ test.describe('busca (regra única site × API)', () => {
     });
   }
 
-  test('[QA-10 corrigido] "chata"/"semichata" não trazem produtos que só têm "chapa"', async ({ page }) => {
+  test('[QA-10 corrigido] "chata"/"semichata" não trazem produtos que só têm "chapa"', async ({
+    page,
+  }) => {
     for (const q of ['chata', 'semichata']) {
       expect(await apiSearch(page, q), q).toEqual(['semi-chata-aluminio-sob-medida']);
     }
