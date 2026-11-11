@@ -1,11 +1,15 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi, beforeEach } from 'vitest';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DEMO_PRODUCTS } from '@cn/shared';
 import { ContactForm } from './ContactForm';
 import { QuoteForm } from './QuoteForm';
 import Quote from '@/pages/Quote';
+import { SLOW_NOTICE_MS } from './useLeadSubmit';
 import { jsonResponse, renderAt } from '@/test/utils';
+
+/** Só os POST (o formulário também faz GET /api/health para acordar a API). */
+const postCalls = () => vi.mocked(fetch).mock.calls.filter((c) => c[1]?.method === 'POST');
 
 async function fillContact(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^nome/i), 'Maria Silva');
@@ -28,7 +32,7 @@ describe('Formulário de contato', () => {
     expect(screen.getByText(/Telefone inválido|Informe seu telefone/)).toBeInTheDocument();
     expect(screen.getByText('É necessário autorizar o contato para enviar.')).toBeInTheDocument();
     expect(screen.getByLabelText(/^nome/i)).toHaveAttribute('aria-invalid', 'true');
-    expect(fetch).not.toHaveBeenCalled();
+    expect(postCalls()).toHaveLength(0);
   });
 
   it('rejeita telefone e e-mail inválidos', async () => {
@@ -52,7 +56,7 @@ describe('Formulário de contato', () => {
     await fillContact(user);
     await user.click(screen.getByRole('button', { name: /enviar mensagem/i }));
     expect(await screen.findByRole('heading', { name: /mensagem enviada/i })).toBeInTheDocument();
-    const [url, init] = vi.mocked(fetch).mock.calls[0]!;
+    const [url, init] = postCalls()[0]!;
     expect(url).toBe('/api/contact');
     expect(init?.method).toBe('POST');
     const body = JSON.parse(String(init?.body));
@@ -90,9 +94,7 @@ describe('Formulário de contato', () => {
 
 describe('Formulário de orçamento', () => {
   it('pré-seleciona o tipo de solicitação (?servico=) e envia requestType', async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(jsonResponse({ ok: true, id: 'q2' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q2' }, 201));
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} initialRequestType="manutencao" />);
     expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('manutencao');
@@ -107,8 +109,8 @@ describe('Formulário de orçamento', () => {
     );
     await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
     await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
-    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-    const body = JSON.parse(String(fetchSpy.mock.calls[0]![1]?.body));
+    await waitFor(() => expect(postCalls()).toHaveLength(1));
+    const body = JSON.parse(String(postCalls()[0]![1]?.body));
     expect(body.requestType).toBe('manutencao');
     expect(body).not.toHaveProperty('category');
     // UX-19: repete o telefone informado (formatado) e explica o próximo passo
@@ -119,9 +121,7 @@ describe('Formulário de orçamento', () => {
   });
 
   it('pré-seleciona o produto (?produto=slug) e envia productSlug/category', async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(jsonResponse({ ok: true, id: 'q1' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q1' }, 201));
     const product = DEMO_PRODUCTS.find((p) => p.slug === 'canoa-aluminio-7m')!;
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} initialProductSlug={product.slug} />);
@@ -137,8 +137,8 @@ describe('Formulário de orçamento', () => {
     await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
     await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
 
-    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-    const [url, init] = fetchSpy.mock.calls[0]!;
+    await waitFor(() => expect(postCalls()).toHaveLength(1));
+    const [url, init] = postCalls()[0]!;
     expect(url).toBe('/api/quotes');
     expect(JSON.parse(String(init?.body))).toMatchObject({
       productSlug: 'canoa-aluminio-7m',
@@ -152,13 +152,13 @@ describe('Formulário de orçamento', () => {
   });
 
   it('não envia sem mensagem mínima', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    vi.spyOn(globalThis, 'fetch');
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     await user.type(screen.getByLabelText(/conte o que você precisa/i), 'curta');
     await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
     expect(await screen.findByText(/mín\. 10 caracteres/)).toBeInTheDocument();
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(postCalls()).toHaveLength(0);
   });
 
   it('[QA-02] trocar a categoria atualiza o tipo sugerido automaticamente', async () => {
@@ -274,9 +274,7 @@ describe('Formulário de orçamento', () => {
   });
 
   it('[UX-24] pedido de serviço envia dados válidos sem o modelo oculto', async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(jsonResponse({ ok: true, id: 'q5' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q5' }, 201));
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     // escolheu um modelo e depois mudou para conserto
@@ -287,8 +285,8 @@ describe('Formulário de orçamento', () => {
     await user.type(screen.getByLabelText(/conte o que você precisa/i), 'Casco amassado na proa.');
     await user.click(screen.getByRole('checkbox', { name: /autorizo/i }));
     await user.click(screen.getByRole('button', { name: /solicitar orçamento/i }));
-    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
-    const body = JSON.parse(String(fetchSpy.mock.calls[0]![1]?.body));
+    await waitFor(() => expect(postCalls()).toHaveLength(1));
+    const body = JSON.parse(String(postCalls()[0]![1]?.body));
     expect(body).toMatchObject({ requestType: 'reparo', category: 'lanchas' });
     expect(body).not.toHaveProperty('productSlug');
   });
@@ -487,5 +485,73 @@ describe('Tela de sucesso do contato (UX-19)', () => {
     expect(await screen.findByTestId('success-phone')).toHaveTextContent(
       'Vamos retornar no (92) 99999-0000, por ligação ou WhatsApp.',
     );
+  });
+});
+
+describe('API acordando (docs/HOSTING.md)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('acorda a API ao focar o formulário, uma vez só', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ status: 'ok' }));
+    const user = userEvent.setup();
+    renderAt(<ContactForm />);
+    await user.click(screen.getByLabelText(/^nome/i));
+    await user.click(screen.getByLabelText(/telefone/i));
+    await user.click(screen.getByLabelText(/assunto/i));
+    const health = vi.mocked(fetch).mock.calls.filter((c) => c[0] === '/api/health');
+    expect(health).toHaveLength(1);
+  });
+
+  it('envio lento: aviso de "conectando" após alguns segundos, botão travado, depois sucesso', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let answer!: (r: Response) => void;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      if (String(input).includes('/api/health')) return jsonResponse({ status: 'ok' });
+      return new Promise<Response>((r) => {
+        answer = r;
+      });
+    });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) });
+    renderAt(<ContactForm />);
+    await fillContact(user);
+    await user.click(screen.getByRole('button', { name: /enviar mensagem/i }));
+
+    const button = await screen.findByRole('button', { name: /enviando/i });
+    expect(button).toBeDisabled();
+    const note = screen.getByTestId('submit-slow');
+    expect(note).toHaveTextContent('');
+
+    await act(() => vi.advanceTimersByTimeAsync(SLOW_NOTICE_MS));
+    expect(note).toHaveTextContent(/conectando ao servidor/i);
+    expect(note).toHaveTextContent(/alguns segundos na primeira vez/i);
+    expect(note).toHaveAttribute('role', 'status');
+    expect(button).toBeDisabled();
+
+    // segundo clique/Enter durante a espera não gera outro POST
+    await user.click(button);
+    expect(postCalls()).toHaveLength(1);
+
+    await act(async () => answer(jsonResponse({ ok: true, id: 'lento' }, 201)));
+    expect(await screen.findByRole('heading', { name: /mensagem enviada/i })).toBeInTheDocument();
+    expect(postCalls()).toHaveLength(1);
+  });
+
+  it('se o envio falhar de vez, orienta a tentar de novo e mantém o que foi digitado', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+    const user = userEvent.setup();
+    renderAt(<ContactForm />);
+    await fillContact(user);
+    await user.click(screen.getByRole('button', { name: /enviar mensagem/i }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/tente novamente/i);
+    expect(alert).toHaveTextContent(/continua no formulário/i);
+    expect(screen.getByTestId('submit-slow')).toHaveTextContent('');
+    expect(screen.getByLabelText(/^nome/i)).toHaveValue('Maria Silva');
+    expect(screen.getByLabelText(/mensagem/i)).toHaveValue('Gostaria de saber mais sobre lanchas.');
+    expect(screen.getByRole('checkbox', { name: /autorizo/i })).toBeChecked();
+    expect(screen.getByRole('button', { name: /enviar mensagem/i })).toBeEnabled();
+    expect(postCalls()).toHaveLength(1);
   });
 });

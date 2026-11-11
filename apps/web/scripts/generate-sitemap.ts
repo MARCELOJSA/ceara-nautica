@@ -59,7 +59,10 @@ Allow: /
 Sitemap: ${siteUrl}/sitemap.xml
 `;
 
-const dist = path.join(root, 'dist');
+// SITEMAP_OUT_DIR: build feito com `vite build --outDir <outra pasta>` (verificações locais)
+const dist = process.env.SITEMAP_OUT_DIR
+  ? path.resolve(process.env.SITEMAP_OUT_DIR)
+  : path.join(root, 'dist');
 await writeFile(path.join(dist, 'sitemap.xml'), xml, 'utf8');
 await writeFile(path.join(dist, 'robots.txt'), robots, 'utf8');
-console.log(`[sitemap] ${entries.length} URLs → dist/sitemap.xml (${siteUrl})`);
+console.log(`[sitemap] ${entries.length} URLs → ${dist}${path.sep}sitemap.xml (${siteUrl})`);

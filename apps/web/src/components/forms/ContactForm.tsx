@@ -3,12 +3,12 @@ import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Send } from 'lucide-react';
 import { contactSchema, type ContactData } from '@cn/shared';
-import { sendContact } from '@/lib/api';
+import { sendContact, wakeApi } from '@/lib/api';
 import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { ConsentField, HoneypotField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
+import { FormError, FormSuccess, PhoneConfirmation, SlowNotice } from './FormFeedback';
 
 export interface ContactFormValues {
   name: string;
@@ -94,6 +94,8 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
     <form
       noValidate
       onSubmit={onSubmit}
+      // ao começar a preencher, acorda a API em segundo plano (limitado em wakeApi)
+      onFocus={wakeApi}
       aria-busy={loading}
       className="relative space-y-5"
       aria-label="Formulário de contato"
@@ -128,6 +130,7 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
       <HoneypotField {...register('website')} />
       <ConsentField error={errors.consent?.message} {...register('consent')} />
       <FormError status={status} />
+      <SlowNotice status={status} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
         <button type="submit" className="btn-primary w-full shrink-0 sm:w-auto" disabled={loading}>
           {loading ? (

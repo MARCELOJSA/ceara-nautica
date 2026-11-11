@@ -89,3 +89,28 @@ export function FormError({ status }: { status: SubmitStatus }) {
     </div>
   );
 }
+
+export const SLOW_MESSAGE =
+  'Conectando ao servidor… isso pode levar alguns segundos na primeira vez. Não feche a página.';
+
+/**
+ * Aviso calmo quando o envio demora (API acordando, docs/HOSTING.md).
+ * A região viva existe sempre, para o leitor de tela anunciar quando o texto aparece.
+ */
+export function SlowNotice({ status }: { status: SubmitStatus }) {
+  const slow = status.kind === 'loading' && status.slow === true;
+  return (
+    <p
+      role="status"
+      aria-live="polite"
+      data-testid="submit-slow"
+      className={
+        slow
+          ? 'rounded-sm border-l-2 border-graphite/40 bg-white px-4 py-3 text-sm text-graphite'
+          : 'sr-only'
+      }
+    >
+      {slow ? SLOW_MESSAGE : ''}
+    </p>
+  );
+}

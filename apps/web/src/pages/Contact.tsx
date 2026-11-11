@@ -7,6 +7,7 @@ import { ContactForm } from '@/components/forms/ContactForm';
 import { mapUrlFor, site } from '@/config/site';
 import { whatsappUrl } from '@/lib/whatsapp';
 import { track } from '@/lib/analytics';
+import { useWakeApi } from '@/hooks/useWakeApi';
 
 function ChannelCard({
   icon,
@@ -31,6 +32,7 @@ function ChannelCard({
 }
 
 export default function Contact() {
+  useWakeApi();
   const crumbs = [
     { name: 'Início', path: '/' },
     { name: 'Contato', path: '/contato' },

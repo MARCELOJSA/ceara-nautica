@@ -1,6 +1,6 @@
 import { DEMO_PRODUCTS } from '@cn/shared';
 import { readFileSync } from 'node:fs';
-import { expect, presetConsent, test } from './fixtures';
+import { expect, mockApi, presetConsent, test } from './fixtures';
 
 // fotos de produto realmente publicadas (gerado por scripts/process-images.mjs)
 const PRODUCT_IMAGES = JSON.parse(
@@ -219,6 +219,49 @@ test.describe('fluxos principais', () => {
     });
     await expect(page.getByRole('heading', { name: /pedido de orçamento enviado/i })).toBeVisible();
     await expect(page.getByRole('status').getByText(/ligação ou WhatsApp/)).toBeVisible();
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('API acordando: aviso de "conectando", depois sucesso, com um único POST', async ({
+    page,
+    consoleErrors,
+  }) => {
+    test.setTimeout(60_000);
+    await presetConsent(page);
+    await mockApi(page, { postDelayMs: 6000 });
+    const posts: string[] = [];
+    const health: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'POST') posts.push(r.url());
+      if (r.url().endsWith('/api/health')) health.push(r.method());
+    });
+    await page.goto('/orcamento');
+    // a página acorda a API ao abrir (GET /api/health, uma vez só)
+    await expect.poll(() => health).toEqual(['GET']);
+    await page.getByLabel(/^nome/i).fill('Cliente Teste');
+    await page.getByLabel(/telefone/i).fill('(92) 98888-7777');
+    await page
+      .getByLabel(/conte o que você precisa/i)
+      .fill('Preciso de uma lancha de alumínio para a família.');
+    await page.getByRole('checkbox', { name: /autorizo/i }).check();
+    expect(health).toHaveLength(1);
+
+    const submit = page.getByRole('button', { name: /solicitar orçamento/i }).last();
+    await submit.click();
+    const sending = page.getByRole('button', { name: /enviando/i });
+    await expect(sending).toBeDisabled();
+    const slow = page.getByTestId('submit-slow');
+    await expect(slow).toHaveText(/conectando ao servidor/i, { timeout: 5000 });
+    await expect(slow).toHaveAttribute('role', 'status');
+    // insistir não gera um segundo pedido
+    await sending.click({ force: true }).catch(() => {});
+    await page.keyboard.press('Enter');
+    await expect(sending).toBeDisabled();
+    await expect(page.getByRole('heading', { name: /pedido de orçamento enviado/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    expect(posts.filter((u) => u.endsWith('/api/quotes'))).toHaveLength(1);
+    expect(posts).toHaveLength(1);
     expect(consoleErrors).toEqual([]);
   });
 

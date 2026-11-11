@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
+import { DEMO_PRODUCTS } from '@cn/shared';
 import { Seo } from '@/components/seo/Seo';
 import { breadcrumbJsonLd } from '@/components/seo/jsonld';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { PageFallback } from '@/components/layout/Layout';
 import { QuoteForm } from '@/components/forms/QuoteForm';
 import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
 import { useProducts } from '@/hooks/useProducts';
+import { useWakeApi } from '@/hooks/useWakeApi';
 import { quotePageCopy, quotePreset } from '@/data/content';
 import { site } from '@/config/site';
 import { whatsappUrl } from '@/lib/whatsapp';
 
 export default function Quote() {
+  useWakeApi();
   const [params] = useSearchParams();
   const { data, loading } = useProducts();
   const produto = params.get('produto') ?? undefined;
@@ -40,17 +42,18 @@ export default function Quote() {
       <section className="py-14 lg:py-20">
         <div className="container-x grid gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
           <div>
-            {loading ? (
-              <PageFallback />
-            ) : (
-              <QuoteForm
-                products={data}
-                initialProductSlug={produto}
-                initialCategory={categoria}
-                initialRequestType={initialRequestType}
-                onRequestTypeChange={setRequestType}
-              />
-            )}
+            {/*
+              Sem esperar a API: com ela dormindo (docs/HOSTING.md) a pessoa já
+              pode preencher; a lista de modelos usa o catálogo local até a
+              resposta chegar.
+            */}
+            <QuoteForm
+              products={loading ? DEMO_PRODUCTS : data}
+              initialProductSlug={produto}
+              initialCategory={categoria}
+              initialRequestType={initialRequestType}
+              onRequestTypeChange={setRequestType}
+            />
           </div>
           <aside aria-labelledby="como-funciona" className="lg:sticky lg:top-28 lg:self-start">
             <h2 id="como-funciona" className="eyebrow text-graphite-deep">

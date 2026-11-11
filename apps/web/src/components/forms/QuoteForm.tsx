@@ -11,7 +11,7 @@ import {
   type Product,
   type QuoteData,
 } from '@cn/shared';
-import { sendQuote } from '@/lib/api';
+import { sendQuote, wakeApi } from '@/lib/api';
 import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { SmartImage } from '@/components/ui/SmartImage';
@@ -24,7 +24,7 @@ import {
 } from '@/data/content';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess, PhoneConfirmation } from './FormFeedback';
+import { FormError, FormSuccess, PhoneConfirmation, SlowNotice } from './FormFeedback';
 
 export interface QuoteFormValues {
   name: string;
@@ -154,15 +154,19 @@ export function QuoteForm({
     if (typeIsAuto.current) setValue('requestType', requestTypeForCategory(cat));
   };
 
-  // produtos podem chegar depois (API) — aplica a pré-seleção quando disponíveis
+  // produtos podem chegar depois (API) — aplica a pré-seleção quando disponíveis.
+  // Depende do slug/categoria (não do objeto): trocar o catálogo local pelo da
+  // API com o mesmo produto não desfaz o que a pessoa já escolheu.
+  const initialSlug = initialProduct?.slug;
+  const initialProductCategory = initialProduct?.category;
   useEffect(() => {
-    if (initialProduct) {
-      setValue('productSlug', initialProduct.slug);
-      setValue('category', initialProduct.category);
+    if (initialSlug && initialProductCategory) {
+      setValue('productSlug', initialSlug);
+      setValue('category', initialProductCategory);
       if (typeIsAuto.current)
-        setValue('requestType', requestTypeForCategory(initialProduct.category));
+        setValue('requestType', requestTypeForCategory(initialProductCategory));
     }
-  }, [initialProduct, setValue]);
+  }, [initialSlug, initialProductCategory, setValue]);
 
   const category = watch('category');
   const productSlug = watch('productSlug');
@@ -288,6 +292,8 @@ export function QuoteForm({
     <form
       noValidate
       onSubmit={onSubmit}
+      // ao começar a preencher, acorda a API em segundo plano (limitado em wakeApi)
+      onFocus={wakeApi}
       aria-busy={loading}
       className="relative space-y-5"
       aria-label="Formulário de orçamento"
@@ -439,6 +445,7 @@ export function QuoteForm({
       <HoneypotField {...register('website')} />
       <ConsentField error={errors.consent?.message} {...register('consent')} />
       <FormError status={status} />
+      <SlowNotice status={status} />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
         <button type="submit" className="btn-primary w-full shrink-0 sm:w-auto" disabled={loading}>
           {loading ? (

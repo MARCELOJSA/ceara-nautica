@@ -13,6 +13,7 @@ import { DemoBadge, ProductCard } from '@/components/product/ProductCard';
 import { IllustrativeNote } from '@/components/layout/PageHeader';
 import { PageFallback } from '@/components/layout/Layout';
 import { useProduct, useRelated } from '@/hooks/useProducts';
+import { useWakeApi } from '@/hooks/useWakeApi';
 import { productWhatsAppMessage } from '@/lib/whatsapp';
 import { productImages } from '@/lib/images';
 import { track } from '@/lib/analytics';
@@ -50,6 +51,7 @@ function detailCopy(category: string) {
 }
 
 export default function ProductDetail() {
+  useWakeApi();
   const { slug } = useParams();
   const { data: product, loading } = useProduct(slug);
   const related = useRelated(product);

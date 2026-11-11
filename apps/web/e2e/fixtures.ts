@@ -1,8 +1,16 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import { DEMO_PRODUCTS } from '@cn/shared';
 
+export interface MockApiOptions {
+  /**
+   * Atraso da resposta dos POST (simula a API do Render acordando). Chamar
+   * `mockApi` de novo num teste sobrepõe o mock automático (a rota mais nova vale).
+   */
+  postDelayMs?: number;
+}
+
 /** Simula a API (contrato da Skill, seção 4) com o catálogo compartilhado. */
-export async function mockApi(page: Page) {
+export async function mockApi(page: Page, { postDelayMs = 0 }: MockApiOptions = {}) {
   await page.route('**/api/**', async (route) => {
     const req = route.request();
     const url = new URL(req.url());
@@ -11,8 +19,11 @@ export async function mockApi(page: Page) {
       route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
 
     if (req.method() === 'POST' && (path === '/contact' || path === '/quotes')) {
+      if (postDelayMs) await new Promise((r) => setTimeout(r, postDelayMs));
       return json({ ok: true, id: 'e2e-id' }, 201);
     }
+    // despertador da API (wakeApi): GET /api/health
+    if (path === '/health') return json({ status: 'ok', db: 'ok' });
     if (path === '/products') {
       const category = url.searchParams.get('category');
       const featured = url.searchParams.get('featured');

@@ -28,18 +28,94 @@ export class ApiRequestError extends Error {
   }
 }
 
-const TIMEOUT_MS = 8000;
+/** A API não respondeu dentro do prazo (status 0, como erro de rede). */
+export class ApiTimeoutError extends ApiRequestError {
+  constructor() {
+    super(0, 'O servidor demorou para responder.');
+    this.name = 'ApiTimeoutError';
+  }
+}
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Tempos (docs/HOSTING.md): a API no plano grátis do Render "dorme" após 15 min
+ * sem acesso e leva ~1 min para acordar.
+ * - Leituras do catálogo: curtas. Se a API não responder, o site mostra o
+ *   catálogo local (DEMO_PRODUCTS) em vez de ficar "Carregando".
+ * - Envio de formulário: longo, para o pedido não se perder enquanto a API acorda.
+ */
+export const READ_TIMEOUT_MS = 8000;
+export const SUBMIT_TIMEOUT_MS = 90_000;
+/** Depois de uma leitura sem resposta, as próximas usam o catálogo local por este tempo. */
+export const READ_SKIP_MS = 30_000;
+/** Intervalo mínimo entre dois "despertares" da API (por aba). */
+export const WAKE_INTERVAL_MS = 5 * 60_000;
+
+const READ_SKIP_KEY = 'cn_api_unreachable_until';
+const WAKE_KEY = 'cn_api_wake_at';
+
+/** sessionStorage pode não existir (modo privado antigo, cookies bloqueados). */
+const memory = new Map<string, string>();
+const store = {
+  get(key: string): string | null {
+    try {
+      return window.sessionStorage.getItem(key);
+    } catch {
+      return memory.get(key) ?? null;
+    }
+  },
+  set(key: string, value: string) {
+    try {
+      window.sessionStorage.setItem(key, value);
+    } catch {
+      memory.set(key, value);
+    }
+  },
+};
+
+/**
+ * "Acorda" a API em segundo plano (GET /health), sem bloquear nada e sem
+ * erro visível se falhar. Chamado ao abrir /orcamento, /contato e páginas de
+ * produto e ao focar o formulário. Dispara no máximo uma vez a cada
+ * WAKE_INTERVAL_MS por aba, mesmo com várias chamadas seguidas.
+ * GET idempotente: não grava nada no servidor.
+ */
+export function wakeApi(): void {
+  const now = Date.now();
+  const last = Number(store.get(WAKE_KEY));
+  if (last && now - last >= 0 && now - last < WAKE_INTERVAL_MS) return;
+  store.set(WAKE_KEY, String(now));
+  try {
+    fetch(`${site.apiUrl}/health`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    }).catch(() => undefined);
+  } catch {
+    // fetch indisponível: ignora (o envio do formulário espera a API acordar)
+  }
+}
+
+interface RequestOptions {
+  method?: 'GET' | 'POST';
+  body?: string;
+  timeoutMs?: number;
+}
+
+async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    ctrl.abort();
+  }, opts.timeoutMs ?? READ_TIMEOUT_MS);
   try {
     const res = await fetch(`${site.apiUrl}${path}`, {
-      ...init,
-      signal: init?.signal ?? ctrl.signal,
+      method: opts.method ?? 'GET',
+      body: opts.body,
+      signal: ctrl.signal,
       headers: {
         Accept: 'application/json',
-        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
       },
     });
     const isJson = res.headers.get('content-type')?.includes('application/json');
@@ -52,9 +128,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return body as T;
   } catch (e) {
     if (e instanceof ApiRequestError) throw e;
+    if (timedOut) throw new ApiTimeoutError();
     throw new ApiRequestError(0, 'Não foi possível conectar ao servidor.');
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/**
+ * Leitura do catálogo. Se a API acabou de ficar sem responder (dormindo,
+ * fora do ar), não espera de novo a cada página: usa o catálogo local por
+ * READ_SKIP_MS e, em paralelo, pede para a API acordar.
+ */
+async function read<T>(path: string): Promise<T> {
+  const until = Number(store.get(READ_SKIP_KEY));
+  if (until && Date.now() < until) {
+    wakeApi();
+    throw new ApiRequestError(0, 'API indisponível (catálogo local).');
+  }
+  try {
+    return await request<T>(path);
+  } catch (e) {
+    if (e instanceof ApiRequestError && e.status === 0) {
+      store.set(READ_SKIP_KEY, String(Date.now() + READ_SKIP_MS));
+    }
+    throw e;
   }
 }
 
@@ -97,7 +195,7 @@ export async function getProducts(query: ProductQuery = {}): Promise<Loaded<Prod
   if (query.featured !== undefined) params.set('featured', String(query.featured));
   const qs = params.toString();
   try {
-    const data = await request<unknown>(`/products${qs ? `?${qs}` : ''}`);
+    const data = await read<unknown>(`/products${qs ? `?${qs}` : ''}`);
     if (!isProductArray(data)) throw new Error('formato inesperado');
     return { data, fallback: false };
   } catch {
@@ -108,7 +206,7 @@ export async function getProducts(query: ProductQuery = {}): Promise<Loaded<Prod
 /** Retorna null quando o produto não existe (404 da API ou ausente no fallback). */
 export async function getProduct(slug: string): Promise<Loaded<Product | null>> {
   try {
-    const data = await request<Product>(`/products/${encodeURIComponent(slug)}`);
+    const data = await read<Product>(`/products/${encodeURIComponent(slug)}`);
     return { data, fallback: false };
   } catch (e) {
     if (e instanceof ApiRequestError && e.status === 404) return { data: null, fallback: false };
@@ -118,7 +216,7 @@ export async function getProduct(slug: string): Promise<Loaded<Product | null>> 
 
 export async function getRelated(product: Product): Promise<Product[]> {
   try {
-    const data = await request<unknown>(`/products/${encodeURIComponent(product.slug)}/related`);
+    const data = await read<unknown>(`/products/${encodeURIComponent(product.slug)}/related`);
     if (!isProductArray(data)) throw new Error('formato inesperado');
     return data.slice(0, 4);
   } catch {
@@ -128,13 +226,23 @@ export async function getRelated(product: Product): Promise<Product[]> {
   }
 }
 
+/**
+ * Envio de formulário: SEM retry automático (um POST repetido duplicaria o
+ * pedido). Espera até SUBMIT_TIMEOUT_MS para a API acordar; se mesmo assim
+ * falhar, a pessoa reenvia pelo botão com os dados preservados.
+ */
 export function sendContact(body: ContactInput): Promise<FormSubmissionResponse> {
   return request<FormSubmissionResponse>('/contact', {
     method: 'POST',
     body: JSON.stringify(body),
+    timeoutMs: SUBMIT_TIMEOUT_MS,
   });
 }
 
 export function sendQuote(body: QuoteInput): Promise<FormSubmissionResponse> {
-  return request<FormSubmissionResponse>('/quotes', { method: 'POST', body: JSON.stringify(body) });
+  return request<FormSubmissionResponse>('/quotes', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    timeoutMs: SUBMIT_TIMEOUT_MS,
+  });
 }
