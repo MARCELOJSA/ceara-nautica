@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { z } from 'zod';
+import { assertProductionDatabaseUrl, DatabaseUrlError } from './lib/database-url.js';
 
 const DEFAULT_ORIGINS = 'http://localhost:5173,http://localhost:4173';
 
@@ -81,6 +82,13 @@ function assertProductionSafe(env: NodeJS.ProcessEnv, e: z.output<typeof envSche
   }
   if (!env.WEB_ORIGIN?.trim()) {
     throw new Error('WEB_ORIGIN precisa listar o(s) domínio(s) do site em produção (CORS).');
+  }
+  // Banco remoto em produção só com SSL obrigatório (ex.: Neon). Banco local/Docker fica livre.
+  try {
+    assertProductionDatabaseUrl(e.DATABASE_URL);
+  } catch (err) {
+    if (err instanceof DatabaseUrlError) throw new Error(`Configuração inválida: ${err.message}`);
+    throw err;
   }
 }
 
