@@ -55,6 +55,14 @@ describe('wakeApi', () => {
     expect(init?.method).toBe('GET');
   });
 
+  it('descarta o corpo da resposta para não deixar a requisição aberta (QA-14)', async () => {
+    const res = jsonResponse({ status: 'ok' });
+    const cancel = vi.spyOn(res.body!, 'cancel');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(res);
+    wakeApi();
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledTimes(1));
+  });
+
   it('volta a disparar depois do intervalo', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ status: 'ok' }));

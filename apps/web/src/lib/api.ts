@@ -49,6 +49,8 @@ export const SUBMIT_TIMEOUT_MS = 90_000;
 export const READ_SKIP_MS = 30_000;
 /** Intervalo mínimo entre dois "despertares" da API (por aba). */
 export const WAKE_INTERVAL_MS = 5 * 60_000;
+/** Tempo máximo esperando a API acordar no despertar em segundo plano. */
+export const WAKE_TIMEOUT_MS = 90_000;
 
 const READ_SKIP_KEY = 'cn_api_unreachable_until';
 const WAKE_KEY = 'cn_api_wake_at';
@@ -85,11 +87,20 @@ export function wakeApi(): void {
   if (last && now - last >= 0 && now - last < WAKE_INTERVAL_MS) return;
   store.set(WAKE_KEY, String(now));
   try {
+    // A resposta não interessa: descarta o corpo assim que chega (QA-14 — sem isso o
+    // Chromium mantém a requisição aberta e a página nunca fica com a rede ociosa,
+    // o que atrapalha robôs de busca), e desiste depois do tempo máximo de despertar.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), WAKE_TIMEOUT_MS);
     fetch(`${site.apiUrl}/health`, {
       method: 'GET',
       cache: 'no-store',
       headers: { Accept: 'application/json' },
-    }).catch(() => undefined);
+      signal: ctrl.signal,
+    })
+      .then((res) => res.body?.cancel())
+      .catch(() => undefined)
+      .finally(() => clearTimeout(timer));
   } catch {
     // fetch indisponível: ignora (o envio do formulário espera a API acordar)
   }

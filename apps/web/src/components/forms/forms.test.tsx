@@ -50,7 +50,7 @@ describe('Formulário de contato', () => {
       'cn_utm',
       JSON.stringify({ utm_source: 'instagram', landing_page: '/' }),
     );
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ ok: true, id: 'abc' }, 201));
+    vi.mocked(fetch).mockImplementation(async () => jsonResponse({ ok: true, id: 'abc' }, 201));
     const user = userEvent.setup();
     renderAt(<ContactForm />);
     await fillContact(user);
@@ -68,7 +68,7 @@ describe('Formulário de contato', () => {
   });
 
   it('exibe as mensagens de `details` vindas do back (400)', async () => {
-    vi.mocked(fetch).mockResolvedValue(
+    vi.mocked(fetch).mockImplementation(async () =>
       jsonResponse(
         { error: 'Dados inválidos', details: { phone: ['Telefone recusado pelo servidor.'] } },
         400,
@@ -94,7 +94,9 @@ describe('Formulário de contato', () => {
 
 describe('Formulário de orçamento', () => {
   it('pré-seleciona o tipo de solicitação (?servico=) e envia requestType', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q2' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'q2' }, 201),
+    );
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} initialRequestType="manutencao" />);
     expect(screen.getByLabelText(/tipo de solicitação/i)).toHaveValue('manutencao');
@@ -121,7 +123,9 @@ describe('Formulário de orçamento', () => {
   });
 
   it('pré-seleciona o produto (?produto=slug) e envia productSlug/category', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q1' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'q1' }, 201),
+    );
     const product = DEMO_PRODUCTS.find((p) => p.slug === 'canoa-aluminio-7m')!;
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} initialProductSlug={product.slug} />);
@@ -218,7 +222,9 @@ describe('Formulário de orçamento', () => {
   });
 
   it('[UX-19] "Corrigir o telefone" volta ao formulário com os dados e o foco no telefone', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q3' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'q3' }, 201),
+    );
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     await user.type(screen.getByLabelText(/^nome/i), 'Rita');
@@ -234,7 +240,9 @@ describe('Formulário de orçamento', () => {
     expect(screen.getByLabelText(/^nome/i)).toHaveValue('Rita');
   });
   it('[UX-21] sucesso: "Número errado?" e o botão "Corrigir o telefone", sem frase partida', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q4' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'q4' }, 201),
+    );
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     await user.type(screen.getByLabelText(/^nome/i), 'Rita');
@@ -274,7 +282,9 @@ describe('Formulário de orçamento', () => {
   });
 
   it('[UX-24] pedido de serviço envia dados válidos sem o modelo oculto', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'q5' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'q5' }, 201),
+    );
     const user = userEvent.setup();
     renderAt(<QuoteForm products={DEMO_PRODUCTS} />);
     // escolheu um modelo e depois mudou para conserto
@@ -477,7 +487,9 @@ describe('[UX-30] topo e "Como funciona" conforme o tipo de pedido', () => {
 
 describe('Tela de sucesso do contato (UX-19)', () => {
   it('repete o telefone informado', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, id: 'c9' }, 201));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      jsonResponse({ ok: true, id: 'c9' }, 201),
+    );
     const user = userEvent.setup();
     renderAt(<ContactForm />);
     await fillContact(user);
@@ -494,7 +506,7 @@ describe('API acordando (docs/HOSTING.md)', () => {
   });
 
   it('acorda a API ao focar o formulário, uma vez só', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ status: 'ok' }));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => jsonResponse({ status: 'ok' }));
     const user = userEvent.setup();
     renderAt(<ContactForm />);
     await user.click(screen.getByLabelText(/^nome/i));
