@@ -1,6 +1,6 @@
 # STATUS — Site Ceará Náutica
 
-_Atualizado: 2026-11-10_
+_Atualizado: 2026-11-10 (fim do ciclo de testes)_
 
 ## Estado atual
 - [x] Monorepo criado (npm workspaces), Docker Compose do Postgres (porta 5433)
@@ -19,7 +19,8 @@ _Atualizado: 2026-11-10_
 - [x] Dependências: Zod 4, React Router 7, Vitest 4, sharp 0.35 — `npm audit --omit=dev` só com a cadeia do Prisma CLI (SEC-13, risco aceito)
 - [ ] SEC-04: headers de segurança na hospedagem (ver `docs/SECURITY-REPORT.md`) — ao definir a hospedagem
 - [ ] Migrar para Prisma 7 (fecha SEC-13)
-- [ ] Nova rodada de UX (AGENT 04) após as correções
+- [x] Ciclo autônomo dev → QA → UX (2026-11-10): UX aprovado com nota 9,0, QA aprovado tecnicamente; detalhes em `PROGRESS.md`, `docs/QA-REPORT.md` e `docs/UX-REPORT.md`
+- [ ] Análise da necessidade de banco de dados (em andamento)
 
 ## Pendências que dependem da empresa (não inventar)
 | Item | Onde configurar |

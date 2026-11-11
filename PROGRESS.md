@@ -79,14 +79,24 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 
 **Verificação:** API 203/203, site 92/92, Playwright 59/59 (duas rodadas), regressão de QA 34/34. Tudo enviado ao GitHub (`origin/main`).
 
-### Rodada final — revalidação e revisão geral (em andamento)
+### Rodada final — revalidação e revisão geral (concluída)
 
-Build de `f5d9000` em `http://localhost:4190`. O QA técnico faz a regressão e a revisão geral com veredito técnico; o usuário final revalida UX-04, 10, 12, 17, 18 e 20–26, refaz as oito situações reais e dá um veredito de experiência.
+- **Usuário final** (`2b149ae`): **APROVADO, nota 9,0**. As oito situações reais funcionam no PC e no celular sem a pessoa se perder. Novos detalhes de prioridade baixa: UX-27 a UX-30.
+- **QA técnico** (`176f224`): **APROVADO tecnicamente**, sem problema Crítico ou Alto. Regressão completa e revisão geral (rotas, 11 produtos, sitemap, console, links, teclado, 360–1920 px, CLS). Novos: QA-11, QA-12 (Média, foco escondido sob as barras fixas) e QA-13.
+
+### Rodada 3 — correções finais (concluída)
+
+- **Desenvolvedor 1:** `0c81c89` UX-27 (busca por sintoma, como "motor falhando", sugere serviço e conserto de motor). `34db8c0` UX-28 (roteiro como texto de exemplo), UX-30 (/orcamento adaptado ao tipo de pedido), QA-13 (títulos de /servicos e /orcamento).
+- **Desenvolvedor 2:** `40e6d33` QA-11 e QA-12 (foco visível e não escondido). `e8e4975` QA-13 (`lib/seo.ts`: limites de título e descrição). `a2de15f` UX-29 (linha do tempo da /sobre clicável).
+- **Orquestrador:** capa de Lanchas com a foto da lancha 10 m, o que devolve a lancha de lazer (7 m) aos destaques sem repetir foto (pedido do desenvolvedor 2). `2286409` testes de QA ajustados. `f9ce1f6` formatação Prettier de 21 arquivos antigos.
+- **Verificação final:** typecheck, lint e Prettier limpos; API 203/203; site 151/151; Playwright 61/61 (duas rodadas); QA completa contra o build **138 passaram, 0 falharam** (4 pulados: cabeçalhos HTTP dependem da hospedagem).
+
+**Resultado do ciclo:** UX de 7,0 para **9,0**; QA técnico com 13 problemas encontrados e todos corrigidos (QA-09, de ambiente, deixou de existir com o reinício do PC). Pendências que dependem da empresa: fotos reais, endereço, horário, manchete da Home (B7), WhatsApp e hospedagem (SEC-04).
 
 ## Fila de tarefas (ordem obrigatória)
 
-1. **Tarefa atual: ciclo dev → QA → UX → correções** até validar o site. Finalizar, testar e commitar tudo antes de passar à próxima.
-2. **Depois: análise da necessidade de banco de dados** (pedido de 2026-11-10). Começar automaticamente, sem pedir confirmação:
+1. ~~Ciclo dev → QA → UX → correções~~ **concluído em 2026-11-10** (`f9ce1f6`).
+2. **Em andamento: análise da necessidade de banco de dados** (pedido de 2026-11-10). Começar automaticamente, sem pedir confirmação:
    - Avaliar se o projeto precisa de banco e comparar PostgreSQL, MySQL, MongoDB, SQLite, Supabase e outras opções relevantes, separando o mecanismo de banco da plataforma de hospedagem.
    - Critérios: compatibilidade com a arquitetura atual, desempenho e confiabilidade, escalabilidade, desenvolvimento e manutenção, custo-benefício, segurança, execução local e em produção (ambientes separados de desenvolvimento, testes e produção).
    - Dar notas de 0 a 10 por critério, com justificativa. Não escolher automaticamente a maior nota geral.
@@ -101,7 +111,7 @@ Build de `f5d9000` em `http://localhost:4190`. O QA técnico faz a regressão e 
 - [x] Rodada 2: revalidação do usuário final (8,6)
 - [x] Rodada 2: revalidação do QA técnico (QA-01 a QA-08 corrigidos)
 - [x] Rodada 2 de correções (UX-12, UX-18, UX-20 a UX-26, QA-10)
-- [ ] Rodada 3: revalidação final (QA + usuário final) e revisão geral do site
+- [x] Rodada final: QA aprovado; usuário final aprovado (9,0); correções da rodada 3 aplicadas e verificadas
 - [ ] SEC-04: headers de segurança na hospedagem (depende da escolha da hospedagem)
 - [ ] B7: manchete da página inicial (decisão do cliente)
 - [ ] Migração para Prisma 7 (SEC-13). Bloqueada enquanto a API em execução trava a DLL do Prisma
