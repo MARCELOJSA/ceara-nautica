@@ -408,9 +408,10 @@ test.describe('serviços', () => {
       await expect(page).toHaveURL(new RegExp(`servico=${slug}`));
       await expect(page.getByLabel(/tipo de solicitação/i)).toHaveValue(exp.type);
       if (exp.category) await expect(page.getByLabel(/^categoria/i)).toHaveValue(exp.category);
-      await expect(page.getByLabel(/conte o que você precisa/i)).toHaveValue(
-        /Tenho interesse no serviço/,
-      );
+      // UX-28: a mensagem abre vazia; o roteiro do serviço fica só como exemplo (placeholder)
+      const message = page.getByLabel(/conte o que você precisa/i);
+      await expect(message).toHaveValue('');
+      await expect(message).toHaveAttribute('placeholder', /.{10,}/);
     }
   });
 });

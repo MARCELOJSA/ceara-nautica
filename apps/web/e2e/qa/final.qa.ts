@@ -80,8 +80,11 @@ test.describe('motor com defeito (UX-22) e campos por tipo (UX-24)', () => {
     await expect(page.getByLabel(/tipo de solicitação/i)).toHaveValue('motor-revisao');
     await expect(page.getByTestId('product-fields')).toBeHidden();
     const msg = page.getByLabel(/conte o que você precisa/i);
-    await expect(msg).toHaveValue(/modelo\/potência do motor/i);
-    await expect(page.getByText(/marca, modelo e potência do motor/i)).toBeVisible();
+    // UX-28: o roteiro aparece como exemplo (placeholder); a mensagem abre vazia
+    await expect(msg).toHaveValue('');
+    await expect(msg).toHaveAttribute('placeholder', /modelo\/potência do motor/i);
+    // UX-30: o texto aparece na dica do campo e nas etapas da página
+    await expect(page.getByText(/marca, modelo e potência do motor/i).first()).toBeVisible();
     await page.getByLabel(/^nome/i).fill(name);
     await page.getByLabel(/telefone/i).fill('(92) 9 8888-7777');
     await msg.fill(
@@ -191,7 +194,9 @@ test.describe('Home, cards, Sobre e fichas', () => {
       const slugs = await page
         .locator('section[aria-labelledby="destaques-title"] article a')
         .evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-      expect(slugs).not.toContain('/produtos/lancha-aluminio-7m');
+      // A capa de Lanchas usa a foto da lancha 10 m, então a lancha de lazer (7 m)
+      // pode voltar aos destaques sem repetir foto.
+      expect(slugs).toContain('/produtos/lancha-aluminio-7m');
     }
   });
 
