@@ -1,3 +1,5 @@
+// primeiro import: configura o zod antes de qualquer schema existir (CSP sem eval)
+import './lib/zod-csp';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource/barlow-condensed/latin-600.css';
