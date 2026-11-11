@@ -88,7 +88,9 @@ describe('POST /api/contact', () => {
   });
 
   it('consentimento false → 400', async () => {
-    const res = await request(app).post('/api/contact').send({ ...validContact, consent: false });
+    const res = await request(app)
+      .post('/api/contact')
+      .send({ ...validContact, consent: false });
     expect(res.status).toBe(400);
     expect(res.body.details.consent).toBeDefined();
   });
@@ -167,7 +169,9 @@ describe('POST /api/quotes', () => {
 
   it('grava requestType válido e o envia no webhook', async () => {
     for (const { value } of REQUEST_TYPES) {
-      const res = await request(app).post('/api/quotes').send({ ...validQuote, requestType: value });
+      const res = await request(app)
+        .post('/api/quotes')
+        .send({ ...validQuote, requestType: value });
       expect(res.status).toBe(201);
       const row = await prisma.quoteRequest.findUniqueOrThrow({ where: { id: res.body.id } });
       expect(row.requestType).toBe(value);
@@ -189,7 +193,9 @@ describe('POST /api/quotes', () => {
   });
 
   it('categoria inválida → 400 em category', async () => {
-    const res = await request(app).post('/api/quotes').send({ ...validQuote, category: 'iates' });
+    const res = await request(app)
+      .post('/api/quotes')
+      .send({ ...validQuote, category: 'iates' });
     expect(res.status).toBe(400);
     expect(res.body.details.category).toBeDefined();
     expect(await prisma.quoteRequest.count()).toBe(0);
@@ -219,7 +225,9 @@ describe('POST /api/quotes', () => {
   });
 
   it('honeypot preenchido → 201 falso sem gravar', async () => {
-    const res = await request(app).post('/api/quotes').send({ ...validQuote, website: 'spam' });
+    const res = await request(app)
+      .post('/api/quotes')
+      .send({ ...validQuote, website: 'spam' });
     expect(res.status).toBe(201);
     expect(await prisma.quoteRequest.count()).toBe(0);
   });

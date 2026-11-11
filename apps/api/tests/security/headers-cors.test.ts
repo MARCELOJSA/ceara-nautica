@@ -11,17 +11,22 @@ const ALLOWED = 'http://localhost:5173';
 const EVIL = 'https://evil.example.com';
 
 describe('headers de segurança (helmet)', () => {
-  it.each(['/api/health', '/api/products', '/api/rota-inexistente'])('%s traz headers obrigatórios', async (path) => {
-    const res = await request(app).get(path);
-    expect(res.headers['content-security-policy']).toBe("default-src 'none';frame-ancestors 'none'");
-    expect(res.headers['x-content-type-options']).toBe('nosniff');
-    expect(res.headers['strict-transport-security']).toMatch(/max-age=\d{7,}/);
-    expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
-    expect(res.headers['referrer-policy']).toBe('no-referrer');
-    expect(res.headers['cross-origin-resource-policy']).toBe('same-site');
-    expect(res.headers['x-powered-by']).toBeUndefined();
-    expect(res.headers['content-type']).toMatch(/^application\/json/);
-  });
+  it.each(['/api/health', '/api/products', '/api/rota-inexistente'])(
+    '%s traz headers obrigatórios',
+    async (path) => {
+      const res = await request(app).get(path);
+      expect(res.headers['content-security-policy']).toBe(
+        "default-src 'none';frame-ancestors 'none'",
+      );
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
+      expect(res.headers['strict-transport-security']).toMatch(/max-age=\d{7,}/);
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+      expect(res.headers['referrer-policy']).toBe('no-referrer');
+      expect(res.headers['cross-origin-resource-policy']).toBe('same-site');
+      expect(res.headers['x-powered-by']).toBeUndefined();
+      expect(res.headers['content-type']).toMatch(/^application\/json/);
+    },
+  );
 
   it('POST de lead também recebe os headers (mesmo com 400)', async () => {
     const res = await request(app).post('/api/contact').send({});
@@ -39,13 +44,16 @@ describe('CORS', () => {
     expect(res.headers.vary).toMatch(/Origin/i);
   });
 
-  it.each([EVIL, 'null', 'http://localhost:5173.evil.com', 'http://evil-localhost:5173', 'HTTP://LOCALHOST:5173'])(
-    'origem não autorizada (%s) NÃO recebe ACAO',
-    async (origin) => {
-      const res = await request(app).get('/api/products').set('Origin', origin);
-      expect(res.headers['access-control-allow-origin']).toBeUndefined();
-    },
-  );
+  it.each([
+    EVIL,
+    'null',
+    'http://localhost:5173.evil.com',
+    'http://evil-localhost:5173',
+    'HTTP://LOCALHOST:5173',
+  ])('origem não autorizada (%s) NÃO recebe ACAO', async (origin) => {
+    const res = await request(app).get('/api/products').set('Origin', origin);
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
 
   it('preflight de origem maliciosa não libera POST', async () => {
     const res = await request(app)
@@ -74,23 +82,29 @@ describe('CORS', () => {
       .post('/api/contact')
       .set('Origin', EVIL)
       .set('Content-Type', 'text/plain')
-      .send('{"name":"QA-TEST csrf","phone":"92999999999","subject":"x","message":"xxxxxxxxxxxx","consent":true}');
+      .send(
+        '{"name":"QA-TEST csrf","phone":"92999999999","subject":"x","message":"xxxxxxxxxxxx","consent":true}',
+      );
     expect(asText.status).toBe(400);
-    const asForm = await request(app)
-      .post('/api/quotes')
-      .set('Origin', EVIL)
-      .type('form')
-      .send({ name: 'QA-TEST csrf', phone: '92999999999', message: 'xxxxxxxxxxxx', consent: 'true' });
+    const asForm = await request(app).post('/api/quotes').set('Origin', EVIL).type('form').send({
+      name: 'QA-TEST csrf',
+      phone: '92999999999',
+      message: 'xxxxxxxxxxxx',
+      consent: 'true',
+    });
     expect(asForm.status).toBe(400);
   });
 });
 
 describe('métodos não suportados', () => {
-  it.each(['put', 'delete', 'patch'] as const)('%s em /api/contact → 404 JSON sem detalhes', async (m) => {
-    const res = await request(app)[m]('/api/contact').send({});
-    expect(res.status).toBe(404);
-    expect(res.body).toEqual({ error: 'Rota não encontrada.' });
-  });
+  it.each(['put', 'delete', 'patch'] as const)(
+    '%s em /api/contact → 404 JSON sem detalhes',
+    async (m) => {
+      const res = await request(app)[m]('/api/contact').send({});
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'Rota não encontrada.' });
+    },
+  );
 
   it('TRACE não é refletido', async () => {
     const res = await request(app).trace('/api/health');

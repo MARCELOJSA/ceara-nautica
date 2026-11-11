@@ -22,8 +22,16 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-const contact = (over: Record<string, unknown> = {}) => ({ ...validContact, name: `${MARK} contato`, ...over });
-const quote = (over: Record<string, unknown> = {}) => ({ ...validQuote, name: `${MARK} orçamento`, ...over });
+const contact = (over: Record<string, unknown> = {}) => ({
+  ...validContact,
+  name: `${MARK} contato`,
+  ...over,
+});
+const quote = (over: Record<string, unknown> = {}) => ({
+  ...validQuote,
+  name: `${MARK} orçamento`,
+  ...over,
+});
 
 describe('A03 — injeção na busca (GET /api/products?q=)', () => {
   const payloads = [
@@ -38,7 +46,7 @@ describe('A03 — injeção na busca (GET /api/products?q=)', () => {
     '{"$ne":null}',
     '<script>alert(1)</script>',
     '../../etc/passwd',
-    'lancha\'||pg_sleep(5)--',
+    "lancha'||pg_sleep(5)--",
   ];
   it.each(payloads)('q=%s não quebra nem vaza dados (200 + array, sem curinga)', async (q) => {
     const t0 = Date.now();
@@ -63,7 +71,9 @@ describe('A03 — injeção na busca (GET /api/products?q=)', () => {
   });
 
   it('q com mais de 100 caracteres → 400', async () => {
-    const res = await request(app).get('/api/products').query({ q: 'a'.repeat(101) });
+    const res = await request(app)
+      .get('/api/products')
+      .query({ q: 'a'.repeat(101) });
     expect(res.status).toBe(400);
   });
 
@@ -158,13 +168,19 @@ describe('validação de formulários — tipos errados', () => {
 
   it('body que não é objeto (array, string, número, null) → 400', async () => {
     for (const body of ['[]', '"x"', '1', 'null']) {
-      const res = await request(app).post('/api/contact').set('Content-Type', 'application/json').send(body);
+      const res = await request(app)
+        .post('/api/contact')
+        .set('Content-Type', 'application/json')
+        .send(body);
       expect(res.status).toBe(400);
     }
   });
 
   it('JSON malformado → 400 "JSON malformado." sem stack', async () => {
-    const res = await request(app).post('/api/contact').set('Content-Type', 'application/json').send('{"name":');
+    const res = await request(app)
+      .post('/api/contact')
+      .set('Content-Type', 'application/json')
+      .send('{"name":');
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: 'JSON malformado.' });
   });
@@ -188,13 +204,19 @@ describe('validação de formulários — tipos errados', () => {
 
   it('JSON profundamente aninhado / arrays grandes dentro de 20kb respondem rápido (zod GHSA-mrhx)', async () => {
     const deep = '{"a":'.repeat(2000) + '1' + '}'.repeat(2000);
-    const big = JSON.stringify({ ...contact(), utm: { utm_source: Array.from({ length: 3000 }, () => 1) } });
+    const big = JSON.stringify({
+      ...contact(),
+      utm: { utm_source: Array.from({ length: 3000 }, () => 1) },
+    });
     const t0 = Date.now();
     const r1 = await request(app)
       .post('/api/contact')
       .set('Content-Type', 'application/json')
       .send(`{"name":"${MARK}","utm":${deep}}`);
-    const r2 = await request(app).post('/api/contact').set('Content-Type', 'application/json').send(big);
+    const r2 = await request(app)
+      .post('/api/contact')
+      .set('Content-Type', 'application/json')
+      .send(big);
     expect(r1.status).toBe(400);
     expect(r2.status).toBe(400);
     expect(Date.now() - t0).toBeLessThan(2000);
@@ -215,7 +237,13 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
     const name = `${MARK} <script>alert(document.cookie)</script>`;
     const res = await request(app)
       .post('/api/contact')
-      .send(contact({ name, subject: '<img src=x onerror=alert(1)>', message: '"><svg/onload=alert(1)> mensagem' }));
+      .send(
+        contact({
+          name,
+          subject: '<img src=x onerror=alert(1)>',
+          message: '"><svg/onload=alert(1)> mensagem',
+        }),
+      );
     expect(res.status).toBe(201);
     expect(res.headers['content-type']).toMatch(/^application\/json/);
     expect(res.text).not.toContain('<script>'); // resposta não ecoa o payload
@@ -225,7 +253,9 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
 
   it('unicode (acentos, emoji, CJK, RTL) é preservado', async () => {
     const name = `${MARK} Ñandú Conceição 🚤 漢字 مرحبا`;
-    const res = await request(app).post('/api/quotes').send(quote({ name, city: 'São Gabriel da Cachoeira' }));
+    const res = await request(app)
+      .post('/api/quotes')
+      .send(quote({ name, city: 'São Gabriel da Cachoeira' }));
     expect(res.status).toBe(201);
     const row = await prisma.quoteRequest.findUniqueOrThrow({ where: { id: res.body.id } });
     expect(row.name).toBe(name);
@@ -238,7 +268,9 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
     ['controle C1 U+0085', 'a\u0085b'],
     ['quebra de linha', 'a\nb'],
   ])('[SEC-08 corrigido] %s no nome → 400', async (_label, bad) => {
-    const res = await request(app).post('/api/contact').send(contact({ name: `${MARK} ${bad}` }));
+    const res = await request(app)
+      .post('/api/contact')
+      .send(contact({ name: `${MARK} ${bad}` }));
     expect(res.status).toBe(400);
     expect(res.body.details?.name).toBeDefined();
   });
@@ -248,7 +280,9 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
       .post('/api/contact')
       .send(contact({ message: 'Mensagem com \u202Etexto invertido' }));
     expect(msg.status).toBe(400);
-    const city = await request(app).post('/api/quotes').send(quote({ city: 'Manaus\u202E' }));
+    const city = await request(app)
+      .post('/api/quotes')
+      .send(quote({ city: 'Manaus\u202E' }));
     expect(city.status).toBe(400);
   });
 
@@ -260,7 +294,9 @@ describe('XSS armazenado / unicode — o dado é guardado literal e devolvido s�
   });
 
   it('[SEC-01 corrigido] byte nulo no nome retorna 400', async () => {
-    const res = await request(app).post('/api/contact').send(contact({ name: `${MARK} a\u0000b` }));
+    const res = await request(app)
+      .post('/api/contact')
+      .send(contact({ name: `${MARK} a\u0000b` }));
     expect(res.status).toBe(400);
   });
 
@@ -296,7 +332,10 @@ describe('mass assignment / prototype pollution', () => {
 
   it('__proto__ / constructor no corpo não poluem Object.prototype', async () => {
     const body = `{"name":"${MARK} proto","phone":"92999999999","subject":"Assunto","message":"mensagem longa ok","consent":true,"__proto__":{"polluted":"yes"},"constructor":{"prototype":{"polluted2":"yes"}}}`;
-    const res = await request(app).post('/api/contact').set('Content-Type', 'application/json').send(body);
+    const res = await request(app)
+      .post('/api/contact')
+      .set('Content-Type', 'application/json')
+      .send(body);
     expect([201, 400]).toContain(res.status);
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
     expect(({} as Record<string, unknown>).polluted2).toBeUndefined();

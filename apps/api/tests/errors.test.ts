@@ -54,7 +54,9 @@ describe('config', () => {
 
   it('interpreta TRUST_PROXY', () => {
     expect(loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: '1' }).trustProxy).toBe(1);
-    expect(() => loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'true' })).toThrow(/TRUST_PROXY=true/);
+    expect(() => loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'true' })).toThrow(
+      /TRUST_PROXY=true/,
+    );
     expect(loadConfig({ DATABASE_URL: 'x', TRUST_PROXY: 'loopback' }).trustProxy).toBe('loopback');
   });
 });

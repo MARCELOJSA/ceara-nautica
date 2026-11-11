@@ -30,7 +30,10 @@ export function createLeadNotifier(
           signal: AbortSignal.timeout(timeoutMs),
         });
         if (!res.ok) {
-          logger.warn({ status: res.status, leadId: lead.id }, 'webhook de lead respondeu com erro');
+          logger.warn(
+            { status: res.status, leadId: lead.id },
+            'webhook de lead respondeu com erro',
+          );
         }
       } catch (err) {
         logger.warn(

@@ -52,7 +52,10 @@ await shot('03-tipo-motor-problema');
 if (SUBMIT) {
   await p.getByLabel(/^nome/i).fill('Carlos UX QA-TEST');
   await p.getByLabel(/telefone/i).fill('(92) 9 9123-4567');
-  await p.getByLabel(/conte o que|mensagem|descreva/i).first().fill('Motor de popa 40 hp falhando na aceleração. Teste UX, desconsiderar.');
+  await p
+    .getByLabel(/conte o que|mensagem|descreva/i)
+    .first()
+    .fill('Motor de popa 40 hp falhando na aceleração. Teste UX, desconsiderar.');
   await p.getByRole('checkbox').check();
   const [resp] = await Promise.all([
     p.waitForResponse((r) => r.url().includes('/api/quotes') && r.request().method() === 'POST'),
@@ -61,9 +64,19 @@ if (SUBMIT) {
   console.log('envio', resp.status());
   await p.waitForTimeout(700);
   await shot('04-sucesso');
-  await click(p.getByRole('button', { name: /corrigir o telefone/i }).or(p.getByRole('link', { name: /corrigir o telefone/i })).first());
+  await click(
+    p
+      .getByRole('button', { name: /corrigir o telefone/i })
+      .or(p.getByRole('link', { name: /corrigir o telefone/i }))
+      .first(),
+  );
   await p.waitForTimeout(700);
   await shot('05-corrigir-telefone');
-  console.log('após Corrigir:', await form(), '| foco:', await p.evaluate(() => document.activeElement?.getAttribute('name')));
+  console.log(
+    'após Corrigir:',
+    await form(),
+    '| foco:',
+    await p.evaluate(() => document.activeElement?.getAttribute('name')),
+  );
 }
 await b.close();

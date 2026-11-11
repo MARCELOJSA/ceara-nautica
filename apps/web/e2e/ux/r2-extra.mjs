@@ -15,7 +15,10 @@ const ctx = await b.newContext({
 const p = await ctx.newPage();
 const shot = (n, o = {}) => p.screenshot({ path: `${OUT}/x-${n}.png`, ...o });
 await p.goto(BASE + '/', { waitUntil: 'networkidle' });
-await p.getByTestId('cookie-banner').getByRole('button', { name: /recusar/i }).tap();
+await p
+  .getByTestId('cookie-banner')
+  .getByRole('button', { name: /recusar/i })
+  .tap();
 
 // faixa numerada do hero no 1º scroll (fica atrás da barra inferior?)
 await p.evaluate(() => window.scrollTo(0, 260));
@@ -30,7 +33,10 @@ await shot('galeria');
 await gal.locator('button').first().tap();
 await p.waitForTimeout(700);
 await shot('lightbox-1');
-console.log('dialog:', (await p.locator('[role=dialog]').last().innerText()).replace(/\s+/g, ' ').slice(0, 200));
+console.log(
+  'dialog:',
+  (await p.locator('[role=dialog]').last().innerText()).replace(/\s+/g, ' ').slice(0, 200),
+);
 // swipe para a próxima
 await p.evaluate(async () => {
   const el = document.querySelector('[role=dialog] img') || document.querySelector('[role=dialog]');
@@ -39,17 +45,28 @@ await p.evaluate(async () => {
     new TouchEvent(type, {
       bubbles: true,
       cancelable: true,
-      touches: type === 'touchend' ? [] : [new Touch({ identifier: 1, target: el, clientX: x, clientY: r.top + r.height / 2 })],
-      changedTouches: [new Touch({ identifier: 1, target: el, clientX: x, clientY: r.top + r.height / 2 })],
+      touches:
+        type === 'touchend'
+          ? []
+          : [new Touch({ identifier: 1, target: el, clientX: x, clientY: r.top + r.height / 2 })],
+      changedTouches: [
+        new Touch({ identifier: 1, target: el, clientX: x, clientY: r.top + r.height / 2 }),
+      ],
     });
   el.dispatchEvent(mk('touchstart', r.right - 30));
   el.dispatchEvent(mk('touchmove', r.left + 60));
   el.dispatchEvent(mk('touchend', r.left + 30));
 });
 await p.waitForTimeout(500);
-console.log('após swipe:', (await p.locator('[role=dialog]').last().innerText()).replace(/\s+/g, ' ').slice(0, 120));
+console.log(
+  'após swipe:',
+  (await p.locator('[role=dialog]').last().innerText()).replace(/\s+/g, ' ').slice(0, 120),
+);
 await shot('lightbox-swipe');
-const close = p.locator('[role=dialog]').last().getByRole('button', { name: /fechar/i });
+const close = p
+  .locator('[role=dialog]')
+  .last()
+  .getByRole('button', { name: /fechar/i });
 await close.tap();
 await p.waitForTimeout(300);
 
@@ -67,9 +84,20 @@ await shot('vazio-reparo');
 
 // motor: produto -> CTA de orçamento: o que vem pré-preenchido
 await p.goto(BASE + '/produtos/motores-de-popa', { waitUntil: 'networkidle' });
-await p.getByRole('link', { name: /solicitar orçamento/i }).first().tap();
+await p
+  .getByRole('link', { name: /solicitar orçamento/i })
+  .first()
+  .tap();
 await p.waitForLoadState('networkidle');
 await p.waitForTimeout(400);
-console.log('motor -> ', p.url(), await p.evaluate(() => [...document.querySelectorAll('form select, form textarea')].map((e) => `${e.name}=${e.value}`).join(' | ')));
+console.log(
+  'motor -> ',
+  p.url(),
+  await p.evaluate(() =>
+    [...document.querySelectorAll('form select, form textarea')]
+      .map((e) => `${e.name}=${e.value}`)
+      .join(' | '),
+  ),
+);
 await shot('orc-motor');
 await b.close();

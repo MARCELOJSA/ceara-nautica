@@ -42,7 +42,9 @@ describe('seed do catálogo', () => {
     });
     const result = await seed(prisma);
     expect(result.removed).toBe(1);
-    expect(await prisma.product.findUnique({ where: { slug: 'produto-obsoleto-teste' } })).toBeNull();
+    expect(
+      await prisma.product.findUnique({ where: { slug: 'produto-obsoleto-teste' } }),
+    ).toBeNull();
     expect(await prisma.product.count()).toBe(DEMO_PRODUCTS.length);
   });
 
@@ -50,7 +52,12 @@ describe('seed do catálogo', () => {
     const target = DEMO_PRODUCTS[0]!;
     const product = await prisma.product.findUniqueOrThrow({ where: { slug: target.slug } });
     await prisma.productImage.create({
-      data: { productId: product.id, src: '/images/products/foto-antiga-inexistente.webp', alt: 'x', order: 99 },
+      data: {
+        productId: product.id,
+        src: '/images/products/foto-antiga-inexistente.webp',
+        alt: 'x',
+        order: 99,
+      },
     });
     await seed(prisma);
     const rows = await prisma.productImage.findMany({ select: { src: true } });
@@ -63,7 +70,10 @@ describe('seed do catálogo', () => {
   });
 
   it('missingImages detecta caminho inexistente', () => {
-    const fake = { ...DEMO_PRODUCTS[0]!, images: [{ src: '/images/products/nao-existe.webp', alt: 'x' }] };
+    const fake = {
+      ...DEMO_PRODUCTS[0]!,
+      images: [{ src: '/images/products/nao-existe.webp', alt: 'x' }],
+    };
     expect(missingImages([fake])).toEqual([
       { slug: fake.slug, src: '/images/products/nao-existe.webp' },
     ]);

@@ -24,7 +24,8 @@ const errors = async () =>
   (await p.locator('[role=alert], [id$="-error"], .text-red-700, [aria-live]').allInnerTexts())
     .map((t) => t.trim())
     .filter(Boolean);
-const focused = () => p.evaluate(() => document.activeElement?.getAttribute('name') || document.activeElement?.tagName);
+const focused = () =>
+  p.evaluate(() => document.activeElement?.getAttribute('name') || document.activeElement?.tagName);
 
 await p.goto(BASE + '/', { waitUntil: 'networkidle' });
 await click(p.getByTestId('cookie-banner').getByRole('button', { name: /recusar/i }));
@@ -62,10 +63,17 @@ for (const tel of ['(92) 99999-000', '92 9 9999 0000', '+55 92 99999-0000', '999
   await click(submitQ);
   await p.waitForTimeout(300);
   const e = (await errors()).filter((t) => /telefone|fone|número/i.test(t));
-  console.log(`tel "${tel}" ->`, e.length ? e : 'aceito', '| valor no campo:', await p.getByLabel(/telefone/i).inputValue());
+  console.log(
+    `tel "${tel}" ->`,
+    e.length ? e : 'aceito',
+    '| valor no campo:',
+    await p.getByLabel(/telefone/i).inputValue(),
+  );
 }
 await p.getByLabel(/telefone/i).fill('(92) 99999-0000');
-await p.getByLabel(/conte o que/i).fill('Quero uma canoa de uns 6 metros para pesca, com capota. Quanto fica e qual o prazo?');
+await p
+  .getByLabel(/conte o que/i)
+  .fill('Quero uma canoa de uns 6 metros para pesca, com capota. Quanto fica e qual o prazo?');
 await click(submitQ);
 await p.waitForTimeout(500);
 console.log('sem consentimento -> erros:', await errors(), 'foco:', await focused());
@@ -80,7 +88,10 @@ if (SUBMIT) {
   console.log('envio orçamento status', resp.status());
   await p.waitForTimeout(800);
   await shot('q05-sucesso');
-  console.log('sucesso texto:', (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 500));
+  console.log(
+    'sucesso texto:',
+    (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 500),
+  );
   // voltar no celular após enviar
   await p.goBack();
   await p.waitForTimeout(800);
@@ -106,7 +117,11 @@ if (SUBMIT) {
   await p.getByLabel(/telefone/i).fill('92999990000');
   await p.getByLabel(/e-mail/i).fill('');
   await p.getByLabel(/assunto/i).fill('Motor de popa falhando');
-  await p.getByLabel(/^mensagem/i).fill('Meu motor de popa está falhando na aceleração. Vocês fazem revisão de motor? Teste QA, desconsiderar.');
+  await p
+    .getByLabel(/^mensagem/i)
+    .fill(
+      'Meu motor de popa está falhando na aceleração. Vocês fazem revisão de motor? Teste QA, desconsiderar.',
+    );
   await p.getByRole('checkbox').check();
   const [resp] = await Promise.all([
     p.waitForResponse((r) => r.url().includes('/api/contact') && r.request().method() === 'POST'),
@@ -115,7 +130,10 @@ if (SUBMIT) {
   console.log('envio contato status', resp.status());
   await p.waitForTimeout(800);
   await shot('c02-sucesso');
-  console.log('contato sucesso texto:', (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 400));
+  console.log(
+    'contato sucesso texto:',
+    (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 400),
+  );
 }
 
 // ---- Orçamento de manutenção/estofamento vindos de Serviços
@@ -124,7 +142,9 @@ for (const s of ['manutencao', 'estofamento', 'motores', 'reparos']) {
   await p.goto(`${BASE}/orcamento?servico=${s}`, { waitUntil: 'networkidle' });
   await p.waitForTimeout(400);
   const v = await p.evaluate(() =>
-    [...document.querySelectorAll('form select, form textarea')].map((e) => `${e.name}=${e.value}`).join(' | '),
+    [...document.querySelectorAll('form select, form textarea')]
+      .map((e) => `${e.name}=${e.value}`)
+      .join(' | '),
   );
   console.log(`?servico=${s}:`, v);
 }

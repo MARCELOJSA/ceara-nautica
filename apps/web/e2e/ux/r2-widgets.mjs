@@ -41,19 +41,38 @@ if (mobile) {
   await click(p.getByRole('button', { name: /menu/i }).first());
   await p.waitForTimeout(500);
   await shot('04-menu-aberto');
-  const box = await p.locator('#menu-mobile').boundingBox().catch(() => null);
+  const box = await p
+    .locator('#menu-mobile')
+    .boundingBox()
+    .catch(() => null);
   console.log('menu box', box);
-  console.log('links menu:', (await p.locator('#menu-mobile a, #menu-mobile button').allInnerTexts()).map((t) => t.trim()).join(' | '));
+  console.log(
+    'links menu:',
+    (await p.locator('#menu-mobile a, #menu-mobile button').allInnerTexts())
+      .map((t) => t.trim())
+      .join(' | '),
+  );
   await click(p.locator('#menu-mobile').getByRole('link', { name: /servi/i }).first());
   await p.waitForLoadState('networkidle');
   await p.waitForTimeout(400);
-  console.log('após menu->Serviços', p.url(), 'menu ainda visível?', await p.locator('#menu-mobile').isVisible().catch(() => false));
+  console.log(
+    'após menu->Serviços',
+    p.url(),
+    'menu ainda visível?',
+    await p
+      .locator('#menu-mobile')
+      .isVisible()
+      .catch(() => false),
+  );
 
   // 3) Barra inferior: o que cobre?
   const bar = await p.evaluate(() => {
     const els = [...document.querySelectorAll('a,button')].filter((e) => {
       const r = e.getBoundingClientRect();
-      return getComputedStyle(e.closest('[class*=fixed]') || e).position === 'fixed' && r.bottom > innerHeight - 120;
+      return (
+        getComputedStyle(e.closest('[class*=fixed]') || e).position === 'fixed' &&
+        r.bottom > innerHeight - 120
+      );
     });
     return els.map((e) => e.innerText.trim());
   });
@@ -78,13 +97,27 @@ await shot('06-servicos-ancora-reparos');
 
 // 6) Galeria da Home + lightbox
 await p.goto(BASE + '/', { waitUntil: 'networkidle' });
-const g = p.locator('section', { hasText: /a vida no rio/i }).locator('button, a').first();
+const g = p
+  .locator('section', { hasText: /a vida no rio/i })
+  .locator('button, a')
+  .first();
 await g.scrollIntoViewIfNeeded();
 await p.waitForTimeout(500);
 await click(g);
 await p.waitForTimeout(600);
 await shot('07-lightbox');
-console.log('lightbox texto:', (await p.locator('[role=dialog]').first().innerText().catch(() => 'sem dialog')).replace(/\s+/g, ' ').slice(0, 300));
+console.log(
+  'lightbox texto:',
+  (
+    await p
+      .locator('[role=dialog]')
+      .first()
+      .innerText()
+      .catch(() => 'sem dialog')
+  )
+    .replace(/\s+/g, ' ')
+    .slice(0, 300),
+);
 const next = p.getByRole('button', { name: /próxim|seguinte|next/i }).first();
 if (await next.count()) {
   await click(next);
@@ -99,7 +132,14 @@ if (mobile) {
 }
 await p.keyboard.press('Escape');
 await p.waitForTimeout(300);
-console.log('dialog fechado?', !(await p.locator('[role=dialog]').first().isVisible().catch(() => false)));
+console.log(
+  'dialog fechado?',
+  !(await p
+    .locator('[role=dialog]')
+    .first()
+    .isVisible()
+    .catch(() => false)),
+);
 
 // 7) Produto: galeria/ampliar
 await p.goto(BASE + '/produtos/canoa-aluminio-6m', { waitUntil: 'networkidle' });
@@ -111,12 +151,17 @@ if (await amp.count()) {
   await shot('10-produto-lightbox');
   await p.keyboard.press('Escape');
 }
-console.log('miniaturas produto:', await p.locator('button[aria-label*="foto" i], button[aria-label*="imagem" i]').count());
+console.log(
+  'miniaturas produto:',
+  await p.locator('button[aria-label*="foto" i], button[aria-label*="imagem" i]').count(),
+);
 
 // 8) Hero strip (B5) clicável?
 await p.goto(BASE + '/', { waitUntil: 'networkidle' });
 const strip = await p.evaluate(() =>
-  [...document.querySelectorAll('a')].filter((a) => /^0\d/.test(a.innerText.trim())).map((a) => `${a.innerText.replace(/\s+/g, ' ').trim()} -> ${a.getAttribute('href')}`),
+  [...document.querySelectorAll('a')]
+    .filter((a) => /^0\d/.test(a.innerText.trim()))
+    .map((a) => `${a.innerText.replace(/\s+/g, ' ').trim()} -> ${a.getAttribute('href')}`),
 );
 console.log('itens numerados clicáveis:', strip);
 await p.evaluate(() => window.scrollTo(0, 0));

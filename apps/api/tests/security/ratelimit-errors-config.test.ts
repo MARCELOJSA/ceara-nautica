@@ -11,7 +11,12 @@ import { createApp } from '../../src/app.js';
 import { makeApp, PROD_ENV, testConfig } from '../helpers.js';
 
 const limited = (env: Record<string, string> = {}) =>
-  makeApp({ RATE_LIMIT_DISABLED: 'false', RATE_LIMIT_MAX: '5', RATE_LIMIT_WINDOW_MS: '60000', ...env });
+  makeApp({
+    RATE_LIMIT_DISABLED: 'false',
+    RATE_LIMIT_MAX: '5',
+    RATE_LIMIT_WINDOW_MS: '60000',
+    ...env,
+  });
 
 describe('rate limit dos POST (5/min por IP)', () => {
   it('6ª requisição → 429 JSON com headers RateLimit (draft-7)', async () => {
@@ -21,7 +26,9 @@ describe('rate limit dos POST (5/min por IP)', () => {
       const r = await request(app).post('/api/contact').send({});
       statuses.push(r.status);
       if (i === 5) {
-        expect(r.body).toEqual({ error: 'Muitas requisições. Aguarde um instante e tente novamente.' });
+        expect(r.body).toEqual({
+          error: 'Muitas requisições. Aguarde um instante e tente novamente.',
+        });
         expect(r.headers['ratelimit-policy'] ?? r.headers.ratelimit).toBeDefined();
         expect(r.headers['retry-after']).toBeDefined();
       }
@@ -31,7 +38,10 @@ describe('rate limit dos POST (5/min por IP)', () => {
 
   it('contact e quotes compartilham o mesmo contador por IP', async () => {
     const app = limited();
-    for (let i = 0; i < 5; i++) await request(app).post(i % 2 ? '/api/contact' : '/api/quotes').send({});
+    for (let i = 0; i < 5; i++)
+      await request(app)
+        .post(i % 2 ? '/api/contact' : '/api/quotes')
+        .send({});
     expect((await request(app).post('/api/quotes').send({})).status).toBe(429);
   });
 
@@ -40,13 +50,22 @@ describe('rate limit dos POST (5/min por IP)', () => {
     for (let i = 0; i < 5; i++) {
       await request(app).post('/api/contact').set('Content-Type', 'application/json').send('{bad');
     }
-    const r = await request(app).post('/api/contact').send({ message: 'x'.repeat(30_000) });
+    const r = await request(app)
+      .post('/api/contact')
+      .send({ message: 'x'.repeat(30_000) });
     expect(r.status).toBe(429);
   });
 
   it('variações de caminho (maiúsculas, barra final) não contornam o limite', async () => {
     const app = limited();
-    const paths = ['/api/contact', '/API/CONTACT', '/api/contact/', '/api/Contact', '/api/contact', '/Api/Contact/'];
+    const paths = [
+      '/api/contact',
+      '/API/CONTACT',
+      '/api/contact/',
+      '/api/Contact',
+      '/api/contact',
+      '/Api/Contact/',
+    ];
     const statuses: number[] = [];
     for (const p of paths) statuses.push((await request(app).post(p).send({})).status);
     expect(statuses.filter((s) => s === 429)).toHaveLength(1);
@@ -66,7 +85,10 @@ describe('rate limit dos POST (5/min por IP)', () => {
     const app = limited({ TRUST_PROXY: '0' });
     const statuses: number[] = [];
     for (let i = 0; i < 6; i++) {
-      statuses.push((await request(app).post('/api/contact').set('X-Forwarded-For', `10.0.0.${i}`).send({})).status);
+      statuses.push(
+        (await request(app).post('/api/contact').set('X-Forwarded-For', `10.0.0.${i}`).send({}))
+          .status,
+      );
     }
     expect(statuses[5]).toBe(429);
   });
@@ -82,7 +104,12 @@ describe('rate limit dos POST (5/min por IP)', () => {
     for (let i = 0; i < 6; i++) {
       // supertest conecta de 127.0.0.1 → o "cliente" é o último IP da lista
       statuses.push(
-        (await request(app).post('/api/contact').set('X-Forwarded-For', `198.51.100.${i}, 192.0.2.1`).send({})).status,
+        (
+          await request(app)
+            .post('/api/contact')
+            .set('X-Forwarded-For', `198.51.100.${i}, 192.0.2.1`)
+            .send({})
+        ).status,
       );
     }
     expect(statuses[5]).toBe(429);
@@ -107,7 +134,8 @@ describe('erros sem stack trace / sem enumeração', () => {
     ['GET', '/api/products/%E0%A4%A'], // URI malformada
     ['POST', '/api/health'],
   ])('%s %s → 4xx JSON genérico, sem stack/caminho', async (method, path) => {
-    const res = method === 'GET' ? await request(prod).get(path) : await request(prod).post(path).send({});
+    const res =
+      method === 'GET' ? await request(prod).get(path) : await request(prod).post(path).send({});
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
     expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -123,7 +151,9 @@ describe('erros sem stack trace / sem enumeração', () => {
           {},
           {
             get: () => async () => {
-              throw new Error('prisma.product.findMany() src/routes/catalog.ts 22021 cearanautica_dev');
+              throw new Error(
+                'prisma.product.findMany() src/routes/catalog.ts 22021 cearanautica_dev',
+              );
             },
           },
         ),
@@ -146,11 +176,16 @@ describe('erros sem stack trace / sem enumeração', () => {
 });
 
 describe('configuração de produção', () => {
-  const base = { DATABASE_URL: 'postgresql://u:p@localhost:5433/x', NODE_ENV: 'production' } as NodeJS.ProcessEnv;
+  const base = {
+    DATABASE_URL: 'postgresql://u:p@localhost:5433/x',
+    NODE_ENV: 'production',
+  } as NodeJS.ProcessEnv;
 
   it('recusa subir em produção sem IP_HASH_SALT ou com o valor de exemplo', () => {
     expect(() => loadConfig({ ...base })).toThrow(/IP_HASH_SALT/);
-    expect(() => loadConfig({ ...base, IP_HASH_SALT: 'troque-este-valor' })).toThrow(/IP_HASH_SALT/);
+    expect(() => loadConfig({ ...base, IP_HASH_SALT: 'troque-este-valor' })).toThrow(
+      /IP_HASH_SALT/,
+    );
   });
 
   const ok = { ...base, IP_HASH_SALT: 'x'.repeat(32), WEB_ORIGIN: 'https://www.exemplo.com.br' };

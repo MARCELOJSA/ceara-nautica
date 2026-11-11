@@ -9,7 +9,11 @@ import { loadEnv } from 'vite';
 import { CATEGORIES, DEMO_PRODUCTS } from '@cn/shared';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const env = loadEnv(process.env.NODE_ENV === 'development' ? 'development' : 'production', root, '');
+const env = loadEnv(
+  process.env.NODE_ENV === 'development' ? 'development' : 'production',
+  root,
+  '',
+);
 const siteUrl = (env.VITE_SITE_URL || 'http://localhost:4173').replace(/\/$/, '');
 if (!env.VITE_SITE_URL) {
   console.warn('[sitemap] VITE_SITE_URL não definido — usando', siteUrl);
@@ -21,8 +25,16 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const entries: { loc: string; priority: string; changefreq: string }[] = [
   { loc: '/', priority: '1.0', changefreq: 'weekly' },
   { loc: '/produtos', priority: '0.9', changefreq: 'weekly' },
-  ...CATEGORIES.map((c) => ({ loc: `/produtos?categoria=${c.slug}`, priority: '0.7', changefreq: 'weekly' })),
-  ...DEMO_PRODUCTS.map((p) => ({ loc: `/produtos/${p.slug}`, priority: '0.8', changefreq: 'monthly' })),
+  ...CATEGORIES.map((c) => ({
+    loc: `/produtos?categoria=${c.slug}`,
+    priority: '0.7',
+    changefreq: 'weekly',
+  })),
+  ...DEMO_PRODUCTS.map((p) => ({
+    loc: `/produtos/${p.slug}`,
+    priority: '0.8',
+    changefreq: 'monthly',
+  })),
   { loc: '/servicos', priority: '0.8', changefreq: 'monthly' },
   { loc: '/sobre', priority: '0.6', changefreq: 'monthly' },
   { loc: '/contato', priority: '0.6', changefreq: 'yearly' },

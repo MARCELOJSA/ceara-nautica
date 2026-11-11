@@ -27,7 +27,9 @@ export function resolveTestDatabaseUrl(env: NodeJS.ProcessEnv = process.env): st
   }
   const dbName = url.pathname.replace(/^\//, '');
   if (!/test/i.test(dbName)) {
-    throw new Error(`Por segurança, o banco de testes precisa conter "test" no nome (recebido: ${dbName}).`);
+    throw new Error(
+      `Por segurança, o banco de testes precisa conter "test" no nome (recebido: ${dbName}).`,
+    );
   }
   return url.toString();
 }
@@ -78,7 +80,8 @@ export async function prepareTestDatabase(): Promise<string> {
   return testUrl;
 }
 
-const isDirectRun = process.argv[1] && /test-db\.(ts|js)$|prepare-test-db\.(ts|js)$/.test(process.argv[1]);
+const isDirectRun =
+  process.argv[1] && /test-db\.(ts|js)$|prepare-test-db\.(ts|js)$/.test(process.argv[1]);
 if (isDirectRun) {
   prepareTestDatabase()
     .then((url) => console.log(`Banco de testes pronto: ${new URL(url).pathname.slice(1)}`))

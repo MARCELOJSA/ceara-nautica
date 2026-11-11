@@ -22,7 +22,10 @@ export default defineConfig({
     locale: 'pt-BR',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {

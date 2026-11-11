@@ -46,7 +46,15 @@ for (const r of ROUTES) {
   await p.waitForTimeout(400);
   await p.screenshot({ path: `${OUT}/${name}-full.png`, fullPage: true });
   const vw = await p.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
-  console.log(r, 'altura', h, 'telas', (h / VIEWPORTS[VP].viewport.height).toFixed(1), 'overflowX', vw[0] > vw[1]);
+  console.log(
+    r,
+    'altura',
+    h,
+    'telas',
+    (h / VIEWPORTS[VP].viewport.height).toFixed(1),
+    'overflowX',
+    vw[0] > vw[1],
+  );
 }
 console.log('erros console:', errs.length ? errs : 'nenhum');
 await b.close();

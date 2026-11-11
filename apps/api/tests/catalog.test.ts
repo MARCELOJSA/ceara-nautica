@@ -268,7 +268,9 @@ describe('infraestrutura HTTP', () => {
   });
 
   it('aceita WEB_ORIGIN como lista separada por vírgula', async () => {
-    const custom = makeApp({ WEB_ORIGIN: 'https://cearanautica.com.br, https://www.cearanautica.com.br/' });
+    const custom = makeApp({
+      WEB_ORIGIN: 'https://cearanautica.com.br, https://www.cearanautica.com.br/',
+    });
     const res = await request(custom)
       .get('/api/health')
       .set('Origin', 'https://www.cearanautica.com.br');

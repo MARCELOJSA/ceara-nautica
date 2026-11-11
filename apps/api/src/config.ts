@@ -32,9 +32,7 @@ const envSchema = z.object({
     .transform((v) => (v && v.trim() ? v.trim() : undefined))
     .pipe(z.string().url('LEAD_WEBHOOK_URL inválida').optional()),
   LEAD_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
-  LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
-    .optional(),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
 });
 
 export type AppConfig = {

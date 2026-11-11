@@ -20,8 +20,17 @@ const state = async (label) => {
   const r = await p.evaluate(() => ({
     url: location.pathname + location.search,
     q: document.querySelector('input[type=search], input[placeholder*="Buscar" i]')?.value ?? null,
-    count: [...document.querySelectorAll('p,span,div')].find((e) => /^\d+ resultados?$|nenhum/i.test(e.innerText?.trim() ?? ''))?.innerText ?? null,
-    active: [...document.querySelectorAll('[aria-pressed=true], [aria-current=true], [aria-selected=true]')].map((e) => e.innerText.trim()).join(','),
+    count:
+      [...document.querySelectorAll('p,span,div')].find((e) =>
+        /^\d+ resultados?$|nenhum/i.test(e.innerText?.trim() ?? ''),
+      )?.innerText ?? null,
+    active: [
+      ...document.querySelectorAll(
+        '[aria-pressed=true], [aria-current=true], [aria-selected=true]',
+      ),
+    ]
+      .map((e) => e.innerText.trim())
+      .join(','),
     y: Math.round(scrollY),
   }));
   console.log(label.padEnd(28), JSON.stringify(r));
@@ -33,7 +42,20 @@ await click(p.getByRole('link', { name: /ver embarca/i }).first());
 await p.waitForLoadState('networkidle');
 await state('catálogo');
 const input = p.getByPlaceholder(/buscar/i);
-for (const q of ['reparo', 'repraro', 'manutencao', 'concerto', 'cano', 'canoa 6', 'canoa aluminio', 'motor', 'motr', 'lancha familia', 'estofado', 'yamaha']) {
+for (const q of [
+  'reparo',
+  'repraro',
+  'manutencao',
+  'concerto',
+  'cano',
+  'canoa 6',
+  'canoa aluminio',
+  'motor',
+  'motr',
+  'lancha familia',
+  'estofado',
+  'yamaha',
+]) {
   await input.fill(q);
   await p.waitForTimeout(800);
   await state(`busca "${q}"`);
@@ -48,7 +70,12 @@ await state('Enter "canoa"');
 // filtros: limpar busca, chip Canoas, abrir produto, voltar
 await input.fill('');
 await p.waitForTimeout(600);
-await click(p.getByRole('button', { name: /^canoas$/i }).or(p.getByRole('link', { name: /^canoas$/i })).first());
+await click(
+  p
+    .getByRole('button', { name: /^canoas$/i })
+    .or(p.getByRole('link', { name: /^canoas$/i }))
+    .first(),
+);
 await p.waitForTimeout(800);
 await state('chip Canoas');
 await p.evaluate(() => window.scrollTo(0, 900));
@@ -78,7 +105,11 @@ await p.goto(BASE + '/produtos?categoria=motores-de-popa', { waitUntil: 'network
 await p.waitForTimeout(700);
 await shot('motores-chip');
 const chip = await p.evaluate(() => {
-  const el = [...document.querySelectorAll('button,a')].find((e) => /motores de popa/i.test(e.innerText) && (e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-current')));
+  const el = [...document.querySelectorAll('button,a')].find(
+    (e) =>
+      /motores de popa/i.test(e.innerText) &&
+      (e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-current')),
+  );
   if (!el) return null;
   const r = el.getBoundingClientRect();
   return { left: Math.round(r.left), right: Math.round(r.right), vw: innerWidth };
@@ -89,12 +120,24 @@ await state('deep link motores');
 // estado vazio de reparo: segue link para serviços
 await input.fill('reparo');
 await p.waitForTimeout(800);
-const emptyLinks = await p.locator('main a').evaluateAll((as) => as.filter((a) => a.offsetParent).map((a) => `${a.innerText.trim()} -> ${a.getAttribute('href')}`));
-console.log('links visíveis com busca reparo:', emptyLinks.filter((t) => /servi|orça|instagram|reparo/i.test(t)));
+const emptyLinks = await p
+  .locator('main a')
+  .evaluateAll((as) =>
+    as
+      .filter((a) => a.offsetParent)
+      .map((a) => `${a.innerText.trim()} -> ${a.getAttribute('href')}`),
+  );
+console.log(
+  'links visíveis com busca reparo:',
+  emptyLinks.filter((t) => /servi|orça|instagram|reparo/i.test(t)),
+);
 
 // 404
 await p.goto(BASE + '/produtos/canoa-de-8m', { waitUntil: 'networkidle' });
 await p.waitForTimeout(600);
 await shot('produto-inexistente');
-console.log('produto inexistente texto:', (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 300));
+console.log(
+  'produto inexistente texto:',
+  (await p.locator('main').innerText()).replace(/\s+/g, ' ').slice(0, 300),
+);
 await b.close();

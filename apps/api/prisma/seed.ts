@@ -65,10 +65,20 @@ export async function seed(prisma: PrismaClient, products: Product[] = DEMO_PROD
       await tx.productImage.deleteMany({ where: { productId: product.id } });
       await tx.productSpec.deleteMany({ where: { productId: product.id } });
       await tx.productImage.createMany({
-        data: p.images.map((img, order) => ({ productId: product.id, src: img.src, alt: img.alt, order })),
+        data: p.images.map((img, order) => ({
+          productId: product.id,
+          src: img.src,
+          alt: img.alt,
+          order,
+        })),
       });
       await tx.productSpec.createMany({
-        data: p.specs.map((s, order) => ({ productId: product.id, label: s.label, value: s.value, order })),
+        data: p.specs.map((s, order) => ({
+          productId: product.id,
+          label: s.label,
+          value: s.value,
+          order,
+        })),
       });
     });
   }
