@@ -16,14 +16,9 @@ import { useProduct, useRelated } from '@/hooks/useProducts';
 import { productWhatsAppMessage } from '@/lib/whatsapp';
 import { productImages } from '@/lib/images';
 import { track } from '@/lib/analytics';
+import { productSeoDescription, productSeoTitle } from '@/lib/seo';
 import { site } from '@/config/site';
-import {
-  glossaryFor,
-  orderedSpecs,
-  priceNote,
-  productFaq,
-  productKind,
-} from '@/data/product-info';
+import { glossaryFor, orderedSpecs, priceNote, productFaq, productKind } from '@/data/product-info';
 import NotFound from './NotFound';
 
 const BOAT_COPY = {
@@ -97,8 +92,8 @@ export default function ProductDetail() {
   return (
     <>
       <Seo
-        title={`${product.name} — ${category?.name ?? 'Catálogo'} em Manaus`}
-        description={`${product.shortDescription} Ceará Náutica, Manaus – AM. Solicite um orçamento.`}
+        title={productSeoTitle(product.name, category?.name)}
+        description={productSeoDescription(product.shortDescription)}
         path={`/produtos/${product.slug}`}
         image={available[0]?.src}
         type="product"

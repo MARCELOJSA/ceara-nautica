@@ -407,8 +407,8 @@ export default function Home() {
   return (
     <>
       <Seo
-        title="Ceará Náutica — Barcos de alumínio em Manaus | Náutica & Estaleiro"
-        description="Fabricação de embarcações em alumínio em Manaus com projeto 100% personalizado: lanchas, canoas, botes e semi-chatas. Reparos, manutenção náutica, motores de popa e estofamento."
+        title="Ceará Náutica — Estaleiro e barcos de alumínio em Manaus"
+        description="Barcos de alumínio sob medida em Manaus: lanchas, canoas, botes e semi-chatas. Também reparos, manutenção náutica, motores de popa e estofamento."
         path="/"
         jsonLd={localBusinessJsonLd()}
       />
