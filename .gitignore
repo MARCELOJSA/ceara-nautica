@@ -12,3 +12,6 @@ blob-report/
 .vite/
 .DS_Store
 Thumbs.db
+
+# Backups do banco (npm run -w apps/api db:backup) — contêm dados pessoais de leads
+apps/api/backups/
