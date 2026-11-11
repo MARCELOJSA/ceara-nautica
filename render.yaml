@@ -1,0 +1,169 @@
+# =============================================================================
+# Render Blueprint — Ceará Náutica (site estático + API Node), banco no Neon.
+# Referência: https://render.com/docs/blueprint-spec
+#
+# URLs previsíveis: o Render publica cada serviço em https://<name>.onrender.com.
+# Se o nome já estiver em uso, o Render acrescenta um sufixo (ex.:
+# ceara-nautica-api-x1y2.onrender.com). Nesse caso, ou ao ligar um domínio
+# próprio, ajuste JUNTOS: WEB_ORIGIN (API), VITE_API_URL e VITE_SITE_URL (site)
+# e o connect-src da Content-Security-Policy (site). O teste
+# apps/api/tests/render-blueprint.test.ts confere a coerência entre eles.
+#
+# Variáveis com "sync: false" são pedidas no painel na criação do Blueprint e
+# nunca ficam neste arquivo. Não há interpolação de variáveis em Blueprints.
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # API (Express + Prisma) — https://ceara-nautica-api.onrender.com/api
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: ceara-nautica-api
+    runtime: node
+    plan: free # dorme após 15 min sem acesso; "starter" não dorme
+    region: virginia # mesma região do Neon (us-east-1)
+    # NODE_ENV=production faria o npm pular as devDependencies (prisma, tsup).
+    buildCommand: npm ci --include=dev && npm run -w apps/api build
+    # O plano free não tem preDeployCommand (só planos pagos): as migrações rodam
+    # aqui, antes da API subir. `exec` faz o node receber o SIGTERM do Render direto.
+    startCommand: npm run -w apps/api db:deploy && exec node apps/api/dist/server.js
+    healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/shared/**
+        - package.json
+        - package-lock.json
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.23.4
+      # Connection string DIRETA do Neon (sem "-pooler"), com
+      # ?sslmode=require&sslaccept=strict&connect_timeout=15
+      - key: DATABASE_URL
+        sync: false
+      # Valor aleatório de 256 bits gerado pelo Render na criação do serviço.
+      - key: IP_HASH_SALT
+        generateValue: true
+      # Origem(ns) do site, sem barra final. Com domínio próprio, acrescente-o
+      # separado por vírgula (ex.: https://www.dominio.com.br,https://dominio.com.br).
+      - key: WEB_ORIGIN
+        value: https://ceara-nautica-site.onrender.com
+      # Cadeia medida no Render: cliente → Cloudflare → load balancer do Render →
+      # proxy interno → API. O X-Forwarded-For chega como
+      # "<forjado pelo cliente…>, <cliente>, <borda Cloudflare>, <10.x Render>" e o
+      # socket é o proxy interno: o IP real do visitante é o 3º hop a partir da
+      # direita. Menos que 3 junta todos os visitantes no IP da Cloudflare/Render
+      # (rate limit global); mais que 3 volta a aceitar IP forjado.
+      - key: TRUST_PROXY
+        value: '3'
+      - key: RATE_LIMIT_WINDOW_MS
+        value: '60000'
+      - key: RATE_LIMIT_MAX
+        value: '5'
+      - key: RATE_LIMIT_DISABLED
+        value: 'false'
+      - key: LOG_LEVEL
+        value: info
+      # Opcional: webhook (Zapier/Make/n8n) avisado a cada lead. Vazio = desligado.
+      - key: LEAD_WEBHOOK_URL
+        sync: false
+      - key: LEAD_WEBHOOK_TIMEOUT_MS
+        value: '5000'
+
+  # ---------------------------------------------------------------------------
+  # Site (React + Vite, estático em CDN) — https://ceara-nautica-site.onrender.com
+  # Sites estáticos não têm região nem plano: são servidos pela CDN global.
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: ceara-nautica-site
+    runtime: static
+    buildCommand: npm ci --include=dev && npm run -w apps/web build
+    staticPublishPath: apps/web/dist
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/shared/**
+        - package.json
+        - package-lock.json
+    envVars:
+      - key: NODE_VERSION
+        value: 22.23.4
+      # Lidas no build (entram no bundle): nada secreto aqui.
+      - key: VITE_API_URL
+        value: https://ceara-nautica-api.onrender.com/api
+      - key: VITE_SITE_URL
+        value: https://ceara-nautica-site.onrender.com
+    routes:
+      # SPA: qualquer caminho sem arquivo correspondente devolve o index.html
+      # (arquivos existentes, como /assets/*, são servidos antes da regra).
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # --- Segurança (SEC-04) ---
+      # script-src sem 'unsafe-inline'/'unsafe-eval'. style-src-attr libera só o
+      # atributo style (o <noscript> do index.html usa um); <style> inline segue
+      # bloqueado. Ao configurar GTM/GA4/Meta Pixel (VITE_GTM_ID...), acrescente
+      # https://www.googletagmanager.com / https://connect.facebook.net em
+      # script-src e os domínios de coleta em connect-src e img-src.
+      - path: /*
+        name: Content-Security-Policy
+        value: >-
+          default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline';
+          img-src 'self' data:; font-src 'self'; connect-src 'self' https://ceara-nautica-api.onrender.com;
+          manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';
+          frame-ancestors 'none'; upgrade-insecure-requests
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+      - path: /*
+        name: Cross-Origin-Opener-Policy
+        value: same-origin
+      # --- Cache ---
+      # Arquivos do Vite têm hash no nome: podem ficar 1 ano no cache.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # HTML sempre revalidado, para cada publicação aparecer na hora. Regras por
+      # rota (e não /*) para não somar dois Cache-Control em /assets/*.
+      - path: /
+        name: Cache-Control
+        value: no-cache
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      - path: /produtos
+        name: Cache-Control
+        value: no-cache
+      - path: /produtos/*
+        name: Cache-Control
+        value: no-cache
+      - path: /sobre
+        name: Cache-Control
+        value: no-cache
+      - path: /servicos
+        name: Cache-Control
+        value: no-cache
+      - path: /contato
+        name: Cache-Control
+        value: no-cache
+      - path: /orcamento
+        name: Cache-Control
+        value: no-cache
+      - path: /politica-de-privacidade
+        name: Cache-Control
+        value: no-cache
