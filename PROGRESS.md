@@ -96,13 +96,21 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 ## Fila de tarefas (ordem obrigatória)
 
 1. ~~Ciclo dev → QA → UX → correções~~ **concluído em 2026-11-10** (`f9ce1f6`).
-2. **Em andamento: análise da necessidade de banco de dados** (pedido de 2026-11-10). Começar automaticamente, sem pedir confirmação:
+2. ~~Análise da necessidade de banco de dados~~ **concluída em 2026-11-10** (`a4415bd`, `fa2263c`, `4076b78`; ver [docs/DATABASE.md](docs/DATABASE.md)). Pedido original: (pedido de 2026-11-10). Começar automaticamente, sem pedir confirmação:
    - Avaliar se o projeto precisa de banco e comparar PostgreSQL, MySQL, MongoDB, SQLite, Supabase e outras opções relevantes, separando o mecanismo de banco da plataforma de hospedagem.
    - Critérios: compatibilidade com a arquitetura atual, desempenho e confiabilidade, escalabilidade, desenvolvimento e manutenção, custo-benefício, segurança, execução local e em produção (ambientes separados de desenvolvimento, testes e produção).
    - Dar notas de 0 a 10 por critério, com justificativa. Não escolher automaticamente a maior nota geral.
    - Escolher uma solução principal e explicar: por que é a melhor escolha, vantagens, limitações, custo inicial, como cresce com o projeto e como funciona localmente e em produção.
    - Escolher, instalar, configurar e integrar, se necessário. Depois, testes finais e documentação dos resultados.
    - Ponto de partida: o projeto já usa PostgreSQL 16 (Docker, porta 5433) com Prisma 6, com 3 migrações e testes de integração. A análise precisa considerar o custo de trocar essa base.
+
+## Banco de dados (tarefa 2, concluída)
+
+- **Análise:** [docs/DATABASE.md](docs/DATABASE.md). O banco é necessário (leads e catálogo). Mecanismos com nota de 0 a 70: PostgreSQL 64, MySQL 58, MongoDB 50, SQLite 45. As plataformas foram comparadas à parte.
+- **Decisão:** PostgreSQL 16 + Prisma (o que já estava em uso, sem reescrita); Docker no desenvolvimento e nos testes; **Neon, plano gratuito**, em produção (R$ 0, não cobra excedente, religa sozinho). Supabase foi descartado porque pausa após 1 semana sem uso; Render, porque o banco gratuito é apagado em 30 dias.
+- **Desenvolvedor 1:** `a4415bd` SSL obrigatório para banco remoto em produção (achado: no Prisma 6, `verify-full`/`verify-ca` conectam **sem** TLS, por isso são recusados). `fa2263c` `db:backup`/`db:restore` via Docker (postgres:17-alpine), com confirmação `--yes` para destino remoto.
+- **Verificação:** backup e restauração reais do banco de testes com contagens e conteúdo idênticos (pelo desenvolvedor e conferido pelo orquestrador); destino remoto sem `--yes` recusado; API 221/221, site 151/151.
+- **Pendente (depende da empresa):** criar a conta no Neon e definir a hospedagem da API e do site. Nada foi testado contra um Neon real.
 
 ## Pendências
 
@@ -114,5 +122,6 @@ Ambiente limpo: build de produção em `http://localhost:4190`, com proxy para a
 - [x] Rodada final: QA aprovado; usuário final aprovado (9,0); correções da rodada 3 aplicadas e verificadas
 - [ ] SEC-04: headers de segurança na hospedagem (depende da escolha da hospedagem)
 - [ ] B7: manchete da página inicial (decisão do cliente)
-- [ ] Migração para Prisma 7 (SEC-13). Bloqueada enquanto a API em execução trava a DLL do Prisma
+- [ ] Migração para Prisma 7 (SEC-13). Não está mais bloqueada pelo ambiente (o `npm run typecheck` completo passa desde o reinício)
+- [ ] Produção: criar o projeto no Neon e escolher a hospedagem da API e do site (ver docs/DATABASE.md, seção 6)
 - [x] Repositório no GitHub configurado: https://github.com/MARCELOJSA/ceara-nautica (privado)

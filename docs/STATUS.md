@@ -20,7 +20,7 @@ _Atualizado: 2026-11-10 (fim do ciclo de testes)_
 - [ ] SEC-04: headers de segurança na hospedagem (ver `docs/SECURITY-REPORT.md`) — ao definir a hospedagem
 - [ ] Migrar para Prisma 7 (fecha SEC-13)
 - [x] Ciclo autônomo dev → QA → UX (2026-11-10): UX aprovado com nota 9,0, QA aprovado tecnicamente; detalhes em `PROGRESS.md`, `docs/QA-REPORT.md` e `docs/UX-REPORT.md`
-- [ ] Análise da necessidade de banco de dados (em andamento)
+- [x] Banco de dados: análise e decisão em `docs/DATABASE.md` (PostgreSQL + Prisma; Neon em produção); SSL obrigatório em produção; `db:backup`/`db:restore`
 
 ## Pendências que dependem da empresa (não inventar)
 | Item | Onde configurar |
