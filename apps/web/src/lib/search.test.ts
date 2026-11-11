@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEMO_PRODUCTS } from '@cn/shared';
 import { filterProducts } from '@/lib/api';
-import { looksLikeService } from '@/lib/search';
+import { looksLikeMotorIssue, looksLikeService } from '@/lib/search';
 
 const slugs = (q: string, category?: string) =>
   filterProducts(DEMO_PRODUCTS, { q, category }).map((p) => p.slug);
@@ -87,4 +87,63 @@ describe('looksLikeService', () => {
   it.each(['canoa', 'lancha 7m', 'motor', 'aluminio', '', '   '])('"%s" → não é serviço', (q) => {
     expect(looksLikeService(q)).toBe(false);
   });
+});
+
+describe('[UX-27] sintomas de defeito contam como serviço', () => {
+  const symptoms = [
+    'motor falhando',
+    'motor com defeito',
+    'motor não liga',
+    'motor nao liga',
+    'motor quebrado',
+    'motor quebrou',
+    'problema no motor',
+    'motor pifou',
+    'motor engasgando',
+    'motor parou',
+    'motor morrendo',
+    'barco furado',
+    'canoa vazando',
+    'falha no motor',
+    'Motor de popa não pega',
+  ];
+  it.each(symptoms)('"%s" → serviço', (q) => {
+    expect(looksLikeService(q)).toBe(true);
+  });
+
+  it.each(['liga de alumínio', 'motor 40hp', 'motores de popa', 'lancha', 'popa'])(
+    '"%s" → não é serviço',
+    (q) => {
+      expect(looksLikeService(q)).toBe(false);
+    },
+  );
+
+  it('os sintomas dão 0 produtos (o catálogo mostra a dica no estado vazio)', () => {
+    for (const q of ['motor falhando', 'motor não liga', 'motor quebrado', 'barco furado']) {
+      expect(slugs(q)).toEqual([]);
+    }
+  });
+});
+
+describe('[UX-27] looksLikeMotorIssue', () => {
+  it.each([
+    'motor falhando',
+    'motor com defeito',
+    'motor não liga',
+    'motor quebrado',
+    'problema no motor',
+    'conserto de motor',
+    'revisão do motor',
+    'MOTOR FALHANDO',
+    'motr falhando',
+  ])('"%s" → problema no motor', (q) => {
+    expect(looksLikeMotorIssue(q)).toBe(true);
+  });
+
+  it.each(['motor', 'motor 40hp', 'motores de popa', 'barco furado', 'reparo', 'motorista', ''])(
+    '"%s" → não é problema no motor',
+    (q) => {
+      expect(looksLikeMotorIssue(q)).toBe(false);
+    },
+  );
 });

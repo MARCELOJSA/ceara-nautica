@@ -9,7 +9,8 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { CtaBand, type CtaContext } from '@/components/layout/CtaBand';
 import { useProducts } from '@/hooks/useProducts';
 import { filterProducts } from '@/lib/api';
-import { looksLikeService as isServiceQuery } from '@/lib/search';
+import { looksLikeMotorIssue, looksLikeService as isServiceQuery } from '@/lib/search';
+import { MOTOR_ISSUE_HREF, MOTOR_ISSUE_LABEL } from '@/data/content';
 import { track } from '@/lib/analytics';
 
 function ctaContext(category: string): CtaContext {
@@ -93,6 +94,8 @@ export default function Products() {
     ...(cat ? [{ name: cat.name, path: `/produtos?categoria=${cat.slug}` }] : []),
   ];
   const looksLikeService = isServiceQuery(q);
+  // UX-27: "motor falhando", "motor não liga"... → pedido de problema no motor
+  const motorIssue = looksLikeMotorIssue(q);
 
   return (
     <>
@@ -214,6 +217,21 @@ export default function Products() {
                     Veja nossos serviços
                   </Link>
                   .
+                  {motorIssue && (
+                    <>
+                      <br />
+                      <Link
+                        to={MOTOR_ISSUE_HREF}
+                        className="link-underline mt-2 inline-flex min-h-11 items-center font-semibold"
+                        data-testid="motor-issue-hint"
+                      >
+                        {MOTOR_ISSUE_LABEL}
+                      </Link>
+                      <span className="block text-sm text-steel">
+                        A equipe confirma se atende o seu caso.
+                      </span>
+                    </>
+                  )}
                 </p>
               )}
               <h2 className="text-2xl font-bold uppercase sm:text-3xl">

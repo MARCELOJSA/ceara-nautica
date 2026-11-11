@@ -95,4 +95,33 @@ describe('Catálogo /produtos', () => {
     expect(lines.join(' ')).not.toMatch(/Passeio/);
     expect(lines.filter((l) => /sob consulta/.test(l)).length).toBeGreaterThan(0);
   });
+  it.each(['motor falhando', 'motor não liga', 'problema no motor', 'motor quebrado'])(
+    '[UX-27] "%s": estado vazio com dica de serviços e "Problema no motor? Descreva aqui"',
+    async (q) => {
+      renderAt(<Products />, { route: `/produtos?q=${encodeURIComponent(q)}` });
+      await screen.findByTestId('empty-state');
+      const hint = screen.getByTestId('service-hint');
+      expect(within(hint).getByRole('link', { name: /veja nossos serviços/i })).toHaveAttribute(
+        'href',
+        '/servicos',
+      );
+      expect(
+        within(hint).getByRole('link', { name: 'Problema no motor? Descreva aqui' }),
+      ).toHaveAttribute('href', '/orcamento?servico=motor-revisao');
+      expect(hint).toHaveTextContent(/a equipe confirma se atende/i);
+    },
+  );
+
+  it('[UX-27] "barco furado": dica de serviços, sem o link de motor', async () => {
+    renderAt(<Products />, { route: '/produtos?q=barco%20furado' });
+    await screen.findByTestId('empty-state');
+    expect(screen.getByTestId('service-hint')).toBeInTheDocument();
+    expect(screen.queryByTestId('motor-issue-hint')).not.toBeInTheDocument();
+  });
+
+  it('[UX-27] "motor" sozinho mostra os motores, sem estado vazio', async () => {
+    renderAt(<Products />, { route: '/produtos?q=motor' });
+    await screen.findByTestId('product-grid');
+    expect(screen.queryByTestId('motor-issue-hint')).not.toBeInTheDocument();
+  });
 });
