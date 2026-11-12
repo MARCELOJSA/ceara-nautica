@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { AlertTriangle, CheckCircle2, Instagram } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Info, Instagram } from 'lucide-react';
 import { site } from '@/config/site';
 import { formatPhone } from './phone';
 import type { SubmitStatus } from './useLeadSubmit';
@@ -93,12 +93,17 @@ export function FormError({ status }: { status: SubmitStatus }) {
 export const SLOW_MESSAGE =
   'Conectando ao servidor… isso pode levar alguns segundos na primeira vez. Não feche a página.';
 
+/** UX-32: depois de ~20 s, "alguns segundos" não é mais verdade. */
+export const VERY_SLOW_MESSAGE =
+  'Ainda conectando… na primeira vez pode levar até 1 minuto. Seu pedido não se perdeu, aguarde. Não feche a página.';
+
 /**
  * Aviso calmo quando o envio demora (API acordando, docs/HOSTING.md).
  * A região viva existe sempre, para o leitor de tela anunciar quando o texto aparece.
  */
 export function SlowNotice({ status }: { status: SubmitStatus }) {
   const slow = status.kind === 'loading' && status.slow === true;
+  const verySlow = slow && status.kind === 'loading' && status.verySlow === true;
   return (
     <p
       role="status"
@@ -110,7 +115,28 @@ export function SlowNotice({ status }: { status: SubmitStatus }) {
           : 'sr-only'
       }
     >
-      {slow ? SLOW_MESSAGE : ''}
+      {verySlow ? VERY_SLOW_MESSAGE : slow ? SLOW_MESSAGE : ''}
     </p>
+  );
+}
+
+export const INTERRUPTED_MESSAGE =
+  'Seu envio anterior pode não ter sido concluído. Confira os dados e envie de novo se não recebeu a confirmação.';
+
+/**
+ * UX-31: a página foi recarregada/fechada durante um envio. Não sabemos se o
+ * pedido chegou; o rascunho foi restaurado e a pessoa decide se reenvia.
+ */
+export function InterruptedNotice({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <div
+      role="status"
+      data-testid="submit-interrupted"
+      className="flex gap-3 rounded-sm border-l-2 border-orange bg-white px-4 py-3 text-sm text-graphite"
+    >
+      <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-orange-ink" />
+      <p>{INTERRUPTED_MESSAGE}</p>
+    </div>
   );
 }

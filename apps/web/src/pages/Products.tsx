@@ -13,7 +13,13 @@ import { looksLikeMotorIssue, looksLikeService as isServiceQuery } from '@/lib/s
 import { MOTOR_ISSUE_HREF, MOTOR_ISSUE_LABEL } from '@/data/content';
 import { track } from '@/lib/analytics';
 
-function ctaContext(category: string): CtaContext {
+/**
+ * Contexto da faixa final. UX-33: busca que parece serviço ("barco furado",
+ * "motor falhando") não pode terminar em "Vamos projetar a sua embarcação?".
+ */
+function ctaContext(category: string, q = ''): CtaContext {
+  if (looksLikeMotorIssue(q)) return 'motor-problema';
+  if (isServiceQuery(q)) return 'servicos';
   if (category === 'motores-de-popa') return 'motores';
   if (category === 'estofamentos') return 'estofamento';
   return 'embarcacao';
@@ -262,7 +268,7 @@ export default function Products() {
           <IllustrativeNote className="mt-8" />
         </div>
       </section>
-      <CtaBand context={ctaContext(category)} />
+      <CtaBand context={ctaContext(category, q)} />
     </>
   );
 }

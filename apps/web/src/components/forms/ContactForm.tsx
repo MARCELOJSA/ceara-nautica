@@ -8,7 +8,14 @@ import { getUtm } from '@/lib/utm';
 import { track } from '@/lib/analytics';
 import { ConsentField, HoneypotField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess, PhoneConfirmation, SlowNotice } from './FormFeedback';
+import {
+  FormError,
+  FormSuccess,
+  InterruptedNotice,
+  PhoneConfirmation,
+  SlowNotice,
+} from './FormFeedback';
+import { useFormDraft } from './formDraft';
 
 export interface ContactFormValues {
   name: string;
@@ -20,6 +27,8 @@ export interface ContactFormValues {
   website: string;
 }
 
+/** UX-31: campos guardados no rascunho (sessionStorage). Sem consent/website. */
+const DRAFT_FIELDS = ['name', 'phone', 'email', 'subject', 'message'] as const;
 const FIELDS = ['name', 'phone', 'email', 'subject', 'message', 'consent'] as const;
 const resolver = zodResolver(contactSchema) as unknown as Resolver<ContactFormValues>;
 
@@ -30,6 +39,8 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
     reset,
     setError,
     setFocus,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ContactFormValues>({
     resolver,
@@ -44,7 +55,9 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
       website: '',
     },
   });
-  const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
+  const { status, setStatus, run, interrupted } = useLeadSubmit(setError, FIELDS, 'contact');
+  // UX-31: rascunho só dos campos de texto (nunca o consentimento nem o honeypot)
+  useFormDraft('contact', DRAFT_FIELDS, watch, setValue);
   const [sentPhone, setSentPhone] = useState('');
   const [editPhone, setEditPhone] = useState(false);
 
@@ -100,6 +113,8 @@ export function ContactForm({ defaultSubject = '' }: { defaultSubject?: string }
       className="relative space-y-5"
       aria-label="Formulário de contato"
     >
+      {/* UX-31: no topo, para ser visto ao voltar à página */}
+      <InterruptedNotice show={interrupted} />
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField
           label="Nome"

@@ -124,4 +124,40 @@ describe('Catálogo /produtos', () => {
     await screen.findByTestId('product-grid');
     expect(screen.queryByTestId('motor-issue-hint')).not.toBeInTheDocument();
   });
+
+  describe('[UX-33] faixa final acompanha a busca', () => {
+    const bandEl = () => document.getElementById('cta-title')!.closest('section')!;
+    const bandLink = () => within(bandEl()).getByRole('link', { name: /solicitar orçamento/i });
+
+    it('"barco furado": "Precisa de um serviço?" e orçamento sem "nova embarcação"', async () => {
+      renderAt(<Products />, { route: '/produtos?q=barco%20furado' });
+      await screen.findByTestId('empty-state');
+      expect(screen.getByRole('heading', { name: 'Precisa de um serviço?' })).toBeInTheDocument();
+      expect(screen.queryByText('Vamos projetar a sua embarcação?')).not.toBeInTheDocument();
+      expect(bandLink()).toHaveAttribute('href', '/orcamento');
+    });
+
+    it('"motor falhando": "Problema no motor?" levando ao pedido de revisão do motor', async () => {
+      renderAt(<Products />, { route: '/produtos?q=motor%20falhando' });
+      await screen.findByTestId('empty-state');
+      expect(screen.getByRole('heading', { name: 'Problema no motor?' })).toBeInTheDocument();
+      expect(bandLink()).toHaveAttribute('href', '/orcamento?servico=motor-revisao');
+    });
+
+    it('sem busca de serviço, mantém o contexto de embarcação (e de motores na categoria)', async () => {
+      const { unmount } = renderAt(<Products />, { route: '/produtos?q=lancha' });
+      await screen.findByTestId('product-grid');
+      expect(
+        screen.getByRole('heading', { name: 'Vamos projetar a sua embarcação?' }),
+      ).toBeInTheDocument();
+      expect(bandLink()).toHaveAttribute('href', '/orcamento?servico=fabricacao');
+      unmount();
+      renderAt(<Products />, { route: '/produtos?categoria=motores-de-popa' });
+      await screen.findByTestId('product-grid');
+      expect(bandLink()).toHaveAttribute(
+        'href',
+        '/orcamento?servico=motores&categoria=motores-de-popa',
+      );
+    });
+  });
 });

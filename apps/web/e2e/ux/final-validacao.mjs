@@ -27,10 +27,16 @@ p.on('console', (m) => m.type() === 'error' && cerr.push(m.text()));
 const shot = (n, o = {}) => p.screenshot({ path: `${OUT}/v-${VP}-${n}.png`, ...o });
 const click = async (loc) => (mobile ? loc.tap() : loc.click());
 const errs = async () =>
-  (await p.locator('[id$="-error"], [role=alert]').allInnerTexts()).map((t) => t.trim()).filter(Boolean);
+  (await p.locator('[id$="-error"], [role=alert]').allInnerTexts())
+    .map((t) => t.trim())
+    .filter(Boolean);
 const main = async () => (await p.locator('main').innerText()).replace(/\s+/g, ' ');
 const fake201 = (route) =>
-  route.fulfill({ status: 201, contentType: 'application/json', body: '{"ok":true,"id":"ux-local"}' });
+  route.fulfill({
+    status: 201,
+    contentType: 'application/json',
+    body: '{"ok":true,"id":"ux-local"}',
+  });
 
 await p.goto(BASE + '/', { waitUntil: 'networkidle', timeout: 120000 });
 const banner = p.getByTestId('cookie-banner');
@@ -62,7 +68,9 @@ if (!MODE) {
       return {
         h1: h1?.innerText,
         sub: h1?.parentElement?.querySelector('p')?.innerText,
-        how: [...document.querySelectorAll('main ol li')].map((e) => e.innerText.replace(/\s+/g, ' ')).slice(0, 3),
+        how: [...document.querySelectorAll('main ol li')]
+          .map((e) => e.innerText.replace(/\s+/g, ' '))
+          .slice(0, 3),
         msg: ta?.value,
         ph: ta?.placeholder,
         type: document.querySelector('select[name=requestType]')?.value,
@@ -79,7 +87,12 @@ if (!MODE) {
   await p.getByRole('checkbox').check();
   await click(p.getByRole('button', { name: /solicitar orçamento|enviar/i }).last());
   await p.waitForTimeout(500);
-  console.log('enviar sem descrever ->', await errs(), '| foco:', await p.evaluate(() => document.activeElement?.getAttribute('name')));
+  console.log(
+    'enviar sem descrever ->',
+    await errs(),
+    '| foco:',
+    await p.evaluate(() => document.activeElement?.getAttribute('name')),
+  );
   await shot('sem-descrever');
   await p.unroute('**/api/quotes');
 
@@ -102,7 +115,10 @@ if (!MODE) {
   await p.goto(BASE + '/', { waitUntil: 'networkidle' });
   const home = await p.evaluate(() => {
     const imgs = [...document.querySelectorAll('main img')].map((i) =>
-      (i.currentSrc || i.src).split('/').pop().replace(/-\d+\.webp.*$/, ''),
+      (i.currentSrc || i.src)
+        .split('/')
+        .pop()
+        .replace(/-\d+\.webp.*$/, ''),
     );
     const c = {};
     imgs.forEach((s) => (c[s] = (c[s] || 0) + 1));
@@ -136,13 +152,19 @@ if (!MODE) {
       await shot(`${label}-${String(s).replace('.', '_')}s`);
     }
     // clique repetido durante a espera
-    await p.locator('form button[type=submit]').click({ force: true, timeout: 1500 }).catch(() => {});
+    await p
+      .locator('form button[type=submit]')
+      .click({ force: true, timeout: 1500 })
+      .catch(() => {});
     await p.getByText(okRe).first().waitFor({ timeout: 60000 });
     console.log(`${label}: sucesso após ${((Date.now() - t0) / 1000).toFixed(1)} s`);
     await shot(`${label}-sucesso`);
   };
   let posts = 0;
-  p.on('request', (r) => /\/api\/(quotes|contact)$/.test(r.url()) && r.method() === 'POST' && posts++);
+  p.on(
+    'request',
+    (r) => /\/api\/(quotes|contact)$/.test(r.url()) && r.method() === 'POST' && posts++,
+  );
 
   // Contato lento (simulado, sem gravar)
   await p.route('**/api/contact', slow(false));
@@ -160,7 +182,9 @@ if (!MODE) {
   await p.goto(BASE + '/orcamento?produto=lancha-aluminio-7m', { waitUntil: 'networkidle' });
   await p.getByLabel(/^nome/i).fill(realQuote ? 'UXF QA-TEST orçamento' : 'Teste espera');
   await p.getByLabel(/telefone/i).fill('(92) 99999-0000');
-  await p.locator('textarea').fill('Lancha para passeio com a família. Teste de experiência (QA-TEST), desconsiderar.');
+  await p
+    .locator('textarea')
+    .fill('Lancha para passeio com a família. Teste de experiência (QA-TEST), desconsiderar.');
   await p.getByRole('checkbox').check();
   if (realQuote) console.log('orçamento real enviado às', new Date().toISOString());
   await click(p.getByRole('button', { name: /solicitar orçamento/i }).last());
@@ -182,7 +206,9 @@ if (!MODE) {
     dialog = `${d.type()}: ${d.message()}`;
     await d.dismiss();
   });
-  await p.reload({ waitUntil: 'networkidle', timeout: 20000 }).catch((e) => console.log('reload:', e.message.split('\n')[0]));
+  await p
+    .reload({ waitUntil: 'networkidle', timeout: 20000 })
+    .catch((e) => console.log('reload:', e.message.split('\n')[0]));
   console.log('aviso do navegador ao recarregar:', dialog);
   await p.waitForTimeout(800);
   await shot('apos-recarregar');
@@ -190,9 +216,19 @@ if (!MODE) {
     'após recarregar:',
     p.url(),
     '| nome:',
-    JSON.stringify(await p.getByLabel(/^nome/i).inputValue().catch(() => '?')),
+    JSON.stringify(
+      await p
+        .getByLabel(/^nome/i)
+        .inputValue()
+        .catch(() => '?'),
+    ),
     '| mensagem:',
-    JSON.stringify(await p.locator('textarea').inputValue().catch(() => '?')),
+    JSON.stringify(
+      await p
+        .locator('textarea')
+        .inputValue()
+        .catch(() => '?'),
+    ),
   );
 }
 console.log('erros console:', cerr.length ? cerr.slice(0, 5) : 'nenhum');

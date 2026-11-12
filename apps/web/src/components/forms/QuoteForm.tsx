@@ -24,7 +24,14 @@ import {
 } from '@/data/content';
 import { ConsentField, HoneypotField, SelectField, TextAreaField, TextField } from './fields';
 import { useLeadSubmit } from './useLeadSubmit';
-import { FormError, FormSuccess, PhoneConfirmation, SlowNotice } from './FormFeedback';
+import {
+  FormError,
+  FormSuccess,
+  InterruptedNotice,
+  PhoneConfirmation,
+  SlowNotice,
+} from './FormFeedback';
+import { useFormDraft } from './formDraft';
 
 export interface QuoteFormValues {
   name: string;
@@ -39,6 +46,8 @@ export interface QuoteFormValues {
   website: string;
 }
 
+/** UX-31: campos guardados no rascunho (sessionStorage). Sem consent/website. */
+const DRAFT_FIELDS = ['name', 'phone', 'email', 'city', 'message'] as const;
 const FIELDS = [
   'name',
   'phone',
@@ -207,7 +216,9 @@ export function QuoteForm({
     QUOTE_MESSAGE_HINTS[requestType as keyof typeof QUOTE_MESSAGE_HINTS] ??
     QUOTE_MESSAGE_HINTS.default;
 
-  const { status, setStatus, run } = useLeadSubmit(setError, FIELDS);
+  const { status, setStatus, run, interrupted } = useLeadSubmit(setError, FIELDS, 'quote');
+  // UX-31: rascunho só dos campos de texto (nunca o consentimento nem o honeypot)
+  useFormDraft('quote', DRAFT_FIELDS, watch, setValue);
   const [sentPhone, setSentPhone] = useState('');
   const [editPhone, setEditPhone] = useState(false);
 
@@ -298,6 +309,8 @@ export function QuoteForm({
       className="relative space-y-5"
       aria-label="Formulário de orçamento"
     >
+      {/* UX-31: no topo, para ser visto ao voltar à página */}
+      <InterruptedNotice show={interrupted} />
       {compact && selected && (
         <div
           className="flex items-center gap-4 rounded-md border border-graphite/15 bg-white p-3"

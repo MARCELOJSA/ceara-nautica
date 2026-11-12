@@ -265,6 +265,114 @@ test.describe('fluxos principais', () => {
     expect(consoleErrors).toEqual([]);
   });
 
+  test('[UX-31] recarregar durante o envio: navegador pede confirmação, dados voltam e nada é reenviado sozinho', async ({
+    page,
+    consoleErrors,
+  }) => {
+    test.setTimeout(60_000);
+    await presetConsent(page);
+    // o POST fica sem resposta (API "dormindo"); a rota mais nova vale sobre o mock
+    const hang = () => {};
+    await page.route('**/api/contact', hang);
+    const posts: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'POST') posts.push(r.url());
+    });
+    const dialogs: string[] = [];
+    page.on('dialog', (d) => {
+      dialogs.push(d.type());
+      void d.accept();
+    });
+
+    await page.goto('/contato');
+    await page.getByLabel(/^nome/i).fill('Cliente Recarga');
+    await page.getByLabel(/telefone/i).fill('(92) 98888-7777');
+    await page.getByLabel(/^assunto/i).fill('Dúvida sobre lancha');
+    await page.getByLabel(/^mensagem/i).fill('Quero saber sobre uma lancha de 7 m.');
+    await page.getByRole('checkbox', { name: /autorizo/i }).check();
+    await page.getByRole('button', { name: /enviar mensagem/i }).click();
+    await expect(page.getByRole('button', { name: /enviando/i })).toBeDisabled();
+    await expect.poll(() => posts.length).toBe(1);
+
+    await page.reload();
+    expect(dialogs).toEqual(['beforeunload']);
+    await expect(page.getByTestId('submit-interrupted')).toHaveText(
+      'Seu envio anterior pode não ter sido concluído. Confira os dados e envie de novo se não recebeu a confirmação.',
+    );
+    await expect(page.getByLabel(/^nome/i)).toHaveValue('Cliente Recarga');
+    await expect(page.getByLabel(/^mensagem/i)).toHaveValue('Quero saber sobre uma lancha de 7 m.');
+    await expect(page.getByRole('checkbox', { name: /autorizo/i })).not.toBeChecked();
+    await expect(page.locator('input[name="website"]')).toHaveValue('');
+    // nada é reenviado sozinho
+    await page.waitForTimeout(500);
+    expect(posts).toHaveLength(1);
+
+    // a pessoa confere e envia de novo (API respondendo): sucesso e rascunho apagado
+    await page.unroute('**/api/contact', hang);
+    await page.getByRole('checkbox', { name: /autorizo/i }).check();
+    await page.getByRole('button', { name: /enviar mensagem/i }).click();
+    await expect(page.getByRole('heading', { name: /mensagem enviada/i })).toBeVisible();
+    expect(posts).toHaveLength(2);
+    expect(await page.evaluate(() => sessionStorage.getItem('cn_draft_contact'))).toBeNull();
+    // sem envio em andamento, sair da página não pede confirmação
+    await page.reload();
+    expect(dialogs).toEqual(['beforeunload']);
+    await expect(page.getByTestId('submit-interrupted')).toHaveCount(0);
+    await expect(page.getByLabel(/^nome/i)).toHaveValue('');
+    expect(consoleErrors.filter((e) => !/Failed to load resource|net::ERR/.test(e))).toEqual([]);
+  });
+
+  test('[UX-32] espera longa: depois de ~20 s o aviso fala em até 1 minuto', async ({ page }) => {
+    await presetConsent(page);
+    await page.clock.install();
+    await page.route('**/api/quotes', () => {});
+    await page.goto('/orcamento');
+    await page.getByLabel(/^nome/i).fill('Cliente Espera');
+    await page.getByLabel(/telefone/i).fill('(92) 98888-7777');
+    await page
+      .getByLabel(/conte o que você precisa/i)
+      .fill('Preciso de uma lancha de alumínio para a família.');
+    await page.getByRole('checkbox', { name: /autorizo/i }).check();
+    await page
+      .getByRole('button', { name: /solicitar orçamento/i })
+      .last()
+      .click();
+    const slow = page.getByTestId('submit-slow');
+    await expect(page.getByRole('button', { name: /enviando/i })).toBeDisabled();
+    await page.clock.fastForward(4_500);
+    await expect(slow).toHaveText(/alguns segundos/i);
+    await page.clock.fastForward(16_000);
+    await expect(slow).toHaveText(/ainda conectando/i);
+    await expect(slow).toHaveText(/até 1 minuto/i);
+    await expect(slow).toHaveText(/não feche a página/i);
+    await expect(slow).not.toHaveText(/alguns segundos/i);
+  });
+
+  test('[UX-33] busca de serviço: a faixa final não oferece "nova embarcação"', async ({
+    page,
+  }) => {
+    await presetConsent(page);
+    const band = page.locator('section[aria-labelledby="cta-title"]');
+
+    await page.goto('/produtos?q=barco%20furado');
+    await expect(page.getByTestId('empty-state')).toBeVisible();
+    await expect(band.getByRole('heading')).toHaveText('Precisa de um serviço?');
+    await expect(band.getByText(/projetar a sua embarcação/i)).toHaveCount(0);
+    await band.getByRole('link', { name: /solicitar orçamento/i }).click();
+    await expect(page).toHaveURL(/\/orcamento$/);
+    await expect(page.getByLabel(/tipo de solicitação/i)).not.toHaveValue('nova-embarcacao');
+
+    await page.goto('/produtos?q=motor%20falhando');
+    await expect(band.getByRole('heading')).toHaveText('Problema no motor?');
+    await band.getByRole('link', { name: /solicitar orçamento/i }).click();
+    await expect(page).toHaveURL(/\/orcamento\?servico=motor-revisao$/);
+    await expect(page.getByLabel(/tipo de solicitação/i)).toHaveValue('motor-revisao');
+
+    // busca de produto continua com o contexto de embarcação
+    await page.goto('/produtos?q=lancha');
+    await expect(band.getByRole('heading')).toHaveText('Vamos projetar a sua embarcação?');
+  });
+
   test('orçamento por serviço pré-seleciona o tipo de solicitação', async ({ page }) => {
     await presetConsent(page);
     await page.goto('/orcamento?servico=manutencao');

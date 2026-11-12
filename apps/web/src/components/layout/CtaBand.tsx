@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { WhatsAppCta } from '@/components/ui/WhatsAppCta';
+import { MOTOR_ISSUE_HREF } from '@/data/content';
 
-export type CtaContext = 'embarcacao' | 'motores' | 'estofamento' | 'servicos' | 'geral';
+export type CtaContext =
+  'embarcacao' | 'motores' | 'motor-problema' | 'estofamento' | 'servicos' | 'geral';
 
 const COPY: Record<CtaContext, { title: string; text: string; to: string }> = {
   embarcacao: {
@@ -15,6 +17,12 @@ const COPY: Record<CtaContext, { title: string; text: string; to: string }> = {
     title: 'Procurando um motor de popa?',
     text: 'Conte qual é a sua embarcação e como você navega. A equipe indica a motorização adequada e informa marcas e modelos disponíveis no orçamento.',
     to: '/orcamento?servico=motores&categoria=motores-de-popa',
+  },
+  // UX-33: busca por defeito no motor ("motor falhando") no catálogo
+  'motor-problema': {
+    title: 'Problema no motor?',
+    text: 'Conte o modelo do motor e o que está acontecendo. A equipe confirma se atende o seu caso e retorna pelo telefone informado.',
+    to: MOTOR_ISSUE_HREF,
   },
   estofamento: {
     title: 'Mais conforto a bordo',
