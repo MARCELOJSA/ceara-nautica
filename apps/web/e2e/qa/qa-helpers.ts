@@ -14,8 +14,10 @@ export const QA_MARK = 'QA-TEST';
 
 /** Slugs reais vindos da API (não do catálogo local). */
 export async function productSlugs(request: APIRequestContext): Promise<string[]> {
-  const res = await request.get('/api/products');
-  if (!res.ok()) throw new Error(`GET /api/products → ${res.status()}`);
+  // Em produção a API fica em outra origem (QA_API_URL); localmente, /api via proxy.
+  const api = process.env.QA_API_URL?.replace(/\/$/, '') ?? '/api';
+  const res = await request.get(`${api}/products`);
+  if (!res.ok()) throw new Error(`GET ${api}/products → ${res.status()}`);
   const list = (await res.json()) as { slug: string }[];
   return list.map((p) => p.slug);
 }
