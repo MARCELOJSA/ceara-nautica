@@ -1,7 +1,79 @@
 # UX-REPORT — Site Ceará Náutica
 
-> **Rodada final** (mais recente) logo abaixo, seguida da Rodada 3 e da Rodada 2, mantidas como estavam. A Rodada 1 (nota 7,0) está no histórico do git.
-> Notas: R1 7,0 → R2 7,8 → R3 8,6 → **Final 9,0**.
+> **Validação final (site publicado)** logo abaixo. Em seguida vêm a Rodada final, a Rodada 3 e a Rodada 2, mantidas como estavam. A Rodada 1 (nota 7,0) está no histórico do git.
+> Notas: R1 7,0 → R2 7,8 → R3 8,6 → Final 9,0 → **Publicado 9,1**.
+
+# Validação final (site publicado) — 11–12/11/2026
+
+_AGENT 04 · site https://ceara-nautica-site.onrender.com · API https://ceara-nautica-api.onrender.com (plano grátis)_
+
+## Veredito
+**APROVADO, mantido. Nota 9,1 / 10.**
+- Os quatro itens da Rodada final (UX-27 a UX-30) estão resolvidos no site publicado.
+- A lancha de lazer (7 m) voltou aos destaques da Home sem repetir foto.
+- Em uma resposta lenta do servidor (simulada), o envio mostra a mensagem "Conectando…", trava o botão e termina na tela de sucesso.
+
+Sobrou um ponto médio: **se a pessoa recarregar a página durante a espera, perde tudo o que escreveu sem nenhum aviso** e não sabe se o pedido foi enviado (UX-31). Mais dois detalhes baixos (UX-32 e UX-33). Nada disso impede uma pessoa comum de usar o site.
+
+## Método
+- Navegação com Playwright no **site publicado**, em PC 1366×768 e celular 390×844 e 360×740. Olhei todas as capturas. Console sem erros.
+- Roteiros com o endereço passado por variável, sem localhost fixo:
+  - `apps/web/e2e/ux/final-validacao.mjs`: só navegação; com o argumento `espera`, simula servidor lento sem gravar; com `espera-real`, envia 1 orçamento real.
+  - `apps/web/e2e/ux/final-espera-real.mjs`: abre /contato direto e mede a espera real.
+  - Uso: `BASE_URL=https://ceara-nautica-site.onrender.com node e2e/ux/<roteiro> <pasta> m390`.
+- **Espera simulada:** atrasei em 20 s as respostas de `/api/contact` e `/api/quotes`. O contato teve resposta falsa, sem gravar. O orçamento seguiu para a API real.
+- **Espera real (servidor "dormindo"):** **não consegui pegar**. Esperei 18 min sem usar o site, mas a API respondeu na hora (catálogo em < 2 s, às 04:00 UTC). Outra pessoa ou agente deve ter usado o site nesse intervalo. Também vi que o site "acorda" a API sozinho ao abrir /contato, /orcamento e páginas de produto (`GET /api/health`). Na vida real, o servidor costuma acordar enquanto a pessoa preenche o formulário, e a espera depois de clicar fica menor. Minha tentativa de medir a espera sem criar lead, preenchendo o campo anti-spam, foi barrada pelo próprio formulário antes de enviar. É comportamento correto para robôs; nenhum visitante comum vê esse campo.
+
+### Pedidos reais enviados à produção (apagar)
+| # | Tipo | Nome | Horário do envio |
+|---|---|---|---|
+| 1 | Contato | `UX QA-TEST contato produção` | 2026-11-12 03:37:47 UTC (23:37:47 de 11/11 em Manaus). Resposta 201 em < 1,5 s. |
+| 2 | Orçamento (Lancha de Alumínio 7 m) | `UXF QA-TEST orçamento` | Clique às 2026-11-12 03:41:32 UTC; chegou à API ~03:41:52 UTC por causa do atraso simulado de 20 s. Resposta 201. |
+
+Mais nenhum pedido chegou à produção. Os outros envios tiveram resposta falsa local ou foram barrados no próprio formulário.
+
+## Status dos itens da Rodada final
+
+| ID | Status | Do ponto de vista de quem usa |
+|---|---|---|
+| UX-27 Busca por sintoma | **Resolvido** | "motor falhando" e "motor não liga" mostram "Procura reparo, manutenção ou outro serviço? Veja nossos serviços" e o link **"Problema no motor? Descreva aqui"** com "A equipe confirma se atende o seu caso" (`01-m390-busca-motor-falhando.png`). "barco furado" mostra a dica de serviços, sem o link de motor, o que está correto (`02-m390-busca-barco-furado.png`). |
+| UX-28 Texto pré-escrito contava como descrição | **Resolvido** | A mensagem abre **vazia**, com o roteiro só como exemplo apagado. Enviar sem escrever mostra "Conte o que está acontecendo com o motor." e leva o cursor ao campo (`04-m390-enviar-sem-descrever.png`). |
+| UX-29 Projetos da linha do tempo | **Resolvido** | O nome aparece sublinhado e há um "Ver projeto →" em laranja. Agora parece clicável (`05-m390-sobre-linha-do-tempo.png`). |
+| UX-30 Textos de compra em pedidos de conserto | **Resolvido** | Cada pedido tem título e "Como funciona" próprios. Sem parâmetro: "Solicite seu orçamento". Reparo: "Peça o orçamento do serviço", com o exemplo "casco amassado na proa". Motor com problema: "Problema ou revisão no motor" e "Você descreve o problema" (`03-d1366-orcamento-motor-revisao.png`). Compra de motor: "Orçamento de motor de popa", com o exemplo "procuro motor de uns 25 hp". |
+| Lancha 7 m nos destaques | **Resolvido** | A lancha "Lazer · Pesca · Trabalho · 11 passageiros" voltou aos destaques, e nenhuma foto se repete entre capas e destaques (`06-m390-home-destaques-lancha7.png`). Única repetição: a capa de Semi-chatas é a mesma foto da galeria, bem mais abaixo. É aceitável. |
+
+## A espera "Conectando ao servidor…" vista por uma pessoa comum
+| Momento | O que a pessoa vê | Avaliação |
+|---|---|---|
+| 0–4 s | Botão laranja com ícone girando e "ENVIANDO…", travado. | Claro: dá para ver que algo está acontecendo. |
+| A partir de 4 s | Quadro claro acima do botão: "Conectando ao servidor… isso pode levar alguns segundos na primeira vez. **Não feche a página.**" (`07-m390-espera-conectando.png`). | **Tranquiliza.** A palavra "servidor" é técnica, mas a frase é curta e diz o que fazer. |
+| Clicar de novo | O botão continua travado; o segundo toque é ignorado e nada se duplica (confirmei: 1 envio de cada). | Bom. O botão travado não incomoda, porque está escrito "Enviando…". |
+| ~20 s | A tela de sucesso aparece normalmente, com o número para retorno e "O que acontece agora" (`08-m390-espera-sucesso.png`). | Bom. |
+| **Recarregar no meio** | O navegador **não avisa** que há um envio em andamento. A página volta com o formulário **vazio** (`09-m390-apos-recarregar.png`). | **Ruim.** A pessoa perde o que escreveu e não sabe se o pedido saiu. Ou desiste, ou reenvia e duplica (UX-31). |
+| Espera longa (até ~1 min no servidor dormindo) | O texto continua dizendo "alguns segundos". | Depois de 20–30 s, a promessa de "alguns segundos" pode fazer a pessoa achar que travou (UX-32). |
+
+Com o servidor já acordado, o envio real foi instantâneo: a tela de sucesso apareceu em menos de 1,5 s (`10-m390-contato-real-sucesso.png`).
+
+## Problemas novos
+
+| ID | Prioridade | Onde | O que eu tentava | Problema | Como melhorar | Arquivo provável |
+|---|---|---|---|---|---|---|
+| UX-31 | Média | /orcamento e /contato, durante "Enviando…" | Recarregar ou sair da página porque estava demorando | Não há aviso do navegador. A página volta com o formulário vazio, o texto digitado se perde e a pessoa não sabe se o pedido foi enviado. Isso pode gerar pedidos perdidos ou duplicados no cenário real do servidor dormindo. | Enquanto estiver enviando, ativar o aviso nativo de "sair da página?" (`beforeunload`). Guardar o rascunho no `sessionStorage` e, ao voltar, restaurá-lo com o aviso "Seu último envio pode não ter sido concluído. Confira os dados e envie de novo, se precisar". | `apps/web/src/components/forms/useLeadSubmit.ts`, `QuoteForm.tsx`, `ContactForm.tsx` |
+| UX-32 | Baixa | Aviso "Conectando…" | Esperar mais de 20 s | "Alguns segundos" não combina com a espera real de até ~1 min, e a pessoa pode achar que travou. | Depois de ~20 s, trocar para "Ainda conectando… pode levar até 1 minuto na primeira vez. Seu pedido não se perdeu, aguarde." Opcional: trocar "servidor" por "sistema". | `apps/web/src/components/forms/FormFeedback.tsx`, `useLeadSubmit.ts` |
+| UX-33 | Baixa | /produtos, faixa no fim da página após uma busca de serviço com 0 resultados | Buscar "barco furado" e tocar no botão da faixa final | A faixa continua dizendo **"Vamos projetar a sua embarcação?"**, e o botão "Solicitar orçamento" abre o pedido como **Nova embarcação** (`?servico=fabricacao`), quando a pessoa procurava conserto. | Quando a busca parecer serviço (a mesma regra que já mostra a dica), usar o contexto "servicos" da faixa ("Precisa de um serviço?" → `/orcamento`) ou levar a `?servico=reparos`. | `apps/web/src/pages/Products.tsx` (contexto da `CtaBand`), `apps/web/src/components/layout/CtaBand.tsx` |
+
+## Nota
+| Critério | Final | Publicado |
+|---|---|---|
+| Navegação PC e celular | 9,2 | 9,2 |
+| Clareza / conteúdo | 9,0 | 9,2 (títulos de orçamento por tipo) |
+| Encontrar produto ou serviço | 9,0 | 9,3 (busca por sintoma) |
+| Formulários / contato | 9,3 | 9,2 (perde dados ao recarregar na espera) |
+| Qualidade visual | 8,7 | 8,7 (fotos ilustrativas) |
+| Confiança | 7,8 | 7,8 (depende da empresa) |
+| **Geral** | **9,0** | **9,1 / 10** |
+
+---
 
 # Rodada final — 10/11/2026
 
