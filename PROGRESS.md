@@ -138,6 +138,12 @@ vm22.23.4` (checksum oficial conferido), sem trocar o Node do sistema. O projet
 - **Pendente:** confirmar com outra rede (4G) que visitantes diferentes não somam no mesmo limite (`TRUST_PROXY=3`).
 - **Atenção:** o repositório no GitHub aparece como **público** no Render. Não há segredos nele; se preferir privado, mude em GitHub → Settings → Danger Zone (o Render continua com acesso pelo app do GitHub).
 
+## Validação final no site publicado (2026-11-12)
+
+- **Usuário final:** APROVADO, **nota 9,1** (o ciclo começou em 7,0). UX-27 a UX-30 resolvidos no site real. Os 2 pedidos de teste dele foram apagados pelo editor SQL do Neon.
+- **Desenvolvedor 2:** `63a030e` envio não quebra com o armazenamento do navegador bloqueado (achado nos testes); `df20ab1` UX-31 (confirmação ao sair durante o envio, rascunho restaurado sem o consentimento, aviso de envio interrompido), UX-32 ("pode levar até 1 minuto" após 20 s), UX-33 (faixa do catálogo leva ao orçamento de serviço).
+- **Verificação:** site 176/176, Playwright 69/69; republicação automática conferida no site (texto do UX-32 já no ar, API ok).
+
 ## Pendências
 
 - [x] Rodada 1 de testes
