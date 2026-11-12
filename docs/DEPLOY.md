@@ -10,6 +10,25 @@ Tudo o que é técnico já está pronto no repositório. Falta só o que exige *
 | API (recebe os pedidos) | Render, plano Free  | grátis (dorme após 15 min sem uso; o site já sabe lidar com isso) |
 | Site                    | Render, Static Site | grátis                                                            |
 
+## Situação: publicado em 2026-11-11
+
+|       | Endereço                                                                          |
+| ----- | --------------------------------------------------------------------------------- |
+| Site  | https://ceara-nautica-site.onrender.com                                           |
+| API   | https://ceara-nautica-api.onrender.com/api/health                                 |
+| Banco | Neon, projeto `ceara-nautica`, branch `production` (PostgreSQL 16, AWS US East 1) |
+
+Os passos 1 a 4 abaixo já foram feitos. Conferência pós-publicação:
+
+- **Migrações e catálogo:** 3 migrações aplicadas no Neon; catálogo carregado com 6 categorias e 11 produtos.
+- **Conexão com o banco:** o Neon recusa conexão sem SSL, então a ligação da API com ele é sempre criptografada.
+- **Cabeçalhos de segurança (SEC-04):** `headers.qa.ts` 5/5 no domínio publicado.
+- **Página publicada:** 21 páginas e interações, inclusive um envio real de orçamento, com **zero** violações de CSP e zero erros de console.
+- **Links e layout:** links, imagens, console e layout de 360 a 1920 px, 26/26.
+- **Pedidos e CORS:** o pedido de teste chegou ao Neon e foi apagado; o banco de produção começou com 0 leads. O CORS aceita só o site.
+- **`TRUST_PROXY=3`:** 6 envios com `X-Forwarded-For` falso diferente → o 6º dá 429, então não dá para burlar o limite forjando o IP. **Ainda não verificado:** que visitantes de redes diferentes não sejam somados no mesmo limite. Teste: enviar um pedido pelo celular no 4G logo depois de 5 envios feitos no computador.
+- **Atualizações:** cada commit enviado à branch `main` publica de novo o site e a API automaticamente (Blueprint sincronizado).
+
 ## 1. Banco de dados (Neon)
 
 1. Entre em **neon.com** → **Sign up** → **Continue with GitHub** (use a conta `MARCELOJSA`).

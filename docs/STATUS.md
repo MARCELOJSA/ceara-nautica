@@ -22,6 +22,8 @@ _Atualizado: 2026-11-10 (fim do ciclo de testes)_
 - [x] Ciclo autônomo dev → QA → UX (2026-11-10): UX aprovado com nota 9,0, QA aprovado tecnicamente; detalhes em `PROGRESS.md`, `docs/QA-REPORT.md` e `docs/UX-REPORT.md`
 - [x] Banco de dados: análise e decisão em `docs/DATABASE.md` (PostgreSQL + Prisma; Neon em produção); SSL obrigatório em produção; `db:backup`/`db:restore`
 
+- [x] **Publicado em 2026-11-11:** site https://ceara-nautica-site.onrender.com · API https://ceara-nautica-api.onrender.com · banco Neon (ver `docs/DEPLOY.md`)
+
 ## Pendências que dependem da empresa (não inventar)
 | Item | Onde configurar |
 |---|---|

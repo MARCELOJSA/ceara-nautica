@@ -130,6 +130,14 @@ vm22.23.4` (checksum oficial conferido), sem trocar o Node do sistema. O projet
 - **QA, simulação de produção:** **aprovado para publicar**. 0 violações de CSP, CORS correto, nenhum pedido perdido com a API dormindo (25 s). Achou o QA-14 (o despertar deixava a requisição aberta e a página nunca ficava com a rede ociosa), corrigido pelo orquestrador: páginas ociosas em ~0,6 s; QA completa 135/135 sem contorno.
 - **Guia:** [docs/DEPLOY.md](docs/DEPLOY.md), passo a passo de ~15 min para o dono criar as contas no Neon e no Render, carregar o catálogo e conferir.
 
+## Publicação real (2026-11-11)
+
+- **Neon:** projeto `ceara-nautica` (criado pelo dono), branch `production`, PostgreSQL 16.15, AWS US East 1. O orquestrador aplicou as 3 migrações e o seed (6 categorias, 11 produtos) e provou que o Neon recusa conexão sem SSL.
+- **Render:** Blueprint `ceara-nautica` aplicado a partir do commit `0c13f39`. Endereços sem sufixo, como no `render.yaml`: https://ceara-nautica-site.onrender.com e https://ceara-nautica-api.onrender.com.
+- **Conferência:** health ok com o banco; headers 5/5; 0 violações de CSP em 21 páginas; links, console e layout 26/26; envio real de orçamento 201 gravado no Neon (e apagado); CORS correto; limite de envios não é burlado com `X-Forwarded-For` falso.
+- **Pendente:** confirmar com outra rede (4G) que visitantes diferentes não somam no mesmo limite (`TRUST_PROXY=3`).
+- **Atenção:** o repositório no GitHub aparece como **público** no Render. Não há segredos nele; se preferir privado, mude em GitHub → Settings → Danger Zone (o Render continua com acesso pelo app do GitHub).
+
 ## Pendências
 
 - [x] Rodada 1 de testes
@@ -141,5 +149,5 @@ vm22.23.4` (checksum oficial conferido), sem trocar o Node do sistema. O projet
 - [x] SEC-04: headers configurados no render.yaml e validados na simulação (conferir no domínio publicado)
 - [ ] B7: manchete da página inicial (decisão do cliente)
 - [ ] Migração para Prisma 7 (SEC-13). Não está mais bloqueada pelo ambiente (o `npm run typecheck` completo passa desde o reinício)
-- [ ] Produção: o dono cria as contas no Neon e no Render e segue o docs/DEPLOY.md (tudo técnico pronto)
+- [x] Produção publicada em 2026-11-11 (Neon + Render), conferida
 - [x] Repositório no GitHub configurado: https://github.com/MARCELOJSA/ceara-nautica (privado)
