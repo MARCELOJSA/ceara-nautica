@@ -39,7 +39,14 @@ function safeStorage(): Storage | null {
  * Se a URL atual trouxer novos parâmetros de campanha, eles são registrados.
  */
 export function captureUtm(loc: Location = window.location, referrer = document.referrer): void {
-  const store = safeStorage();
+  try {
+    captureInto(safeStorage(), loc, referrer);
+  } catch {
+    /* storage bloqueado ou cheio: segue sem atribuição */
+  }
+}
+
+function captureInto(store: Storage | null, loc: Location, referrer: string): void {
   if (!store) return;
   const params = new URLSearchParams(loc.search);
   const hasCampaign = PARAMS.some((p) => params.get(p));
@@ -59,9 +66,10 @@ export function captureUtm(loc: Location = window.location, referrer = document.
 
 /** Dados de atribuição para anexar aos formulários (formato do utmSchema). */
 export function getUtm(): UtmRecord | undefined {
-  const raw = safeStorage()?.getItem(KEY);
-  if (!raw) return undefined;
   try {
+    // getItem também pode lançar (storage bloqueado): o envio segue sem UTM
+    const raw = safeStorage()?.getItem(KEY);
+    if (!raw) return undefined;
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const out: UtmRecord = {};
     for (const key of Object.keys(LIMITS) as (keyof UtmRecord)[]) {
